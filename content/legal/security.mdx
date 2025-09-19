@@ -1,0 +1,32 @@
+---
+title: Security Overview
+summary: The controls and practices used to protect this site and its data.
+---
+
+# Security Overview
+
+This site follows a security‑first approach using modern managed services and conservative defaults.
+
+## Platform controls
+
+- Supabase row‑level security (RLS) and service‑role separation for admin operations.
+- Private Supabase Storage for sensitive assets (resumes) with short‑lived signed URLs.
+- Strict Content Security Policy and transport security headers.
+- Least privilege for environment credentials, stored and rotated via Doppler.
+
+## Application controls
+
+- Server actions with authentication guards for all admin mutations.
+- Cloudflare Turnstile on contact submissions to reduce spam and abuse potential.
+- Event logging for key actions (e.g., signed URL generation) to aid incident response.
+
+## Data lifecycle
+
+- Contact requests retained up to 24 months, then archived.
+- Event logs retained up to 12 months.
+- No persistent cookies beyond those required by Supabase auth.
+
+## Responsible disclosure
+
+If you believe you have found a vulnerability, please report it via the contact page with steps to reproduce. I’ll acknowledge receipt and follow up with remediation details.
+

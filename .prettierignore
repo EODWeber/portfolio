@@ -1,0 +1,12 @@
+node_modules
+.next
+out
+coverage
+dist
+public
+pnpm-lock.yaml
+
+.contentlayer
+
+# documentation
+.docs/TECHSPEC.md
