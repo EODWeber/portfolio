@@ -1,0 +1,22 @@
+# V2 Completion Checklist
+
+- Analytics
+  - [x] Summary by event type (no PostgREST group usage)
+  - [x] Recent 20 events preview and JSON export
+- Contact form
+  - [x] Turnstile widget on client and server verification
+  - [x] Dev-mode disable flags for Turnstile
+  - [x] Resend notification via REST API (no SDK peer deps)
+  - [x] Supabase persistence + event log
+- Admin
+  - [x] Articles bulk import (JSON)
+  - [x] Projects/Case Studies/Resumes import actions use void return + throw on errors
+  - [x] Contact inbox filters + CSV export
+- Documentation
+  - [x] INTEGRATIONS.md with Turnstile/Resend/Supabase events
+  - [x] ADMIN_V2.md with implemented/next-up
+  - [x] DOPPLER.md with env keys reference
+  - [x] TURNSTILE.md with dev/test notes
+- Tests
+  - [x] Contact form tests
+  - [x] Import parsers tests (CSV and key/value helpers)
