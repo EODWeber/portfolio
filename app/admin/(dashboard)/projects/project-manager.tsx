@@ -9,16 +9,74 @@ import { Textarea } from "@/components/ui/textarea";
 import type { Project } from "@/lib/supabase/types";
 
 import { deleteProject, importProjects, upsertProject, toggleProjectFeatured } from "./actions";
+import { Modal } from "@/components/admin/modal";
 
 const FORM_GRID = "grid gap-3 md:grid-cols-2";
 
+type SortKey = "title" | "slug" | "vertical" | "status" | "featured" | "updated";
+type SortDirection = "asc" | "desc";
+const VERTICAL_OPTIONS = ["ai-security", "secure-devops", "soc"] as const;
+type VerticalFilter = (typeof VERTICAL_OPTIONS)[number] | "all";
+type StatusFilter = "all" | "draft" | "published";
+
 export function ProjectManager({ projects, status }: { projects: Project[]; status?: string }) {
   const [selectedId, setSelectedId] = useState<string>("");
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [verticalFilter, setVerticalFilter] = useState<VerticalFilter>("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection }>({ key: "title", direction: "asc" });
 
   const selected = useMemo(
     () => projects.find((project) => project.id === selectedId),
     [projects, selectedId],
   );
+
+  const list = useMemo(() => {
+    const filtered = projects
+      .filter((project) =>
+        query
+          ? [project.title, project.slug, project.vertical, ...(project.tags ?? []), ...(project.tech_stack ?? [])]
+              .join(" ")
+              .toLowerCase()
+              .includes(query.toLowerCase())
+          : true,
+      )
+      .filter((project) => (verticalFilter === "all" ? true : project.vertical === verticalFilter))
+      .filter((project) => (statusFilter === "all" ? true : project.status === statusFilter));
+
+    const direction = sort.direction === "asc" ? 1 : -1;
+    return filtered.sort((a, b) => {
+      switch (sort.key) {
+        case "title":
+          return a.title.localeCompare(b.title) * direction;
+        case "slug":
+          return a.slug.localeCompare(b.slug) * direction;
+        case "vertical":
+          return a.vertical.localeCompare(b.vertical) * direction;
+        case "status":
+          return a.status.localeCompare(b.status) * direction;
+        case "featured":
+          if (a.featured === b.featured) return 0;
+          return (a.featured ? -1 : 1) * direction;
+        case "updated":
+          return (new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()) * direction;
+        default:
+          return 0;
+      }
+    });
+  }, [projects, query, verticalFilter, statusFilter, sort]);
+
+  const toggleSort = (key: SortKey) => {
+    setSort((prev) =>
+      prev.key === key ? { key, direction: prev.direction === "asc" ? "desc" : "asc" } : { key, direction: "asc" },
+    );
+  };
+
+  const indicator = (key: SortKey) => {
+    if (sort.key !== key) return null;
+    return sort.direction === "asc" ? "↑" : "↓";
+  };
 
   const copyExport = async () => {
     try {
@@ -38,13 +96,36 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
               Manage portfolio entries backing the public portfolio and vertical pages.
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <input
+          <div className="flex flex-wrap items-center gap-3">
+            <Input
               placeholder="Search title, slug, tag..."
-              className="w-64 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              onChange={(e) => setSelectedId(e.target.value)}
-              style={{ display: "none" }}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              className="w-64"
             />
+            <select
+              aria-label="Filter by vertical"
+              value={verticalFilter}
+              onChange={(event) => setVerticalFilter(event.target.value as VerticalFilter)}
+              className="border-input bg-background focus:ring-ring rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+            >
+              <option value="all">All verticals</option>
+              {VERTICAL_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <select
+              aria-label="Filter by status"
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
+              className="border-input bg-background focus:ring-ring rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+            >
+              <option value="all">All statuses</option>
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+            </select>
             <Button size="sm" onClick={() => { setSelectedId(""); setOpen(true); }}>Add project</Button>
           </div>
         </div>
@@ -72,29 +153,70 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
             <table className="w-full text-left text-sm">
               <thead className="sticky top-0 bg-muted/40">
                 <tr className="border-b">
-                  <th className="px-3 py-2">Title</th>
-                  <th className="px-3 py-2">Slug</th>
-                  <th className="px-3 py-2">Vertical</th>
-                  <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2">Featured</th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("title")}>
+                      Title {indicator("title")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("slug")}>
+                      Slug {indicator("slug")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("vertical")}>
+                      Vertical {indicator("vertical")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("status")}>
+                      Status {indicator("status")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("featured")}>
+                      Featured {indicator("featured")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("updated")}>
+                      Updated {indicator("updated")}
+                    </button>
+                  </th>
                   <th className="px-3 py-2">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {projects.map((p) => (
+                {list.map((p) => (
                   <tr key={p.id} className="border-b last:border-0">
                     <td className="px-3 py-2">{p.title}</td>
                     <td className="px-3 py-2">{p.slug}</td>
                     <td className="px-3 py-2">{p.vertical}</td>
                     <td className="px-3 py-2 capitalize">{p.status}</td>
                     <td className="px-3 py-2">
-                      <form action={toggleProjectFeatured}>
-                        <input type="hidden" name="id" value={p.id} />
-                        <Button size="sm" variant={p.featured ? "default" : "outline"}>{p.featured ? "Featured" : "Feature"}</Button>
-                      </form>
+                      <div className="flex flex-wrap gap-2">
+                        <form action={toggleProjectFeatured}>
+                          <input type="hidden" name="id" value={p.id} />
+                          <Button size="sm" variant={p.featured ? "default" : "outline"}>
+                            {p.featured ? "Featured" : "Feature"}
+                          </Button>
+                        </form>
+                      </div>
                     </td>
+                    <td className="px-3 py-2 whitespace-nowrap">{new Date(p.updated_at).toLocaleString()}</td>
                     <td className="px-3 py-2">
-                      <Button size="sm" variant="outline" onClick={() => { setSelectedId(p.id); setOpen(true); }}>Edit</Button>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedId(p.id);
+                            setOpen(true);
+                          }}
+                        >
+                          Edit
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -104,7 +226,14 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
         </CardContent>
       </Card>
 
-      <Modal open={open} onClose={() => setOpen(false)} title={selected ? "Edit project" : "Add project"}>
+      <Modal
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          setSelectedId("");
+        }}
+        title={selected ? "Edit project" : "Add project"}
+      >
         <form key={selected?.id ?? "create"} action={upsertProject} className={FORM_GRID}>
             <input type="hidden" name="id" value={selected?.id ?? ""} />
             <div className="space-y-2 md:col-span-2">
@@ -214,12 +343,19 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
               <input id="featured" name="featured" type="checkbox" defaultChecked={selected?.featured ?? false} />
               <label htmlFor="featured" className="text-sm font-medium">Featured (max 6)</label>
             </div>
-            <div className="flex justify-end gap-2 md:col-span-2">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" onClick={() => setOpen(false)}>{selected ? "Save project" : "Create project"}</Button>
-            </div>
+             <div className="flex justify-end gap-2 md:col-span-2">
+               <Button
+                 type="button"
+                 variant="outline"
+                 onClick={() => {
+                   setOpen(false);
+                   setSelectedId("");
+                 }}
+               >
+                 Cancel
+               </Button>
+               <Button type="submit" onClick={() => setOpen(false)}>{selected ? "Save project" : "Create project"}</Button>
+             </div>
           </form>
           {selected ? (
             <form action={deleteProject} className="flex justify-between pt-3" onSubmit={(e) => { if (!confirm("Delete this project?")) e.preventDefault(); }}>

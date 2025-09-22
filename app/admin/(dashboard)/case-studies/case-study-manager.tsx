@@ -9,8 +9,14 @@ import { Textarea } from "@/components/ui/textarea";
 import type { CaseStudy, MdxDocument } from "@/lib/supabase/types";
 
 import { deleteCaseStudy, importCaseStudies, upsertCaseStudy } from "./actions";
+import { Modal } from "@/components/admin/modal";
 
 const FORM_GRID = "grid gap-3 md:grid-cols-2";
+type SortKey = "title" | "slug" | "vertical" | "status" | "featured" | "updated";
+type SortDirection = "asc" | "desc";
+const VERTICAL_OPTIONS = ["ai-security", "secure-devops", "soc"] as const;
+type VerticalFilter = (typeof VERTICAL_OPTIONS)[number] | "all";
+type StatusFilter = "all" | "draft" | "published";
 
 export function CaseStudyManager({
   caseStudies,
@@ -22,11 +28,63 @@ export function CaseStudyManager({
   status?: string;
 }) {
   const [selectedId, setSelectedId] = useState<string>("");
+  const [open, setOpen] = useState(false);
   const [mdxFilter, setMdxFilter] = useState("");
+  const [query, setQuery] = useState("");
+  const [verticalFilter, setVerticalFilter] = useState<VerticalFilter>("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection }>({ key: "updated", direction: "desc" });
+
   const selected = useMemo(
     () => caseStudies.find((study) => study.id === selectedId),
     [caseStudies, selectedId],
   );
+
+  const list = useMemo(() => {
+    const filtered = caseStudies
+      .filter((study) =>
+        query
+          ? [study.title, study.slug, study.vertical, ...(study.tags ?? [])]
+              .join(" ")
+              .toLowerCase()
+              .includes(query.toLowerCase())
+          : true,
+      )
+      .filter((study) => (verticalFilter === "all" ? true : study.vertical === verticalFilter))
+      .filter((study) => (statusFilter === "all" ? true : study.status === statusFilter));
+
+    const direction = sort.direction === "asc" ? 1 : -1;
+    return filtered.sort((a, b) => {
+      switch (sort.key) {
+        case "title":
+          return a.title.localeCompare(b.title) * direction;
+        case "slug":
+          return a.slug.localeCompare(b.slug) * direction;
+        case "vertical":
+          return a.vertical.localeCompare(b.vertical) * direction;
+        case "status":
+          return a.status.localeCompare(b.status) * direction;
+        case "featured":
+          if (a.featured === b.featured) return 0;
+          return (a.featured ? -1 : 1) * direction;
+        case "updated":
+          return (new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()) * direction;
+        default:
+          return 0;
+      }
+    });
+  }, [caseStudies, query, verticalFilter, statusFilter, sort]);
+
+  const toggleSort = (key: SortKey) => {
+    setSort((prev) =>
+      prev.key === key ? { key, direction: prev.direction === "asc" ? "desc" : "asc" } : { key, direction: "asc" },
+    );
+  };
+
+  const indicator = (key: SortKey) => {
+    if (sort.key !== key) return null;
+    return sort.direction === "asc" ? "↑" : "↓";
+  };
 
   const copyExport = async () => {
     try {
@@ -43,27 +101,48 @@ export function CaseStudyManager({
           <div>
             <h1 className="text-3xl font-semibold">Case studies</h1>
             <p className="text-muted-foreground text-sm">
-              Manage long-form narratives that power the case studies section and related project
-              cross-links.
+              Manage long-form narratives that power the case studies section and related project cross-links.
             </p>
           </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <label className="text-sm font-medium" htmlFor="case-study-selector">
-            Select existing study
-          </label>
-          <select
-              id="case-study-selector"
-              value={selectedId}
-              onChange={(event) => setSelectedId(event.target.value)}
-              className="border-input bg-background focus:ring-ring w-64 rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+          <div className="flex flex-wrap items-center gap-3">
+            <Input
+              placeholder="Search title, slug, tag..."
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              className="w-64"
+            />
+            <select
+              aria-label="Filter by vertical"
+              value={verticalFilter}
+              onChange={(event) => setVerticalFilter(event.target.value as VerticalFilter)}
+              className="border-input bg-background focus:ring-ring rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
             >
-              <option value="">Create new case study…</option>
-              {caseStudies.map((study) => (
-                <option key={study.id} value={study.id}>
-                  {study.title}
+              <option value="all">All verticals</option>
+              {VERTICAL_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
                 </option>
               ))}
             </select>
+            <select
+              aria-label="Filter by status"
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
+              className="border-input bg-background focus:ring-ring rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+            >
+              <option value="all">All statuses</option>
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+            </select>
+            <Button
+              size="sm"
+              onClick={() => {
+                setSelectedId("");
+                setOpen(true);
+              }}
+            >
+              Add case study
+            </Button>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -82,143 +161,225 @@ export function CaseStudyManager({
 
       <Card>
         <CardHeader>
-          <CardTitle>{selected ? "Edit case study" : "Add case study"}</CardTitle>
-          <CardDescription>Manage metadata and content body below.</CardDescription>
+          <CardTitle>Case studies</CardTitle>
+          <CardDescription>Click edit to update metadata or linked MDX.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <form key={selected?.id ?? "create"} action={upsertCaseStudy} className={FORM_GRID}>
-            <input type="hidden" name="id" value={selected?.id ?? ""} />
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium" htmlFor="title">
-                Title
-              </label>
-              <Input id="title" name="title" defaultValue={selected?.title ?? ""} required />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium" htmlFor="hero_image">Cover image</label>
-              <input id="hero_image" name="hero_image" type="file" accept="image/*" className="text-sm" />
-              {selected?.hero_url ? (
-                <p className="text-xs text-muted-foreground">Current: {selected.hero_url}</p>
-              ) : null}
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="slug">
-                Slug
-              </label>
-              <Input id="slug" name="slug" defaultValue={selected?.slug ?? ""} required />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="vertical">
-                Vertical
-              </label>
-              <select
-                id="vertical"
-                name="vertical"
-                defaultValue={selected?.vertical ?? "ai-security"}
-                className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
-              >
-                <option value="ai-security">AI Security</option>
-                <option value="secure-devops">Secure DevOps</option>
-                <option value="soc">SOC</option>
-              </select>
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium" htmlFor="summary">
-                Summary
-              </label>
-              <Textarea
-                id="summary"
-                name="summary"
-                defaultValue={selected?.summary ?? ""}
-                rows={3}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="tags">
-                Tags (comma separated)
-              </label>
-              <Input
-                id="tags"
-                name="tags"
-                defaultValue={selected ? selected.tags.join(", ") : ""}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="hero_url">
-                Hero image URL
-              </label>
-              <Input id="hero_url" name="hero_url" defaultValue={selected?.hero_url ?? ""} />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium" htmlFor="body_path">Body path (managed)</label>
-              <Input id="body_path" name="body_path" defaultValue={selected?.body_path ?? ""} readOnly disabled />
-              <p className="text-xs text-muted-foreground">Set automatically when creating or linking an MDX document.</p>
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium" htmlFor="mdx_content">Content (MDX)</label>
-              <Textarea id="mdx_content" name="mdx_content" rows={10} placeholder={selected?.body_path ? "Leave blank to keep existing MDX; paste to replace" : "Write case study in MDX here"} />
-              <p className="text-xs text-muted-foreground">On save, a doc will be created at case-studies/&lt;slug&gt;.mdx if not present, or updated if it exists.</p>
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium" htmlFor="link_key">Link existing MDX</label>
-              <Input placeholder="Quick filter..." value={mdxFilter} onChange={(e) => setMdxFilter(e.target.value)} />
-              <select id="link_key" name="link_key" defaultValue="" className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2">
-                <option value="">— Select available document —</option>
-                {availableDocs.filter((d) => d.key.toLowerCase().includes(mdxFilter.toLowerCase())).map((doc) => (
-                  <option key={doc.id} value={doc.key}>{doc.key}</option>
+        <CardContent>
+          <div className="max-h-[60vh] overflow-auto rounded-md border">
+            <table className="w-full text-left text-sm">
+              <thead className="sticky top-0 bg-muted/40">
+                <tr className="border-b">
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("title")}>
+                      Title {indicator("title")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("slug")}>
+                      Slug {indicator("slug")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("vertical")}>
+                      Vertical {indicator("vertical")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("status")}>
+                      Status {indicator("status")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("featured")}>
+                      Featured {indicator("featured")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("updated")}>
+                      Updated {indicator("updated")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {list.map((study) => (
+                  <tr key={study.id} className="border-b last:border-0">
+                    <td className="px-3 py-2">{study.title}</td>
+                    <td className="px-3 py-2">{study.slug}</td>
+                    <td className="px-3 py-2">{study.vertical}</td>
+                    <td className="px-3 py-2 capitalize">{study.status}</td>
+                    <td className="px-3 py-2">{study.featured ? "Yes" : "No"}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">{new Date(study.updated_at).toLocaleString()}</td>
+                    <td className="px-3 py-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedId(study.id);
+                          setOpen(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    </td>
+                  </tr>
                 ))}
-              </select>
-              <p className="text-xs text-muted-foreground">Only unlinked documents are listed. Linking ignores the Content field.</p>
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium" htmlFor="metrics">
-                Metrics (one per line: Metric|Value)
-              </label>
-              <Textarea
-                id="metrics"
-                name="metrics"
-                defaultValue={formatMetrics(selected)}
-                rows={4}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="status">
-                Status
-              </label>
-              <select
-                id="status"
-                name="status"
-                defaultValue={selected?.status ?? "draft"}
-                className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
-              >
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-              </select>
-            </div>
-            <div className="flex items-center gap-2 md:col-span-2">
-              <input id="featured" name="featured" type="checkbox" defaultChecked={selected?.featured ?? false} />
-              <label htmlFor="featured" className="text-sm font-medium">Featured (max 6)</label>
-            </div>
-            <div className="flex justify-end gap-2 md:col-span-2">
-              {selected ? (
-                <Button type="button" variant="outline" onClick={() => setSelectedId("")}>
-                  Clear selection
-                </Button>
-              ) : null}
-              <Button type="submit">{selected ? "Save case study" : "Create case study"}</Button>
-            </div>
-          </form>
-          {selected ? (
-            <form action={deleteCaseStudy} className="flex justify-end">
-              <input type="hidden" name="id" value={selected.id} />
-              <Button variant="destructive" type="submit">
-                Delete case study
-              </Button>
-            </form>
-          ) : null}
+              </tbody>
+            </table>
+          </div>
         </CardContent>
       </Card>
+
+      <Modal
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          setSelectedId("");
+        }}
+        title={selected ? "Edit case study" : "Add case study"}
+      >
+        <form key={selected?.id ?? "create"} action={upsertCaseStudy} className={FORM_GRID}>
+          <input type="hidden" name="id" value={selected?.id ?? ""} />
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium" htmlFor="title">
+              Title
+            </label>
+            <Input id="title" name="title" defaultValue={selected?.title ?? ""} required />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium" htmlFor="hero_image">Cover image</label>
+            <input id="hero_image" name="hero_image" type="file" accept="image/*" className="text-sm" />
+            {selected?.hero_url ? <p className="text-xs text-muted-foreground">Current: {selected.hero_url}</p> : null}
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="slug">
+              Slug
+            </label>
+            <Input id="slug" name="slug" defaultValue={selected?.slug ?? ""} required />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="vertical">
+              Vertical
+            </label>
+            <select
+              id="vertical"
+              name="vertical"
+              defaultValue={selected?.vertical ?? "ai-security"}
+              className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+            >
+              {VERTICAL_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium" htmlFor="summary">
+              Summary
+            </label>
+            <Textarea id="summary" name="summary" defaultValue={selected?.summary ?? ""} rows={3} required />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="tags">
+              Tags (comma separated)
+            </label>
+            <Input id="tags" name="tags" defaultValue={selected ? selected.tags.join(", ") : ""} />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="hero_url">
+              Hero image URL
+            </label>
+            <Input id="hero_url" name="hero_url" defaultValue={selected?.hero_url ?? ""} />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium" htmlFor="body_path">Body path (managed)</label>
+            <Input id="body_path" name="body_path" defaultValue={selected?.body_path ?? ""} readOnly disabled />
+            <p className="text-xs text-muted-foreground">Set automatically when creating or linking an MDX document.</p>
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium" htmlFor="mdx_content">Content (MDX)</label>
+            <Textarea
+              id="mdx_content"
+              name="mdx_content"
+              rows={10}
+              placeholder={selected?.body_path ? "Leave blank to keep existing MDX; paste to replace" : "Write case study in MDX here"}
+            />
+            <p className="text-xs text-muted-foreground">
+              On save, a doc will be created at case-studies/&lt;slug&gt;.mdx if not present, or updated if it exists.
+            </p>
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium" htmlFor="link_key">Link existing MDX</label>
+            <Input placeholder="Quick filter..." value={mdxFilter} onChange={(e) => setMdxFilter(e.target.value)} />
+            <select
+              id="link_key"
+              name="link_key"
+              defaultValue=""
+              className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+            >
+              <option value="">— Select available document —</option>
+              {availableDocs
+                .filter((d) => d.key.toLowerCase().includes(mdxFilter.toLowerCase()))
+                .map((doc) => (
+                  <option key={doc.id} value={doc.key}>
+                    {doc.key}
+                  </option>
+                ))}
+            </select>
+            <p className="text-xs text-muted-foreground">Only unlinked documents are listed. Linking ignores the Content field.</p>
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium" htmlFor="metrics">
+              Metrics (one per line: Metric|Value)
+            </label>
+            <Textarea id="metrics" name="metrics" defaultValue={formatMetrics(selected)} rows={4} />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="status">
+              Status
+            </label>
+            <select
+              id="status"
+              name="status"
+              defaultValue={selected?.status ?? "draft"}
+              className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+            >
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2 md:col-span-2">
+            <input id="featured" name="featured" type="checkbox" defaultChecked={selected?.featured ?? false} />
+            <label htmlFor="featured" className="text-sm font-medium">Featured (max 6)</label>
+          </div>
+          <div className="flex justify-end gap-2 md:col-span-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setOpen(false);
+                setSelectedId("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" onClick={() => setOpen(false)}>
+              {selected ? "Save case study" : "Create case study"}
+            </Button>
+          </div>
+        </form>
+        {selected ? (
+          <form action={deleteCaseStudy} className="mt-4 flex justify-between">
+            <input type="hidden" name="id" value={selected.id} />
+            <Button variant="destructive" type="submit">
+              Delete case study
+            </Button>
+            <span />
+          </form>
+        ) : null}
+      </Modal>
 
       <Card>
         <CardHeader>
