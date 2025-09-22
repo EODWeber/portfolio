@@ -7,11 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Modal } from "@/components/admin/modal";
 import type { SocialPost } from "@/lib/supabase/types";
 
 import { deleteSocialPost, toggleSocialPostFeatured, upsertSocialPost } from "./actions";
-import { Modal } from "@/components/admin/modal";
 
 type SortKey = "title" | "platform" | "posted" | "featured" | "updated";
 type SortDirection = "asc" | "desc";
@@ -34,6 +32,8 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
   const [selectedId, setSelectedId] = useState<string>("");
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [platformFilter, setPlatformFilter] = useState<string>("all");
+  const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection }>({ key: "posted", direction: "desc" });
 
   const selected = useMemo(() => posts.find((post) => post.id === selectedId) ?? null, [posts, selectedId]);
 
@@ -41,8 +41,9 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
     const term = query.trim().toLowerCase();
     if (!term) return posts;
     return posts.filter((post) =>
-      [post.title, post.platform, post.summary ?? "", post.url]
-        .some((value) => value.toLowerCase().includes(term)),
+      [post.title, post.platform, post.summary ?? "", post.url].some((value) =>
+        value.toLowerCase().includes(term),
+      ),
     );
   }, [posts, query]);
 
@@ -59,36 +60,34 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
   const platforms = useMemo(() => Array.from(new Set(posts.map((post) => post.platform))).sort(), [posts]);
 
   const list = useMemo(() => {
-    const filtered = posts
-      .filter((post) =>
-        query
-          ? [post.title, post.platform, post.summary ?? "", post.url]
-            .join(" ")
-            .toLowerCase()
-            .includes(query.toLowerCase())
-          : true,
-      )
-      .filter((post) => (platformFilter === "all" ? true : post.platform === platformFilter));
-
+    const items = filtered.filter((post) =>
+      platformFilter === "all" ? true : post.platform === platformFilter,
+    );
     const direction = sort.direction === "asc" ? 1 : -1;
-    return filtered.sort((a, b) => {
+    return items.sort((a, b) => {
       switch (sort.key) {
         case "title":
           return a.title.localeCompare(b.title) * direction;
         case "platform":
           return a.platform.localeCompare(b.platform) * direction;
         case "posted":
-          return (new Date(a.posted_at).getTime() - new Date(b.posted_at).getTime()) * direction;
-        case "featured":
-          if (a.featured === b.featured) return 0;
-          return (a.featured ? -1 : 1) * direction;
+          return (
+            new Date(a.posted_at).getTime() - new Date(b.posted_at).getTime()
+          ) * direction;
+        case "featured": {
+          const af = a.featured ? 1 : 0;
+          const bf = b.featured ? 1 : 0;
+          return (af - bf) * direction;
+        }
         case "updated":
-          return (new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()) * direction;
+          return (
+            new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()
+          ) * direction;
         default:
           return 0;
       }
     });
-  }, [posts, query, platformFilter, sort]);
+  }, [filtered, platformFilter, sort]);
 
   const toggleSort = (key: SortKey) => {
     setSort((prev) =>
@@ -118,6 +117,19 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
               onChange={(event) => setQuery(event.target.value)}
               className="w-64"
             />
+            <select
+              aria-label="Filter by platform"
+              value={platformFilter}
+              onChange={(e) => setPlatformFilter(e.target.value)}
+              className="border-input bg-background focus:ring-ring rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+            >
+              <option value="all">All platforms</option>
+              {platforms.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
             <Button size="sm" onClick={() => handleOpen()}>
               Add post
             </Button>
@@ -140,24 +152,48 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
             <table className="w-full text-left text-sm">
               <thead className="sticky top-0 bg-muted/40">
                 <tr className="border-b">
-                  <th className="px-3 py-2">Title</th>
-                  <th className="px-3 py-2">Platform</th>
-                  <th className="px-3 py-2">Posted</th>
-                  <th className="px-3 py-2">Featured</th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("title")}>
+                      Title {indicator("title")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("platform")}>
+                      Platform {indicator("platform")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("posted")}>
+                      Posted {indicator("posted")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("featured")}>
+                      Featured {indicator("featured")}
+                    </button>
+                  </th>
                   <th className="px-3 py-2">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((post) => (
+                {list.map((post) => (
                   <tr key={post.id} className="border-b last:border-0">
                     <td className="px-3 py-2">{post.title}</td>
                     <td className="px-3 py-2">{post.platform}</td>
                     <td className="px-3 py-2 whitespace-nowrap">{new Date(post.posted_at).toLocaleString()}</td>
                     <td className="px-3 py-2">{post.featured ? "Yes" : "No"}</td>
                     <td className="px-3 py-2">
-                      <Button size="sm" variant="outline" onClick={() => handleOpen(post.id)}>
-                        Edit
-                      </Button>
+                      <div className="flex gap-2">
+                        <form action={toggleSocialPostFeatured}>
+                          <input type="hidden" name="id" value={post.id} />
+                          <Button size="sm" variant={post.featured ? "default" : "outline"}>
+                            {post.featured ? "Featured" : "Feature"}
+                          </Button>
+                        </form>
+                        <Button size="sm" variant="outline" onClick={() => handleOpen(post.id)}>
+                          Edit
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

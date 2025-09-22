@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 
-import { Modal } from "@/components/admin/modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,6 +23,7 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
   const [selectedId, setSelectedId] = useState<string>("");
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection }>({ key: "updated", direction: "desc" });
 
   const selected = useMemo(
     () => projects.find((project) => project.id === selectedId) ?? null,
@@ -40,6 +40,44 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
         .some((value) => value?.toLowerCase().includes(term)),
     );
   }, [projects, query]);
+
+  const displayed = useMemo(() => {
+    const direction = sort.direction === "asc" ? 1 : -1;
+    const items = [...filtered];
+    return items.sort((a, b) => {
+      switch (sort.key) {
+        case "title":
+          return a.title.localeCompare(b.title) * direction;
+        case "slug":
+          return a.slug.localeCompare(b.slug) * direction;
+        case "vertical":
+          return a.vertical.localeCompare(b.vertical) * direction;
+        case "status":
+          return a.status.localeCompare(b.status) * direction;
+        case "featured":
+          return ((a.featured ? 1 : 0) - (b.featured ? 1 : 0)) * direction;
+        case "updated":
+          return (
+            new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()
+          ) * direction;
+        default:
+          return 0;
+      }
+    });
+  }, [filtered, sort]);
+
+  const toggleSort = (key: SortKey) => {
+    setSort((prev) =>
+      prev.key === key
+        ? { key, direction: prev.direction === "asc" ? "desc" : "asc" }
+        : { key, direction: "asc" },
+    );
+  };
+
+  const indicator = (key: SortKey) => {
+    if (sort.key !== key) return null;
+    return sort.direction === "asc" ? "↑" : "↓";
+  };
 
   const copyExport = async () => {
     try {
@@ -140,7 +178,7 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((project) => (
+                {displayed.map((project) => (
                   <tr key={project.id} className="border-b last:border-0">
                     <td className="px-3 py-2">{project.title}</td>
                     <td className="px-3 py-2">{project.slug}</td>
@@ -154,7 +192,7 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
                         </Button>
                       </form>
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap">{new Date(p.updated_at).toLocaleString()}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">{new Date(project.updated_at).toLocaleString()}</td>
                     <td className="px-3 py-2">
                       <Button size="sm" variant="outline" onClick={() => handleOpen(project.id)}>
                         Edit

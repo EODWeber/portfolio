@@ -306,34 +306,23 @@ export function ResumeManager({ resumes, status }: ResumeManagerProps) {
                 </Button>
               </form>
             </div>
-            <div className="flex items-center justify-end gap-2 md:col-span-2">
-              <Button type="button" variant="outline" onClick={() => { setSelectedId(""); setOpen(false); }}>
-                Cancel
-              </Button>
-              <Button type="submit">{selected ? "Save resume" : "Upload PDF & Save"}</Button>
-            </div>
-          </form>
-        {selected ? (
-          <div className="mt-3 flex items-center justify-between">
-            <div className="flex gap-2">
-              <form action={toggleArchiveResume}>
-                <input type="hidden" name="id" value={selected.id} />
-                <Button variant="outline" type="submit">{selected.archived ? "Restore" : "Archive"}</Button>
-              </form>
-              <form
-                action={deleteResume}
-                onSubmit={(e) => {
-                  if (!confirm("Delete this resume? This cannot be undone.")) {
-                    e.preventDefault();
-                  }
-                }}
-              >
-                <input type="hidden" name="id" value={selected.id} />
-                <Button variant="destructive" type="submit">Delete resume</Button>
-              </form>
-            </div>
+          ) : (
+            <span />
+          )}
+          <div className="flex items-center justify-end gap-2 md:col-span-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setSelectedId("");
+                setOpen(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" form="resume-form">{selected ? "Save resume" : "Upload PDF & Save"}</Button>
           </div>
-        ) : null}
+        </div>
       </Modal>
     </div>
   );

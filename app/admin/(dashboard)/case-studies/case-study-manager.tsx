@@ -7,11 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Modal } from "@/components/admin/modal";
 import type { CaseStudy, MdxDocument } from "@/lib/supabase/types";
 
 import { deleteCaseStudy, importCaseStudies, upsertCaseStudy } from "./actions";
-import { Modal } from "@/components/admin/modal";
 
 const FORM_GRID = "grid gap-3 md:grid-cols-2";
 type SortKey = "title" | "slug" | "vertical" | "status" | "featured" | "updated";

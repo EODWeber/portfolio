@@ -6,14 +6,11 @@ import { Modal } from "@/components/admin/modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Modal } from "@/components/admin/modal";
 import type { ContactLink } from "@/lib/supabase/types";
 
 import { deleteContactLink, upsertContactLink } from "./actions";
-import { Modal } from "@/components/admin/modal";
 
-type SortKey = "label" | "category" | "order" | "updated";
-type SortDirection = "asc" | "desc";
+// Sorting types removed for now; can be reintroduced when sorting UI is added.
 
 const FORM_GRID = "grid gap-3 md:grid-cols-2";
 
@@ -44,43 +41,7 @@ export function ContactLinksManager({ links, status }: { links: ContactLink[]; s
     setSelectedId("");
   };
 
-  const list = useMemo(() => {
-    const filtered = links
-      .filter((link) =>
-        query
-          ? [link.label, link.url, link.category ?? "", link.icon ?? ""]
-            .join(" ")
-            .toLowerCase()
-            .includes(query.toLowerCase())
-          : true,
-      )
-      .filter((link) => (categoryFilter === "all" ? true : link.category === categoryFilter));
-
-    const direction = sort.direction === "asc" ? 1 : -1;
-    return filtered.sort((a, b) => {
-      switch (sort.key) {
-        case "label":
-          return a.label.localeCompare(b.label) * direction;
-        case "category":
-          return (a.category ?? "").localeCompare(b.category ?? "") * direction;
-        case "order":
-          return (a.order_index - b.order_index) * direction;
-        case "updated":
-          return (new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()) * direction;
-        default:
-          return 0;
-      }
-    });
-  }, [links, query, categoryFilter, sort]);
-
-  const toggleSort = (key: SortKey) => {
-    setSort((prev) => (prev.key === key ? { key, direction: prev.direction === "asc" ? "desc" : "asc" } : { key, direction: "asc" }));
-  };
-
-  const indicator = (key: SortKey) => {
-    if (sort.key !== key) return null;
-    return sort.direction === "asc" ? "↑" : "↓";
-  };
+  // Note: Sorting and category filtering can be added later. For now, rely on the basic query filter above.
 
   return (
     <div className="space-y-6">

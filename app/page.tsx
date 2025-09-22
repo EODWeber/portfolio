@@ -300,12 +300,6 @@ export default async function HomePage() {
                   <CardHeader>
                     <CardTitle className="text-base group-hover:underline">{post.title}</CardTitle>
                     <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>{new Date(post.posted_at).toLocaleDateString()}</span>
-                      {post.featured ? (
-                        <Badge variant="secondary" className="font-medium uppercase">
-                          Featured
-                        </Badge>
-                      ) : null}
                       <span
                         aria-hidden
                         className="inline-flex h-8 w-8 items-center justify-center rounded-full"
@@ -316,6 +310,7 @@ export default async function HomePage() {
                           <path d={icon.path} />
                         </svg>
                       </span>
+                      <span>{new Date(post.posted_at).toLocaleDateString()}</span>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3 text-sm">

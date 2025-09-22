@@ -11,7 +11,6 @@ import { Modal } from "@/components/admin/modal";
 import type { MdxDocument } from "@/lib/supabase/types";
 
 import { deleteDocument, toggleDeleted, upsertMdxDocument } from "./actions";
-import { Modal } from "@/components/admin/modal";
 
 type SortKey = "key" | "updated" | "deleted";
 type SortDirection = "asc" | "desc";
