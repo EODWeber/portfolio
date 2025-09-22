@@ -9,9 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import type { Article, MdxDocument } from "@/lib/supabase/types";
 
 import { deleteArticle, upsertArticle, importArticles } from "./actions";
+import { Modal } from "@/components/admin/modal";
 
 const FORM_GRID = "grid gap-3 md:grid-cols-2";
-import { Modal } from "@/components/admin/modal";
 
 export function ArticleManager({
   articles,

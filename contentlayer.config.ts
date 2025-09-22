@@ -2,7 +2,6 @@ import { defineDocumentType, makeSource } from "contentlayer/source-files";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypePrettyCode from "rehype-pretty-code";
 import rehypeSlug from "rehype-slug";
-
 const ArticleDoc = defineDocumentType(() => ({
   name: "ArticleDoc",
   filePathPattern: `articles/**/*.mdx`,
@@ -68,6 +67,14 @@ const LegalDoc = defineDocumentType(() => ({
   },
 }));
 
+import type { PluggableList } from "unified";
+
+const rehypePlugins = [
+  rehypeSlug,
+  [rehypeAutolinkHeadings, { behavior: "wrap" }],
+  [rehypePrettyCode, { theme: "github-dark" }],
+] as const;
+
 export default makeSource({
   contentDirPath: "content",
   documentTypes: [ArticleDoc, CaseStudyDoc, LegalDoc],
@@ -78,6 +85,7 @@ export default makeSource({
       // @ts-ignore Pretty code plugin uses older unified typings
       [rehypePrettyCode, { theme: "github-dark" }],
     ],
+
   },
   disableImportAliasWarning: true,
 });

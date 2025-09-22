@@ -1,8 +1,19 @@
 "use client";
 
 import { useEffect } from "react";
+import type { ReactNode } from "react";
 
-export function Modal({ open, onClose, title, children }: { open: boolean; onClose: () => void; title?: string; children: React.ReactNode }) {
+export function Modal({
+  open,
+  onClose,
+  title,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title?: string;
+  children: ReactNode;
+}) {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
@@ -30,3 +41,5 @@ export function Modal({ open, onClose, title, children }: { open: boolean; onClo
     </div>
   );
 }
+
+export default Modal;

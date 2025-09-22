@@ -13,6 +13,7 @@ const resumeSchema = z.object({
   label: z.string().min(1),
   // file_path is determined by upload if provided; optional here
   file_path: z.string().optional(),
+  published_at: z.string().optional(),
 });
 
 const importSchema = z.object({
@@ -29,6 +30,7 @@ export async function upsertResume(formData: FormData) {
     | "soc";
   const label = formData.get("label")?.toString() ?? "";
   const file = formData.get("file") as File | null;
+  const publishedAtRaw = formData.get("published_at")?.toString() ?? "";
 
   const admin = createSupabaseAdminClient();
 
@@ -53,23 +55,42 @@ export async function upsertResume(formData: FormData) {
     if (existing && existing.data?.file_path) file_path = existing.data.file_path;
   }
 
-  const parsed = resumeSchema.parse({ id, vertical, label, file_path });
+  const parsed = resumeSchema.parse({ id, vertical, label, file_path, published_at: publishedAtRaw });
 
-  const { error: upsertErr } = await admin
-    .from("resumes")
-    .upsert(
-      {
-        id: parsed.id,
-        vertical: parsed.vertical,
-        label: parsed.label,
-        file_path: parsed.file_path,
-      },
-      { onConflict: "vertical" }
-    );
+  if (!parsed.id && !parsed.file_path) {
+    throw new Error("Resume file is required for new entries.");
+  }
+
+  const published_at = parsed.published_at
+    ? (() => {
+        const date = new Date(parsed.published_at);
+        if (Number.isNaN(date.getTime())) {
+          throw new Error("Invalid published date");
+        }
+        return date.toISOString();
+      })()
+    : null;
+
+  const payload: Record<string, unknown> = {
+    vertical: parsed.vertical,
+    label: parsed.label,
+    file_path: parsed.file_path,
+    published_at,
+  };
+
+  if (parsed.id) {
+    payload.id = parsed.id;
+  } else {
+    payload.archived = false;
+  }
+
+  const { error: upsertErr } = await admin.from("resumes").upsert(payload);
 
   if (upsertErr) throw new Error(upsertErr.message);
 
   revalidatePath("/resume");
+  revalidatePath("/portfolio");
+  revalidatePath("/contact");
   revalidatePath("/admin/resumes");
   redirect("/admin/resumes?status=success");
 }
@@ -80,10 +101,24 @@ export async function deleteResume(formData: FormData) {
   if (!id) throw new Error("Missing resume id");
 
   const admin = createSupabaseAdminClient();
+  const { data: existing, error: readErr } = await admin
+    .from("resumes")
+    .select("file_path")
+    .eq("id", id)
+    .maybeSingle();
+  if (readErr) throw new Error(readErr.message);
+
   const { error } = await admin.from("resumes").delete().eq("id", id);
   if (error) throw new Error(error.message);
 
+  if (existing?.file_path) {
+    const { error: removeErr } = await admin.storage.from("resumes").remove([existing.file_path]);
+    if (removeErr) throw new Error(removeErr.message);
+  }
+
   revalidatePath("/resume");
+  revalidatePath("/portfolio");
+  revalidatePath("/contact");
   revalidatePath("/admin/resumes");
   redirect("/admin/resumes?status=deleted");
 }
@@ -118,20 +153,34 @@ export async function importResumes(formData: FormData): Promise<void> {
       vertical: r.vertical,
       label: r.label,
       file_path: r.file_path,
+      published_at: r.published_at,
     });
+
+    const iso = candidate.published_at
+      ? (() => {
+          const date = new Date(candidate.published_at as string);
+          if (Number.isNaN(date.getTime())) {
+            throw new Error("Invalid published_at in import payload");
+          }
+          return date.toISOString();
+        })()
+      : null;
 
     return {
       id: candidate.id,
       vertical: (candidate.vertical ?? "ai-security") as "ai-security" | "secure-devops" | "soc",
       label: candidate.label ?? "",
       file_path: candidate.file_path ?? "",
+      published_at: iso,
     };
   });
 
-  const { error: importErr } = await admin.from("resumes").upsert(payloads, { onConflict: "vertical" });
+  const { error: importErr } = await admin.from("resumes").upsert(payloads);
   if (importErr) throw new Error(importErr.message);
 
   revalidatePath("/resume");
+  revalidatePath("/portfolio");
+  revalidatePath("/contact");
   revalidatePath("/admin/resumes");
   redirect("/admin/resumes?status=imported");
 }
@@ -143,15 +192,26 @@ export async function setPrimaryResume(formData: FormData) {
   const parsed = idSchema.parse({ id: formData.get("id")?.toString() });
   const admin = createSupabaseAdminClient();
   // Find target resume
-  const { data: target } = await admin.from("resumes").select("id, vertical").eq("id", parsed.id).maybeSingle();
+  const { data: target } = await admin
+    .from("resumes")
+    .select("id, vertical, featured")
+    .eq("id", parsed.id)
+    .maybeSingle();
   if (!target) throw new Error("Resume not found");
-  // Unset others in same vertical, set this one
-  const { error: clearErr } = await admin.from("resumes").update({ featured: false }).eq("vertical", target.vertical);
-  if (clearErr) throw new Error(clearErr.message);
-  const { error: setErr } = await admin.from("resumes").update({ featured: true }).eq("id", parsed.id);
-  if (setErr) throw new Error(setErr.message);
+  if (target.featured) {
+    const { error: unsetErr } = await admin.from("resumes").update({ featured: false }).eq("id", target.id);
+    if (unsetErr) throw new Error(unsetErr.message);
+  } else {
+    const { error: clearErr } = await admin.from("resumes").update({ featured: false }).eq("vertical", target.vertical);
+    if (clearErr) throw new Error(clearErr.message);
+    const { error: setErr } = await admin.from("resumes").update({ featured: true }).eq("id", parsed.id);
+    if (setErr) throw new Error(setErr.message);
+  }
   revalidatePath("/resume");
+  revalidatePath("/portfolio");
+  revalidatePath("/contact");
   revalidatePath("/admin/resumes");
+  redirect("/admin/resumes");
 }
 
 export async function toggleArchiveResume(formData: FormData) {
@@ -161,19 +221,16 @@ export async function toggleArchiveResume(formData: FormData) {
   // Read current state
   const { data: row } = await admin.from("resumes").select("archived").eq("id", parsed.id).maybeSingle();
   if (!row) throw new Error("Resume not found");
-  const { error } = await admin.from("resumes").update({ archived: !row.archived }).eq("id", parsed.id);
+  const update: Record<string, unknown> = { archived: !row.archived };
+  if (!row.archived) {
+    update.featured = false;
+  }
+  const { error } = await admin.from("resumes").update(update).eq("id", parsed.id);
   if (error) throw new Error(error.message);
+  revalidatePath("/resume");
+  revalidatePath("/portfolio");
+  revalidatePath("/contact");
   revalidatePath("/admin/resumes");
+  redirect("/admin/resumes");
 }
 
-const publishSchema = z.object({ id: z.string().uuid(), published_at: z.string().optional() });
-
-export async function updateResumePublishedDate(formData: FormData) {
-  await requireAdminUser();
-  const parsed = publishSchema.parse({ id: formData.get("id")?.toString(), published_at: formData.get("published_at")?.toString() });
-  const admin = createSupabaseAdminClient();
-  const iso = parsed.published_at ? new Date(parsed.published_at).toISOString() : null;
-  const { error } = await admin.from("resumes").update({ published_at: iso }).eq("id", parsed.id);
-  if (error) throw new Error(error.message);
-  revalidatePath("/admin/resumes");
-}

@@ -13,6 +13,12 @@ import { deleteProject, importProjects, toggleProjectFeatured, upsertProject } f
 
 const FORM_GRID = "grid gap-3 md:grid-cols-2";
 
+type SortKey = "title" | "slug" | "vertical" | "status" | "featured" | "updated";
+type SortDirection = "asc" | "desc";
+const VERTICAL_OPTIONS = ["ai-security", "secure-devops", "soc"] as const;
+type VerticalFilter = (typeof VERTICAL_OPTIONS)[number] | "all";
+type StatusFilter = "all" | "draft" | "published";
+
 export function ProjectManager({ projects, status }: { projects: Project[]; status?: string }) {
   const [selectedId, setSelectedId] = useState<string>("");
   const [open, setOpen] = useState(false);
@@ -63,6 +69,7 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
             </p>
           </div>
           <div className="flex items-center gap-3">
+
             <Input
               placeholder="Search title, slug, tag..."
               value={query}
@@ -98,11 +105,36 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
             <table className="w-full text-left text-sm">
               <thead className="sticky top-0 bg-muted/40">
                 <tr className="border-b">
-                  <th className="px-3 py-2">Title</th>
-                  <th className="px-3 py-2">Slug</th>
-                  <th className="px-3 py-2">Vertical</th>
-                  <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2">Featured</th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("title")}>
+                      Title {indicator("title")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("slug")}>
+                      Slug {indicator("slug")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("vertical")}>
+                      Vertical {indicator("vertical")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("status")}>
+                      Status {indicator("status")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("featured")}>
+                      Featured {indicator("featured")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("updated")}>
+                      Updated {indicator("updated")}
+                    </button>
+                  </th>
                   <th className="px-3 py-2">Actions</th>
                 </tr>
               </thead>
@@ -121,6 +153,7 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
                         </Button>
                       </form>
                     </td>
+                    <td className="px-3 py-2 whitespace-nowrap">{new Date(p.updated_at).toLocaleString()}</td>
                     <td className="px-3 py-2">
                       <Button size="sm" variant="outline" onClick={() => handleOpen(project.id)}>
                         Edit
@@ -133,7 +166,7 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
           </div>
         </CardContent>
       </Card>
-
+      
       <Modal open={open} onClose={handleClose} title={selected ? "Edit project" : "Add project"}>
         <form key={selected?.id ?? "create"} action={upsertProject} className={FORM_GRID}>
           <input type="hidden" name="id" value={selected?.id ?? ""} />

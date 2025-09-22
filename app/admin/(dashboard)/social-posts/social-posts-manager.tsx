@@ -9,7 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { SocialPost } from "@/lib/supabase/types";
 
-import { deleteSocialPost, upsertSocialPost } from "./actions";
+import { deleteSocialPost, toggleSocialPostFeatured, upsertSocialPost } from "./actions";
+import { Modal } from "@/components/admin/modal";
+
+type SortKey = "title" | "platform" | "posted" | "featured" | "updated";
+type SortDirection = "asc" | "desc";
 
 function toDatetimeLocal(iso: string) {
   const date = new Date(iso);
@@ -49,6 +53,51 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
   const handleClose = () => {
     setOpen(false);
     setSelectedId("");
+  };
+
+  const platforms = useMemo(() => Array.from(new Set(posts.map((post) => post.platform))).sort(), [posts]);
+
+  const list = useMemo(() => {
+    const filtered = posts
+      .filter((post) =>
+        query
+          ? [post.title, post.platform, post.summary ?? "", post.url]
+              .join(" ")
+              .toLowerCase()
+              .includes(query.toLowerCase())
+          : true,
+      )
+      .filter((post) => (platformFilter === "all" ? true : post.platform === platformFilter));
+
+    const direction = sort.direction === "asc" ? 1 : -1;
+    return filtered.sort((a, b) => {
+      switch (sort.key) {
+        case "title":
+          return a.title.localeCompare(b.title) * direction;
+        case "platform":
+          return a.platform.localeCompare(b.platform) * direction;
+        case "posted":
+          return (new Date(a.posted_at).getTime() - new Date(b.posted_at).getTime()) * direction;
+        case "featured":
+          if (a.featured === b.featured) return 0;
+          return (a.featured ? -1 : 1) * direction;
+        case "updated":
+          return (new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()) * direction;
+        default:
+          return 0;
+      }
+    });
+  }, [posts, query, platformFilter, sort]);
+
+  const toggleSort = (key: SortKey) => {
+    setSort((prev) =>
+      prev.key === key ? { key, direction: prev.direction === "asc" ? "desc" : "asc" } : { key, direction: "asc" },
+    );
+  };
+
+  const indicator = (key: SortKey) => {
+    if (sort.key !== key) return null;
+    return sort.direction === "asc" ? "↑" : "↓";
   };
 
   return (
@@ -116,7 +165,7 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
           </div>
         </CardContent>
       </Card>
-
+      
       <Modal open={open} onClose={handleClose} title={selected ? "Edit post" : "Add post"}>
         <form key={selected?.id ?? "create"} action={upsertSocialPost} className={FORM_GRID}>
           <input type="hidden" name="id" value={selected?.id ?? ""} />
