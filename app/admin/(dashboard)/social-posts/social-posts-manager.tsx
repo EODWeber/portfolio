@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Modal } from "@/components/admin/modal";
 import type { SocialPost } from "@/lib/supabase/types";
 
-import { deleteSocialPost, upsertSocialPost } from "./actions";
+import { deleteSocialPost, toggleSocialPostFeatured, upsertSocialPost } from "./actions";
 
 function toDatetimeLocal(iso: string) {
   const date = new Date(iso);
@@ -24,7 +25,19 @@ function toDatetimeLocal(iso: string) {
 
 export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; status?: string }) {
   const [selectedId, setSelectedId] = useState<string>("");
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const selected = useMemo(() => posts.find((post) => post.id === selectedId), [posts, selectedId]);
+  const filtered = useMemo(
+    () =>
+      posts.filter((post) =>
+        query
+          ? [post.title, post.platform, post.summary ?? "", post.url]
+              .some((value) => value.toLowerCase().includes(query.toLowerCase()))
+          : true,
+      ),
+    [posts, query],
+  );
 
   return (
     <div className="space-y-6">
@@ -36,23 +49,22 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
               Manage the external signals that populate the feed and homepage highlights.
             </p>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <label className="text-sm font-medium" htmlFor="social-post-selector">
-              Select post
-            </label>
-            <select
-              id="social-post-selector"
-              value={selectedId}
-              onChange={(event) => setSelectedId(event.target.value)}
-              className="border-input bg-background focus:ring-ring w-64 rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+          <div className="flex items-center gap-3">
+            <input
+              placeholder="Search title, platform, url..."
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              className="w-64 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            />
+            <Button
+              size="sm"
+              onClick={() => {
+                setSelectedId("");
+                setOpen(true);
+              }}
             >
-              <option value="">Create new post…</option>
-              {posts.map((post) => (
-                <option key={post.id} value={post.id}>
-                  {post.title}
-                </option>
-              ))}
-            </select>
+              Add post
+            </Button>
           </div>
         </div>
         {status === "success" ? (
@@ -64,15 +76,55 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
 
       <Card>
         <CardHeader>
-          <CardTitle>{selected ? "Edit post" : "Add post"}</CardTitle>
-          <CardDescription>Supports LinkedIn, GitHub, talks, or any public URL.</CardDescription>
+          <CardTitle>Posts</CardTitle>
+          <CardDescription>Use featured to pin up to 6 posts on the homepage.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <form
-            key={selected?.id ?? "create"}
-            action={upsertSocialPost}
-            className="grid gap-3 md:grid-cols-2"
-          >
+        <CardContent>
+          <div className="max-h-[60vh] overflow-auto rounded-md border">
+            <table className="w-full text-left text-sm">
+              <thead className="sticky top-0 bg-muted/40">
+                <tr className="border-b">
+                  <th className="px-3 py-2">Title</th>
+                  <th className="px-3 py-2">Platform</th>
+                  <th className="px-3 py-2">Posted</th>
+                  <th className="px-3 py-2">Featured</th>
+                  <th className="px-3 py-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((post) => (
+                  <tr key={post.id} className="border-b last:border-0">
+                    <td className="px-3 py-2">{post.title}</td>
+                    <td className="px-3 py-2">{post.platform}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">{new Date(post.posted_at).toLocaleString()}</td>
+                    <td className="px-3 py-2">
+                      <form action={toggleSocialPostFeatured}>
+                        <input type="hidden" name="id" value={post.id} />
+                        <Button size="sm" variant={post.featured ? "default" : "outline"}>{post.featured ? "Featured" : "Feature"}</Button>
+                      </form>
+                    </td>
+                    <td className="px-3 py-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedId(post.id);
+                          setOpen(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Modal open={open} onClose={() => setOpen(false)} title={selected ? "Edit post" : "Add post"}>
+        <form key={selected?.id ?? "create"} action={upsertSocialPost} className="grid gap-3 md:grid-cols-2">
             <input type="hidden" name="id" value={selected?.id ?? ""} />
             <div className="space-y-2">
               <label className="text-sm font-medium" htmlFor="platform">
@@ -106,12 +158,7 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
               <label className="text-sm font-medium" htmlFor="summary">
                 Summary
               </label>
-              <Textarea
-                id="summary"
-                name="summary"
-                defaultValue={selected?.summary ?? ""}
-                rows={3}
-              />
+              <Textarea id="summary" name="summary" defaultValue={selected?.summary ?? ""} rows={3} />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium" htmlFor="posted_at">
@@ -126,35 +173,35 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
               />
             </div>
             <div className="flex items-center gap-2">
-              <input
-                id="featured"
-                name="featured"
-                type="checkbox"
-                defaultChecked={selected?.featured ?? false}
-              />
+              <input id="featured" name="featured" type="checkbox" defaultChecked={selected?.featured ?? false} />
               <label className="text-sm font-medium" htmlFor="featured">
-                Featured
+                Featured (max 6)
               </label>
             </div>
-            <div className="flex justify-end gap-2 md:col-span-2">
+            <div className="flex items-center justify-between gap-2 md:col-span-2">
               {selected ? (
-                <Button type="button" variant="outline" onClick={() => setSelectedId("")}>
-                  Clear selection
+                <Button
+                  variant="destructive"
+                  formAction={deleteSocialPost}
+                  formMethod="post"
+                  onClick={(event) => {
+                    if (!confirm("Delete this post?")) {
+                      event.preventDefault();
+                    }
+                  }}
+                >
+                  Delete
                 </Button>
-              ) : null}
-              <Button type="submit">{selected ? "Save post" : "Create post"}</Button>
+              ) : <div />}
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" onClick={() => setOpen(false)}>{selected ? "Save post" : "Create post"}</Button>
+              </div>
             </div>
           </form>
-          {selected ? (
-            <form action={deleteSocialPost} className="flex justify-end">
-              <input type="hidden" name="id" value={selected.id} />
-              <Button variant="destructive" type="submit">
-                Delete post
-              </Button>
-            </form>
-          ) : null}
-        </CardContent>
-      </Card>
+      </Modal>
     </div>
   );
 }

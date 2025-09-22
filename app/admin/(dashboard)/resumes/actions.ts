@@ -13,6 +13,7 @@ const resumeSchema = z.object({
   label: z.string().min(1),
   // file_path is determined by upload if provided; optional here
   file_path: z.string().optional(),
+  published_at: z.string().optional(),
 });
 
 const importSchema = z.object({
@@ -29,6 +30,7 @@ export async function upsertResume(formData: FormData) {
     | "soc";
   const label = formData.get("label")?.toString() ?? "";
   const file = formData.get("file") as File | null;
+  const published = formData.get("published_at")?.toString() ?? "";
 
   const admin = createSupabaseAdminClient();
 
@@ -53,21 +55,30 @@ export async function upsertResume(formData: FormData) {
     if (existing && existing.data?.file_path) file_path = existing.data.file_path;
   }
 
-  const parsed = resumeSchema.parse({ id, vertical, label, file_path });
+  const parsed = resumeSchema.parse({ id, vertical, label, file_path, published_at: published || undefined });
 
-  const { error: upsertErr } = await admin
-    .from("resumes")
-    .upsert(
-      {
-        id: parsed.id,
+  const published_at = parsed.published_at ? new Date(parsed.published_at).toISOString() : null;
+
+  if (parsed.id) {
+    const { error } = await admin
+      .from("resumes")
+      .update({
         vertical: parsed.vertical,
         label: parsed.label,
         file_path: parsed.file_path,
-      },
-      { onConflict: "vertical" }
-    );
-
-  if (upsertErr) throw new Error(upsertErr.message);
+        published_at,
+      })
+      .eq("id", parsed.id);
+    if (error) throw new Error(error.message);
+  } else {
+    const { error } = await admin.from("resumes").insert({
+      vertical: parsed.vertical,
+      label: parsed.label,
+      file_path: parsed.file_path,
+      published_at,
+    });
+    if (error) throw new Error(error.message);
+  }
 
   revalidatePath("/resume");
   revalidatePath("/admin/resumes");
@@ -166,14 +177,3 @@ export async function toggleArchiveResume(formData: FormData) {
   revalidatePath("/admin/resumes");
 }
 
-const publishSchema = z.object({ id: z.string().uuid(), published_at: z.string().optional() });
-
-export async function updateResumePublishedDate(formData: FormData) {
-  await requireAdminUser();
-  const parsed = publishSchema.parse({ id: formData.get("id")?.toString(), published_at: formData.get("published_at")?.toString() });
-  const admin = createSupabaseAdminClient();
-  const iso = parsed.published_at ? new Date(parsed.published_at).toISOString() : null;
-  const { error } = await admin.from("resumes").update({ published_at: iso }).eq("id", parsed.id);
-  if (error) throw new Error(error.message);
-  revalidatePath("/admin/resumes");
-}

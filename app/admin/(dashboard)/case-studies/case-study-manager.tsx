@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Modal } from "@/components/admin/modal";
 import type { CaseStudy, MdxDocument } from "@/lib/supabase/types";
 
 import { deleteCaseStudy, importCaseStudies, upsertCaseStudy } from "./actions";
@@ -22,10 +23,24 @@ export function CaseStudyManager({
   status?: string;
 }) {
   const [selectedId, setSelectedId] = useState<string>("");
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const [mdxFilter, setMdxFilter] = useState("");
   const selected = useMemo(
     () => caseStudies.find((study) => study.id === selectedId),
     [caseStudies, selectedId],
+  );
+
+  const filtered = useMemo(
+    () =>
+      caseStudies.filter((study) =>
+        query
+          ? [study.title, study.slug, study.status, study.vertical, ...(study.tags ?? [])]
+              .filter(Boolean)
+              .some((value) => value.toLowerCase().includes(query.toLowerCase()))
+          : true,
+      ),
+    [caseStudies, query],
   );
 
   const copyExport = async () => {
@@ -47,25 +62,24 @@ export function CaseStudyManager({
               cross-links.
             </p>
           </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <label className="text-sm font-medium" htmlFor="case-study-selector">
-            Select existing study
-          </label>
-          <select
-              id="case-study-selector"
-              value={selectedId}
-              onChange={(event) => setSelectedId(event.target.value)}
-              className="border-input bg-background focus:ring-ring w-64 rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
-            >
-              <option value="">Create new case study…</option>
-              {caseStudies.map((study) => (
-                <option key={study.id} value={study.id}>
-                  {study.title}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="flex items-center gap-3">
+          <input
+            placeholder="Search title, slug, tag..."
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            className="w-64 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          />
+          <Button
+            size="sm"
+            onClick={() => {
+              setSelectedId("");
+              setOpen(true);
+            }}
+          >
+            Add case study
+          </Button>
         </div>
+      </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={copyExport}>
             Copy JSON export
@@ -82,11 +96,52 @@ export function CaseStudyManager({
 
       <Card>
         <CardHeader>
-          <CardTitle>{selected ? "Edit case study" : "Add case study"}</CardTitle>
-          <CardDescription>Manage metadata and content body below.</CardDescription>
+          <CardTitle>Case studies</CardTitle>
+          <CardDescription>Published narratives power the case studies route.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <form key={selected?.id ?? "create"} action={upsertCaseStudy} className={FORM_GRID}>
+        <CardContent>
+          <div className="max-h-[60vh] overflow-auto rounded-md border">
+            <table className="w-full text-left text-sm">
+              <thead className="sticky top-0 bg-muted/40">
+                <tr className="border-b">
+                  <th className="px-3 py-2">Title</th>
+                  <th className="px-3 py-2">Slug</th>
+                  <th className="px-3 py-2">Vertical</th>
+                  <th className="px-3 py-2">Status</th>
+                  <th className="px-3 py-2">Featured</th>
+                  <th className="px-3 py-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((study) => (
+                  <tr key={study.id} className="border-b last:border-0">
+                    <td className="px-3 py-2">{study.title}</td>
+                    <td className="px-3 py-2">{study.slug}</td>
+                    <td className="px-3 py-2 capitalize">{study.vertical.replace("-", " ")}</td>
+                    <td className="px-3 py-2 capitalize">{study.status}</td>
+                    <td className="px-3 py-2">{study.featured ? "Yes" : "—"}</td>
+                    <td className="px-3 py-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedId(study.id);
+                          setOpen(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Modal open={open} onClose={() => setOpen(false)} title={selected ? "Edit case study" : "Add case study"}>
+        <form key={selected?.id ?? "create"} action={upsertCaseStudy} className={FORM_GRID}>
             <input type="hidden" name="id" value={selected?.id ?? ""} />
             <div className="space-y-2 md:col-span-2">
               <label className="text-sm font-medium" htmlFor="title">
@@ -200,25 +255,30 @@ export function CaseStudyManager({
               <input id="featured" name="featured" type="checkbox" defaultChecked={selected?.featured ?? false} />
               <label htmlFor="featured" className="text-sm font-medium">Featured (max 6)</label>
             </div>
-            <div className="flex justify-end gap-2 md:col-span-2">
+            <div className="flex items-center justify-between gap-2 md:col-span-2">
               {selected ? (
-                <Button type="button" variant="outline" onClick={() => setSelectedId("")}>
-                  Clear selection
+                <Button
+                  variant="destructive"
+                  formAction={deleteCaseStudy}
+                  formMethod="post"
+                  onClick={(event) => {
+                    if (!confirm("Delete this case study?")) {
+                      event.preventDefault();
+                    }
+                  }}
+                >
+                  Delete
                 </Button>
-              ) : null}
-              <Button type="submit">{selected ? "Save case study" : "Create case study"}</Button>
+              ) : <div />}
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" onClick={() => setOpen(false)}>{selected ? "Save case study" : "Create case study"}</Button>
+              </div>
             </div>
           </form>
-          {selected ? (
-            <form action={deleteCaseStudy} className="flex justify-end">
-              <input type="hidden" name="id" value={selected.id} />
-              <Button variant="destructive" type="submit">
-                Delete case study
-              </Button>
-            </form>
-          ) : null}
-        </CardContent>
-      </Card>
+      </Modal>
 
       <Card>
         <CardHeader>

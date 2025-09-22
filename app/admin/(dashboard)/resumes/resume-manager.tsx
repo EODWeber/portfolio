@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import type { Resume } from "@/lib/supabase/types";
 
-import { deleteResume, upsertResume, setPrimaryResume, toggleArchiveResume, updateResumePublishedDate } from "./actions";
+import { deleteResume, upsertResume, setPrimaryResume, toggleArchiveResume } from "./actions";
 import { Modal } from "@/components/admin/modal";
 
 export function ResumeManager({ resumes, status }: { resumes: Resume[]; status?: string }) {
@@ -138,39 +138,45 @@ export function ResumeManager({ resumes, status }: { resumes: Resume[]; status?:
             </div>
             <div className="space-y-2 md:col-span-2">
               <label className="text-sm font-medium" htmlFor="published_at">Published</label>
-              <form action={updateResumePublishedDate} className="flex items-center gap-2">
-                <input type="hidden" name="id" value={selected?.id ?? ""} />
-                <input id="published_at" name="published_at" type="date" defaultValue={selected?.published_at ? new Date(selected.published_at).toISOString().slice(0,10) : ""} className="w-44 rounded-md border border-input bg-background px-3 py-2 text-sm" />
-                <Button size="sm" variant="outline" type="submit">Save date</Button>
-              </form>
+              <Input
+                id="published_at"
+                name="published_at"
+                type="date"
+                defaultValue={selected?.published_at ? new Date(selected.published_at).toISOString().slice(0, 10) : ""}
+              />
             </div>
-            <div className="flex justify-end gap-2 md:col-span-2">
-              <Button type="button" variant="outline" onClick={() => { setSelectedId(""); setOpen(false); }}>
-                Cancel
-              </Button>
-              <Button type="submit" onClick={() => setOpen(false)}>{selected ? "Save resume" : "Upload PDF & Save"}</Button>
+            <div className="flex items-center justify-between gap-2 md:col-span-2">
+              {selected ? (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    formAction={toggleArchiveResume}
+                    formMethod="post"
+                  >
+                    {selected.archived ? "Restore" : "Archive"}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    formAction={deleteResume}
+                    formMethod="post"
+                    onClick={(event) => {
+                      if (!confirm("Delete this resume? This cannot be undone.")) {
+                        event.preventDefault();
+                      }
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              ) : <div />}
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={() => { setSelectedId(""); setOpen(false); }}>
+                  Cancel
+                </Button>
+                <Button type="submit" onClick={() => setOpen(false)}>{selected ? "Save resume" : "Upload PDF & Save"}</Button>
+              </div>
             </div>
           </form>
-          {selected ? (
-            <form
-              action={deleteResume}
-              className="flex justify-between pt-3"
-              onSubmit={(e) => {
-                if (!confirm("Delete this resume? This cannot be undone.")) {
-                  e.preventDefault();
-                }
-              }}
-            >
-              <input type="hidden" name="id" value={selected.id} />
-              <div className="flex items-center gap-2">
-                <form action={toggleArchiveResume} onSubmit={(e) => { /* intentially no confirm for archive */ }}>
-                  <input type="hidden" name="id" value={selected.id} />
-                  <Button variant="outline" type="submit">{selected.archived ? "Restore" : "Archive"}</Button>
-                </form>
-              </div>
-              <Button variant="destructive" type="submit">Delete resume</Button>
-            </form>
-          ) : null}
       </Modal>
     </div>
   );

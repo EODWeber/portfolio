@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Modal } from "@/components/admin/modal";
 import type { MdxDocument } from "@/lib/supabase/types";
 
 import { deleteDocument, toggleDeleted, upsertMdxDocument } from "./actions";
@@ -13,6 +14,7 @@ export function MdxDocumentsManager({ initialDocs }: { initialDocs: MdxDocument[
   const [filter, setFilter] = useState("");
   const [showDeleted, setShowDeleted] = useState(false);
   const [selected, setSelected] = useState<MdxDocument | null>(null);
+  const [open, setOpen] = useState(false);
   const [previewHtml, setPreviewHtml] = useState<string>("");
   const docs = useMemo(
     () =>
@@ -31,95 +33,34 @@ export function MdxDocumentsManager({ initialDocs }: { initialDocs: MdxDocument[
         </div>
       </header>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{selected ? "Edit document" : "Create document"}</CardTitle>
-          <CardDescription>Keys should follow folder naming e.g. articles/my-post.mdx.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <form
-            action={async (formData) => {
-              await upsertMdxDocument(formData);
-              const key = (formData.get("key")?.toString() ?? "").trim();
-              const content = formData.get("content")?.toString() ?? "";
-              setSelected({ id: selected?.id ?? "", key, content, deleted: false, created_at: new Date().toISOString(), updated_at: new Date().toISOString() });
-            }}
-            className="grid gap-4 md:grid-cols-2"
-          >
-            <input type="hidden" name="id" value={selected?.id ?? ""} />
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium" htmlFor="key">Key</label>
-              <Input id="key" name="key" defaultValue={selected?.key ?? ""} required />
-            </div>
-            <div className="space-y-2 md:col-span-1">
-              <label className="text-sm font-medium" htmlFor="content">Content</label>
-              <Textarea
-                id="content"
-                name="content"
-                rows={20}
-                defaultValue={selected?.content ?? ""}
-                required
-                onScroll={(e) => {
-                  const el = e.currentTarget;
-                  const preview = document.getElementById("mdx-preview-pane");
-                  if (preview) {
-                    const ratio = el.scrollTop / (el.scrollHeight - el.clientHeight || 1);
-                    preview.scrollTop = ratio * (preview.scrollHeight - preview.clientHeight);
-                  }
-                }}
-              />
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
-                  onClick={async () => {
-                    const el = document.getElementById("content") as HTMLTextAreaElement | null;
-                    const value = el?.value ?? "";
-                    const res = await fetch("/api/admin/mdx-preview", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ source: value }),
-                    });
-                    if (res.ok) {
-                      const data = await res.json();
-                      setPreviewHtml(data.html);
-                    }
-                  }}
-                >
-                  Refresh preview
-                </button>
-              </div>
-            </div>
-            <div className="space-y-2 md:col-span-1">
-              <label className="text-sm font-medium">Preview</label>
-              <div
-                id="mdx-preview-pane"
-                className="text-muted-foreground h-[40rem] overflow-auto rounded-md border p-3 text-sm leading-6 [&_h1]:mt-6 [&_h1]:text-2xl [&_h1]:font-semibold [&_h2]:mt-4 [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:mt-3 [&_h3]:text-lg [&_h3]:font-semibold"
-                dangerouslySetInnerHTML={{ __html: previewHtml }}
-              />
-            </div>
-            <div className="flex justify-end gap-2">
-              {selected ? (
-                <Button type="button" variant="outline" onClick={() => setSelected(null)}>Clear</Button>
-              ) : null}
-              <Button type="submit">{selected ? "Save" : "Create"}</Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>
-          <div className="flex items-end justify-between gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <CardTitle>Documents</CardTitle>
               <CardDescription>Click a row to edit. Toggle deleted to keep non-destructively.</CardDescription>
             </div>
             <div className="flex items-center gap-3">
-              <Input placeholder="Search by key..." value={filter} onChange={(e) => setFilter(e.target.value)} className="w-64" />
+              <Input
+                placeholder="Search by key..."
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="w-64"
+              />
               <label className="text-sm font-medium flex items-center gap-2">
                 <input type="checkbox" checked={showDeleted} onChange={(e) => setShowDeleted(e.target.checked)} /> Show deleted
               </label>
+              <Button
+                size="sm"
+                onClick={() => {
+                  setSelected(null);
+                  setPreviewHtml("");
+                  setOpen(true);
+                }}
+              >
+                Add document
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -138,7 +79,16 @@ export function MdxDocumentsManager({ initialDocs }: { initialDocs: MdxDocument[
                 {docs.map((d) => (
                   <tr key={d.id} className="border-b last:border-0 hover:bg-muted/20">
                     <td className="px-3 py-2">
-                      <button className="hover:underline" onClick={() => setSelected(d)}>{d.key}</button>
+                      <button
+                        className="hover:underline"
+                        onClick={() => {
+                          setSelected(d);
+                          setPreviewHtml("");
+                          setOpen(true);
+                        }}
+                      >
+                        {d.key}
+                      </button>
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap">{new Date(d.updated_at).toLocaleString()}</td>
                     <td className="px-3 py-2">{d.deleted ? "Yes" : "No"}</td>
@@ -160,6 +110,102 @@ export function MdxDocumentsManager({ initialDocs }: { initialDocs: MdxDocument[
           </div>
         </CardContent>
       </Card>
+
+      <Modal open={open} onClose={() => setOpen(false)} title={selected ? "Edit document" : "Create document"}>
+        <form
+          action={async (formData) => {
+            await upsertMdxDocument(formData);
+            const key = (formData.get("key")?.toString() ?? "").trim();
+            const content = formData.get("content")?.toString() ?? "";
+            setSelected({
+              id: formData.get("id")?.toString() ?? selected?.id ?? "",
+              key,
+              content,
+              deleted: false,
+              created_at: selected?.created_at ?? new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
+            setOpen(false);
+          }}
+          className="grid gap-4 md:grid-cols-2"
+        >
+          <input type="hidden" name="id" value={selected?.id ?? ""} />
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium" htmlFor="mdx-key">Key</label>
+            <Input id="mdx-key" name="key" defaultValue={selected?.key ?? ""} required />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="mdx-content">Content</label>
+            <Textarea
+              id="mdx-content"
+              name="content"
+              rows={18}
+              defaultValue={selected?.content ?? ""}
+              required
+              onScroll={(event) => {
+                const el = event.currentTarget;
+                const preview = document.getElementById("mdx-preview-pane");
+                if (preview) {
+                  const ratio = el.scrollTop / (el.scrollHeight - el.clientHeight || 1);
+                  preview.scrollTop = ratio * (preview.scrollHeight - preview.clientHeight);
+                }
+              }}
+            />
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  const el = document.getElementById("mdx-content") as HTMLTextAreaElement | null;
+                  const value = el?.value ?? "";
+                  const res = await fetch("/api/admin/mdx-preview", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ source: value }),
+                  });
+                  if (res.ok) {
+                    const data = await res.json();
+                    setPreviewHtml(data.html);
+                  }
+                }}
+              >
+                Refresh preview
+              </Button>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Preview</label>
+            <div
+              id="mdx-preview-pane"
+              className="text-muted-foreground h-[32rem] overflow-auto rounded-md border p-3 text-sm leading-6 [&_h1]:mt-6 [&_h1]:text-2xl [&_h1]:font-semibold [&_h2]:mt-4 [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:mt-3 [&_h3]:text-lg [&_h3]:font-semibold"
+              dangerouslySetInnerHTML={{ __html: previewHtml }}
+            />
+          </div>
+          <div className="flex items-center justify-between gap-2 md:col-span-2">
+            {selected ? (
+              <Button
+                variant="destructive"
+                formAction={deleteDocument}
+                formMethod="post"
+                onClick={(event) => {
+                  if (!confirm("Permanently delete this document?")) {
+                    event.preventDefault();
+                  }
+                }}
+              >
+                Delete
+              </Button>
+            ) : <div />}
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">{selected ? "Save" : "Create"}</Button>
+            </div>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

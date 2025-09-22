@@ -68,15 +68,20 @@ const LegalDoc = defineDocumentType(() => ({
   },
 }));
 
+type MakeSourceArg = Extract<Parameters<typeof makeSource>[0], Record<string, unknown>>;
+type RehypePluginList = MakeSourceArg extends { mdx?: { rehypePlugins?: infer P } } ? NonNullable<P> : never;
+
+const rehypePlugins = [
+  rehypeSlug,
+  [rehypeAutolinkHeadings, { behavior: "wrap" }],
+  [rehypePrettyCode, { theme: "github-dark" }],
+] as const;
+
 export default makeSource({
   contentDirPath: "content",
   documentTypes: [ArticleDoc, CaseStudyDoc, LegalDoc],
   mdx: {
-    rehypePlugins: ([
-      rehypeSlug,
-      [rehypeAutolinkHeadings, { behavior: "wrap" }],
-      [rehypePrettyCode, { theme: "github-dark" }],
-    ] as any),
+    rehypePlugins: rehypePlugins as unknown as RehypePluginList,
   },
   disableImportAliasWarning: true,
 });
