@@ -5,7 +5,7 @@ import Image from "next/image";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MDXServer } from "@/components/mdx/mdx-server";
-import type { ArticleDoc } from "@/.contentlayer/generated";
+import type { ArticleDoc } from "contentlayer/generated";
 import { findArticleDoc, getMdxSourceOrNull } from "@/lib/content/resolve";
 import { getArticleBySlug } from "@/lib/supabase/queries";
 

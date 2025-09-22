@@ -1,5 +1,5 @@
-import type { ArticleDoc, CaseStudyDoc, LegalDoc } from "@/.contentlayer/generated";
-import { allArticleDocs, allCaseStudyDocs, allLegalDocs } from "@/.contentlayer/generated";
+import type { ArticleDoc, CaseStudyDoc, LegalDoc } from "contentlayer/generated";
+import { allArticleDocs, allCaseStudyDocs, allLegalDocs } from "contentlayer/generated";
 import { getMdxByKey } from "@/lib/supabase/queries";
 
 const toContentKey = (bodyPath: string) => bodyPath.replace(/^\//, "");

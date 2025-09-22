@@ -91,11 +91,15 @@ export default async function PortfolioPage() {
                   </div>
                   <CardHeader>
                     <CardTitle className="text-xl group-hover:underline">{project.title}</CardTitle>
-                    {project.featured ? <div><Badge>Featured</Badge></div> : null}
                     <CardDescription>{project.summary}</CardDescription>
                   </CardHeader>
                   <CardContent className="mt-auto space-y-3 text-sm">
                     <div className="flex flex-wrap gap-2">
+                      {project.featured ? (
+                        <Badge variant="secondary" className="font-medium uppercase">
+                          Featured
+                        </Badge>
+                      ) : null}
                       {project.tech_stack.map((tool) => (
                         <Badge key={tool} variant="secondary">
                           {tool}

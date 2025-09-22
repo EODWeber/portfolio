@@ -35,10 +35,16 @@ export default async function SocialFeedPage() {
             return (
               <Card key={post.id}>
                 <CardHeader>
-                  <div className="flex items-center justify-between gap-3">
+                  <CardTitle className="text-lg">{post.title}</CardTitle>
+                  <CardDescription className="text-sm">{post.platform}</CardDescription>
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
-                      {post.featured ? <Badge variant="default">Featured</Badge> : null}
-                      <CardTitle className="text-lg">{post.title}</CardTitle>
+                      <span>{new Date(post.posted_at).toLocaleDateString()}</span>
+                      {post.featured ? (
+                        <Badge variant="secondary" className="font-medium uppercase">
+                          Featured
+                        </Badge>
+                      ) : null}
                     </div>
                     <span
                       aria-hidden
@@ -51,11 +57,6 @@ export default async function SocialFeedPage() {
                       </svg>
                     </span>
                   </div>
-                  <CardDescription className="space-x-2 text-sm">
-                    <span>{post.platform}</span>
-                    <span>•</span>
-                    <span>{new Date(post.posted_at).toLocaleDateString()}</span>
-                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">
                   {post.summary ? <p className="text-muted-foreground">{post.summary}</p> : null}

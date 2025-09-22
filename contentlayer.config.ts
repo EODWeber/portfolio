@@ -72,11 +72,12 @@ export default makeSource({
   contentDirPath: "content",
   documentTypes: [ArticleDoc, CaseStudyDoc, LegalDoc],
   mdx: {
-    rehypePlugins: ([
+    rehypePlugins: [
       rehypeSlug,
       [rehypeAutolinkHeadings, { behavior: "wrap" }],
+      // @ts-ignore Pretty code plugin uses older unified typings
       [rehypePrettyCode, { theme: "github-dark" }],
-    ] as any),
+    ],
   },
   disableImportAliasWarning: true,
 });

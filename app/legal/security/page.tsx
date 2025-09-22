@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MDXServer } from "@/components/mdx/mdx-server";
-import type { LegalDoc } from "@/.contentlayer/generated";
+import type { LegalDoc } from "contentlayer/generated";
 import { findArticleDoc, getMdxSourceOrNull } from "@/lib/content/resolve";
 
 export default async function SecurityPage() {
