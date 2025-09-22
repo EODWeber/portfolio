@@ -96,7 +96,9 @@ export default async function PortfolioPage() {
                   <CardContent className="mt-auto space-y-3 text-sm">
                     <div className="flex flex-wrap gap-2">
                       {project.featured ? (
-                        <Badge variant="default">Featured</Badge>
+                        <Badge variant="secondary" className="font-medium uppercase">
+                          Featured
+                        </Badge>
                       ) : null}
                       {project.tech_stack.map((tool) => (
                         <Badge key={tool} variant="secondary">

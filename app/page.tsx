@@ -202,10 +202,10 @@ export default async function HomePage() {
                   <ul className="text-muted-foreground mt-2 space-y-1">
                     {study.metrics
                       ? Object.entries(study.metrics).map(([metric, value]) => (
-                          <li key={metric}>
-                            <span className="text-foreground font-medium">{metric}:</span> {value}
-                          </li>
-                        ))
+                        <li key={metric}>
+                          <span className="text-foreground font-medium">{metric}:</span> {value}
+                        </li>
+                      ))
                       : null}
                   </ul>
                 </CardContent>
@@ -288,21 +288,24 @@ export default async function HomePage() {
               const icon = p.includes("github")
                 ? siGithub
                 : p.includes("x") || p.includes("twitter")
-                ? siX
-                : p.includes("linkedin")
-                ? siLinkedin
-                : p.includes("youtube")
-                ? siYoutube
-                : siRss;
+                  ? siX
+                  : p.includes("linkedin")
+                    ? siLinkedin
+                    : p.includes("youtube")
+                      ? siYoutube
+                      : siRss;
               return (
                 <Card key={post.id} className="group relative">
                   <Link href={post.url} target="_blank" rel="noreferrer" className="absolute inset-0" aria-label={post.title} />
                   <CardHeader>
                     <CardTitle className="text-base group-hover:underline">{post.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3 text-sm">
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                       <span>{new Date(post.posted_at).toLocaleDateString()}</span>
+                      {post.featured ? (
+                        <Badge variant="secondary" className="font-medium uppercase">
+                          Featured
+                        </Badge>
+                      ) : null}
                       <span
                         aria-hidden
                         className="inline-flex h-8 w-8 items-center justify-center rounded-full"
@@ -314,6 +317,8 @@ export default async function HomePage() {
                         </svg>
                       </span>
                     </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3 text-sm">
                     {post.summary ? <p className="text-muted-foreground">{post.summary}</p> : null}
                     <span className="text-primary">View post →</span>
                   </CardContent>

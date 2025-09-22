@@ -40,7 +40,11 @@ export default async function CaseStudiesPage() {
               </CardHeader>
               <CardContent className="mt-auto space-y-3 text-sm">
                 <div className="flex flex-wrap gap-2">
-                  {study.featured ? <Badge variant="default">Featured</Badge> : null}
+                  {study.featured ? (
+                    <Badge variant="secondary" className="font-medium uppercase">
+                      Featured
+                    </Badge>
+                  ) : null}
                   {study.tags.map((tag) => (
                     <Badge key={tag} variant="secondary">
                       {tag}

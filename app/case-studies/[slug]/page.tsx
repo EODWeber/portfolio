@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
-import type { CaseStudyDoc } from "@/.contentlayer/generated";
+import type { CaseStudyDoc } from "contentlayer/generated";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MDXServer } from "@/components/mdx/mdx-server";
 import { findCaseStudyDoc, getMdxSourceOrNull } from "@/lib/content/resolve";

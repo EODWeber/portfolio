@@ -28,6 +28,7 @@ describe("serializeKeyValueLines", () => {
 
     test("empty returns empty string", () => {
         expect(serializeKeyValueLines([])).toBe("");
-        expect(serializeKeyValueLines(null as unknown as Array<{ key: string; value: string }>)).toBe("");
+        expect(serializeKeyValueLines(null)).toBe("");
+
     });
 });

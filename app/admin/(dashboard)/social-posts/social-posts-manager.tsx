@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 
+import { Modal } from "@/components/admin/modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,10 @@ import { Modal } from "@/components/admin/modal";
 import type { SocialPost } from "@/lib/supabase/types";
 
 import { deleteSocialPost, toggleSocialPostFeatured, upsertSocialPost } from "./actions";
+import { Modal } from "@/components/admin/modal";
+
+type SortKey = "title" | "platform" | "posted" | "featured" | "updated";
+type SortDirection = "asc" | "desc";
 
 function toDatetimeLocal(iso: string) {
   const date = new Date(iso);
@@ -23,21 +28,78 @@ function toDatetimeLocal(iso: string) {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
+const FORM_GRID = "grid gap-3 md:grid-cols-2";
+
 export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; status?: string }) {
   const [selectedId, setSelectedId] = useState<string>("");
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const selected = useMemo(() => posts.find((post) => post.id === selectedId), [posts, selectedId]);
-  const filtered = useMemo(
-    () =>
-      posts.filter((post) =>
+
+  const selected = useMemo(() => posts.find((post) => post.id === selectedId) ?? null, [posts, selectedId]);
+
+  const filtered = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (!term) return posts;
+    return posts.filter((post) =>
+      [post.title, post.platform, post.summary ?? "", post.url]
+        .some((value) => value.toLowerCase().includes(term)),
+    );
+  }, [posts, query]);
+
+  const handleOpen = (id?: string) => {
+    setSelectedId(id ?? "");
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedId("");
+  };
+
+  const platforms = useMemo(() => Array.from(new Set(posts.map((post) => post.platform))).sort(), [posts]);
+
+  const list = useMemo(() => {
+    const filtered = posts
+      .filter((post) =>
         query
           ? [post.title, post.platform, post.summary ?? "", post.url]
-              .some((value) => value.toLowerCase().includes(query.toLowerCase()))
+            .join(" ")
+            .toLowerCase()
+            .includes(query.toLowerCase())
           : true,
-      ),
-    [posts, query],
-  );
+      )
+      .filter((post) => (platformFilter === "all" ? true : post.platform === platformFilter));
+
+    const direction = sort.direction === "asc" ? 1 : -1;
+    return filtered.sort((a, b) => {
+      switch (sort.key) {
+        case "title":
+          return a.title.localeCompare(b.title) * direction;
+        case "platform":
+          return a.platform.localeCompare(b.platform) * direction;
+        case "posted":
+          return (new Date(a.posted_at).getTime() - new Date(b.posted_at).getTime()) * direction;
+        case "featured":
+          if (a.featured === b.featured) return 0;
+          return (a.featured ? -1 : 1) * direction;
+        case "updated":
+          return (new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()) * direction;
+        default:
+          return 0;
+      }
+    });
+  }, [posts, query, platformFilter, sort]);
+
+  const toggleSort = (key: SortKey) => {
+    setSort((prev) =>
+      prev.key === key ? { key, direction: prev.direction === "asc" ? "desc" : "asc" } : { key, direction: "asc" },
+    );
+  };
+
+  const indicator = (key: SortKey) => {
+    if (sort.key !== key) return null;
+    return sort.direction === "asc" ? "↑" : "↓";
+  };
 
   return (
     <div className="space-y-6">
@@ -50,19 +112,13 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <input
+            <Input
               placeholder="Search title, platform, url..."
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              className="w-64 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              className="w-64"
             />
-            <Button
-              size="sm"
-              onClick={() => {
-                setSelectedId("");
-                setOpen(true);
-              }}
-            >
+            <Button size="sm" onClick={() => handleOpen()}>
               Add post
             </Button>
           </div>
@@ -77,7 +133,7 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
       <Card>
         <CardHeader>
           <CardTitle>Posts</CardTitle>
-          <CardDescription>Use featured to pin up to 6 posts on the homepage.</CardDescription>
+          <CardDescription>Filter by platform or title and edit posts inline.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="max-h-[60vh] overflow-auto rounded-md border">
@@ -97,21 +153,9 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
                     <td className="px-3 py-2">{post.title}</td>
                     <td className="px-3 py-2">{post.platform}</td>
                     <td className="px-3 py-2 whitespace-nowrap">{new Date(post.posted_at).toLocaleString()}</td>
+                    <td className="px-3 py-2">{post.featured ? "Yes" : "No"}</td>
                     <td className="px-3 py-2">
-                      <form action={toggleSocialPostFeatured}>
-                        <input type="hidden" name="id" value={post.id} />
-                        <Button size="sm" variant={post.featured ? "default" : "outline"}>{post.featured ? "Featured" : "Feature"}</Button>
-                      </form>
-                    </td>
-                    <td className="px-3 py-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setSelectedId(post.id);
-                          setOpen(true);
-                        }}
-                      >
+                      <Button size="sm" variant="outline" onClick={() => handleOpen(post.id)}>
                         Edit
                       </Button>
                     </td>
@@ -123,84 +167,85 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
         </CardContent>
       </Card>
 
-      <Modal open={open} onClose={() => setOpen(false)} title={selected ? "Edit post" : "Add post"}>
-        <form key={selected?.id ?? "create"} action={upsertSocialPost} className="grid gap-3 md:grid-cols-2">
-            <input type="hidden" name="id" value={selected?.id ?? ""} />
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="platform">
-                Platform
-              </label>
-              <Input id="platform" name="platform" defaultValue={selected?.platform ?? ""} list="platforms" required />
-              <datalist id="platforms">
-                <option value="GitHub" />
-                <option value="X" />
-                <option value="Twitter" />
-                <option value="LinkedIn" />
-                <option value="YouTube" />
-                <option value="Blog" />
-                <option value="Dev.to" />
-                <option value="Medium" />
-              </datalist>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="title">
-                Title
-              </label>
-              <Input id="title" name="title" defaultValue={selected?.title ?? ""} required />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium" htmlFor="url">
-                URL
-              </label>
-              <Input id="url" name="url" defaultValue={selected?.url ?? ""} required />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium" htmlFor="summary">
-                Summary
-              </label>
-              <Textarea id="summary" name="summary" defaultValue={selected?.summary ?? ""} rows={3} />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="posted_at">
-                Posted at
-              </label>
-              <Input
-                id="posted_at"
-                name="posted_at"
-                type="datetime-local"
-                defaultValue={selected ? toDatetimeLocal(selected.posted_at) : ""}
-                required
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <input id="featured" name="featured" type="checkbox" defaultChecked={selected?.featured ?? false} />
-              <label className="text-sm font-medium" htmlFor="featured">
-                Featured (max 6)
-              </label>
-            </div>
-            <div className="flex items-center justify-between gap-2 md:col-span-2">
-              {selected ? (
-                <Button
-                  variant="destructive"
-                  formAction={deleteSocialPost}
-                  formMethod="post"
-                  onClick={(event) => {
-                    if (!confirm("Delete this post?")) {
-                      event.preventDefault();
-                    }
-                  }}
-                >
-                  Delete
+      <Modal open={open} onClose={handleClose} title={selected ? "Edit post" : "Add post"}>
+        <form key={selected?.id ?? "create"} action={upsertSocialPost} className={FORM_GRID}>
+          <input type="hidden" name="id" value={selected?.id ?? ""} />
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="platform">
+              Platform
+            </label>
+            <Input id="platform" name="platform" defaultValue={selected?.platform ?? ""} list="platforms" required />
+            <datalist id="platforms">
+              <option value="GitHub" />
+              <option value="X" />
+              <option value="Twitter" />
+              <option value="LinkedIn" />
+              <option value="YouTube" />
+              <option value="Blog" />
+              <option value="Dev.to" />
+              <option value="Medium" />
+            </datalist>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="title">
+              Title
+            </label>
+            <Input id="title" name="title" defaultValue={selected?.title ?? ""} required />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium" htmlFor="url">
+              URL
+            </label>
+            <Input id="url" name="url" defaultValue={selected?.url ?? ""} required />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium" htmlFor="summary">
+              Summary
+            </label>
+            <Textarea id="summary" name="summary" defaultValue={selected?.summary ?? ""} rows={3} />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="posted_at">
+              Posted at
+            </label>
+            <Input
+              id="posted_at"
+              name="posted_at"
+              type="datetime-local"
+              defaultValue={selected ? toDatetimeLocal(selected.posted_at) : ""}
+              required
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <input id="featured" name="featured" type="checkbox" defaultChecked={selected?.featured ?? false} />
+            <label className="text-sm font-medium" htmlFor="featured">
+              Featured (max 6)
+            </label>
+          </div>
+          <div className="flex items-center justify-between gap-2 md:col-span-2">
+            {selected ? (
+              <form
+                action={deleteSocialPost}
+                onSubmit={(event) => {
+                  if (!confirm("Delete this social post?")) event.preventDefault();
+                }}
+              >
+                <input type="hidden" name="id" value={selected.id} />
+                <Button variant="destructive" type="submit">
+                  Delete post
                 </Button>
-              ) : <div />}
-              <div className="flex gap-2">
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" onClick={() => setOpen(false)}>{selected ? "Save post" : "Create post"}</Button>
-              </div>
+              </form>
+            ) : (
+              <span />
+            )}
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={handleClose}>
+                Cancel
+              </Button>
+              <Button type="submit">{selected ? "Save post" : "Create post"}</Button>
             </div>
-          </form>
+          </div>
+        </form>
       </Modal>
     </div>
   );

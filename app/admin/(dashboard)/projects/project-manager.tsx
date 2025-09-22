@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 
+import { Modal } from "@/components/admin/modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,9 +10,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Modal } from "@/components/admin/modal";
 import type { Project } from "@/lib/supabase/types";
 
-import { deleteProject, importProjects, upsertProject, toggleProjectFeatured } from "./actions";
+import { deleteProject, importProjects, toggleProjectFeatured, upsertProject } from "./actions";
 
 const FORM_GRID = "grid gap-3 md:grid-cols-2";
+
+type SortKey = "title" | "slug" | "vertical" | "status" | "featured" | "updated";
+type SortDirection = "asc" | "desc";
+const VERTICAL_OPTIONS = ["ai-security", "secure-devops", "soc"] as const;
+type VerticalFilter = (typeof VERTICAL_OPTIONS)[number] | "all";
+type StatusFilter = "all" | "draft" | "published";
 
 export function ProjectManager({ projects, status }: { projects: Project[]; status?: string }) {
   const [selectedId, setSelectedId] = useState<string>("");
@@ -19,9 +26,20 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
   const [query, setQuery] = useState("");
 
   const selected = useMemo(
-    () => projects.find((project) => project.id === selectedId),
+    () => projects.find((project) => project.id === selectedId) ?? null,
     [projects, selectedId],
   );
+
+  const filtered = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (!term) return projects;
+    return projects.filter((project) =>
+      [project.title, project.slug, project.vertical, project.summary]
+        .concat(project.tags ?? [])
+        .concat(project.tech_stack ?? [])
+        .some((value) => value?.toLowerCase().includes(term)),
+    );
+  }, [projects, query]);
 
   const copyExport = async () => {
     try {
@@ -31,17 +49,15 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
     }
   };
 
-  const filtered = useMemo(
-    () =>
-      projects.filter((p) =>
-        query
-          ? [p.title, p.slug, p.vertical, ...(p.tags ?? []), ...(p.tech_stack ?? [])]
-              .filter(Boolean)
-              .some((value) => value.toLowerCase().includes(query.toLowerCase()))
-          : true,
-      ),
-    [projects, query],
-  );
+  const handleOpen = (id?: string) => {
+    setSelectedId(id ?? "");
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedId("");
+  };
 
   return (
     <div className="space-y-6">
@@ -54,19 +70,14 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <input
+
+            <Input
               placeholder="Search title, slug, tag..."
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="w-64 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              onChange={(event) => setQuery(event.target.value)}
+              className="w-64"
             />
-            <Button
-              size="sm"
-              onClick={() => {
-                setSelectedId("");
-                setOpen(true);
-              }}
-            >
+            <Button size="sm" onClick={() => handleOpen()}>
               Add project
             </Button>
           </div>
@@ -87,44 +98,65 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
 
       <Card>
         <CardHeader>
-          <CardTitle>List</CardTitle>
-          <CardDescription>Click Edit to modify; use Add to create a project.</CardDescription>
+          <CardTitle>Projects</CardTitle>
+          <CardDescription>Use the table to filter, feature, and edit individual projects.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="max-h-[60vh] overflow-auto rounded-md border">
             <table className="w-full text-left text-sm">
               <thead className="sticky top-0 bg-muted/40">
                 <tr className="border-b">
-                  <th className="px-3 py-2">Title</th>
-                  <th className="px-3 py-2">Slug</th>
-                  <th className="px-3 py-2">Vertical</th>
-                  <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2">Featured</th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("title")}>
+                      Title {indicator("title")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("slug")}>
+                      Slug {indicator("slug")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("vertical")}>
+                      Vertical {indicator("vertical")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("status")}>
+                      Status {indicator("status")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("featured")}>
+                      Featured {indicator("featured")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("updated")}>
+                      Updated {indicator("updated")}
+                    </button>
+                  </th>
                   <th className="px-3 py-2">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((p) => (
-                  <tr key={p.id} className="border-b last:border-0">
-                    <td className="px-3 py-2">{p.title}</td>
-                    <td className="px-3 py-2">{p.slug}</td>
-                    <td className="px-3 py-2">{p.vertical}</td>
-                    <td className="px-3 py-2 capitalize">{p.status}</td>
+                {filtered.map((project) => (
+                  <tr key={project.id} className="border-b last:border-0">
+                    <td className="px-3 py-2">{project.title}</td>
+                    <td className="px-3 py-2">{project.slug}</td>
+                    <td className="px-3 py-2">{project.vertical}</td>
+                    <td className="px-3 py-2 capitalize">{project.status}</td>
                     <td className="px-3 py-2">
                       <form action={toggleProjectFeatured}>
-                        <input type="hidden" name="id" value={p.id} />
-                        <Button size="sm" variant={p.featured ? "default" : "outline"}>{p.featured ? "Featured" : "Feature"}</Button>
+                        <input type="hidden" name="id" value={project.id} />
+                        <Button size="sm" variant={project.featured ? "default" : "outline"}>
+                          {project.featured ? "Featured" : "Feature"}
+                        </Button>
                       </form>
                     </td>
+                    <td className="px-3 py-2 whitespace-nowrap">{new Date(p.updated_at).toLocaleString()}</td>
                     <td className="px-3 py-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setSelectedId(p.id);
-                          setOpen(true);
-                        }}
-                      >
+                      <Button size="sm" variant="outline" onClick={() => handleOpen(project.id)}>
                         Edit
                       </Button>
                     </td>
@@ -136,140 +168,125 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
         </CardContent>
       </Card>
 
-      <Modal open={open} onClose={() => setOpen(false)} title={selected ? "Edit project" : "Add project"}>
+      <Modal open={open} onClose={handleClose} title={selected ? "Edit project" : "Add project"}>
         <form key={selected?.id ?? "create"} action={upsertProject} className={FORM_GRID}>
-            <input type="hidden" name="id" value={selected?.id ?? ""} />
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium" htmlFor="title">
-                Title
-              </label>
-              <Input id="title" name="title" defaultValue={selected?.title ?? ""} required />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium" htmlFor="hero_image">Cover image</label>
-              <input id="hero_image" name="hero_image" type="file" accept="image/*" className="text-sm" />
-              {selected?.hero_url ? (
-                <p className="text-xs text-muted-foreground">Current: {selected.hero_url}</p>
-              ) : null}
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="slug">
-                Slug
-              </label>
-              <Input id="slug" name="slug" defaultValue={selected?.slug ?? ""} required />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="vertical">
-                Vertical
-              </label>
-              <select
-                id="vertical"
-                name="vertical"
-                defaultValue={selected?.vertical ?? "ai-security"}
-                className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+          <input type="hidden" name="id" value={selected?.id ?? ""} />
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium" htmlFor="title">
+              Title
+            </label>
+            <Input id="title" name="title" defaultValue={selected?.title ?? ""} required />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium" htmlFor="hero_image">Cover image</label>
+            <input id="hero_image" name="hero_image" type="file" accept="image/*" className="text-sm" />
+            {selected?.hero_url ? (
+              <p className="text-xs text-muted-foreground">Current: {selected.hero_url}</p>
+            ) : null}
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="slug">
+              Slug
+            </label>
+            <Input id="slug" name="slug" defaultValue={selected?.slug ?? ""} required />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="vertical">
+              Vertical
+            </label>
+            <select
+              id="vertical"
+              name="vertical"
+              defaultValue={selected?.vertical ?? "ai-security"}
+              className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+            >
+              <option value="ai-security">AI Security</option>
+              <option value="secure-devops">Secure DevOps</option>
+              <option value="soc">SOC</option>
+            </select>
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium" htmlFor="summary">
+              Summary
+            </label>
+            <Textarea id="summary" name="summary" defaultValue={selected?.summary ?? ""} rows={3} required />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="tags">
+              Tags (comma separated)
+            </label>
+            <Input id="tags" name="tags" defaultValue={selected ? selected.tags.join(", ") : ""} />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="tech_stack">
+              Tech stack (comma separated)
+            </label>
+            <Input id="tech_stack" name="tech_stack" defaultValue={selected ? selected.tech_stack.join(", ") : ""} />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="repo_url">
+              Repo URL
+            </label>
+            <Input id="repo_url" name="repo_url" defaultValue={selected?.repo_url ?? ""} />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="hero_url">
+              Hero image URL
+            </label>
+            <Input id="hero_url" name="hero_url" defaultValue={selected?.hero_url ?? ""} />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium" htmlFor="outcomes">
+              Outcomes (one per line: Metric|Value)
+            </label>
+            <Textarea id="outcomes" name="outcomes" defaultValue={formatOutcomes(selected ?? undefined)} rows={4} />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="status">
+              Status
+            </label>
+            <select
+              id="status"
+              name="status"
+              defaultValue={selected?.status ?? "draft"}
+              className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+            >
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <input id="featured" name="featured" type="checkbox" defaultChecked={selected?.featured ?? false} />
+            <label htmlFor="featured" className="text-sm font-medium">
+              Featured (max 6)
+            </label>
+          </div>
+          <div className="flex items-center justify-between gap-2 md:col-span-2">
+            {selected ? (
+              <form
+                action={deleteProject}
+                onSubmit={(event) => {
+                  if (!confirm("Delete this project?")) event.preventDefault();
+                }}
               >
-                <option value="ai-security">AI Security</option>
-                <option value="secure-devops">Secure DevOps</option>
-                <option value="soc">SOC</option>
-              </select>
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium" htmlFor="summary">
-                Summary
-              </label>
-              <Textarea
-                id="summary"
-                name="summary"
-                defaultValue={selected?.summary ?? ""}
-                rows={3}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="tags">
-                Tags (comma separated)
-              </label>
-              <Input
-                id="tags"
-                name="tags"
-                defaultValue={selected ? selected.tags.join(", ") : ""}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="tech_stack">
-                Tech stack (comma separated)
-              </label>
-              <Input
-                id="tech_stack"
-                name="tech_stack"
-                defaultValue={selected ? selected.tech_stack.join(", ") : ""}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="repo_url">
-                Repo URL
-              </label>
-              <Input id="repo_url" name="repo_url" defaultValue={selected?.repo_url ?? ""} />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="hero_url">
-                Hero image URL
-              </label>
-              <Input id="hero_url" name="hero_url" defaultValue={selected?.hero_url ?? ""} />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium" htmlFor="outcomes">
-                Outcomes (one per line: Metric|Value)
-              </label>
-              <Textarea
-                id="outcomes"
-                name="outcomes"
-                defaultValue={formatOutcomes(selected)}
-                rows={4}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="status">
-                Status
-              </label>
-              <select
-                id="status"
-                name="status"
-                defaultValue={selected?.status ?? "draft"}
-                className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
-              >
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-              </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <input id="featured" name="featured" type="checkbox" defaultChecked={selected?.featured ?? false} />
-              <label htmlFor="featured" className="text-sm font-medium">Featured (max 6)</label>
-            </div>
-            <div className="flex items-center justify-between gap-2 md:col-span-2">
-              {selected ? (
-                <Button
-                  variant="destructive"
-                  formAction={deleteProject}
-                  formMethod="post"
-                  onClick={(event) => {
-                    if (!confirm("Delete this project?")) {
-                      event.preventDefault();
-                    }
-                  }}
-                >
-                  Delete
+                <input type="hidden" name="id" value={selected.id} />
+                <Button variant="destructive" type="submit">
+                  Delete project
                 </Button>
-              ) : <div />}
-              <div className="flex gap-2">
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" onClick={() => setOpen(false)}>{selected ? "Save project" : "Create project"}</Button>
-              </div>
+              </form>
+            ) : (
+              <span />
+            )}
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={handleClose}>
+                Cancel
+              </Button>
+              <Button type="submit">{selected ? "Save project" : "Create project"}</Button>
             </div>
-          </form>
+          </div>
+        </form>
       </Modal>
+
       <Card>
         <CardHeader>
           <CardTitle>Bulk import</CardTitle>
@@ -294,7 +311,7 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
   );
 }
 
-function formatOutcomes(project: Project | undefined) {
+function formatOutcomes(project: Project | null | undefined) {
   if (!project?.outcomes) return "";
   return project.outcomes.map((outcome) => `${outcome.metric}|${outcome.value}`).join("\n");
 }

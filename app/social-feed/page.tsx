@@ -26,17 +26,26 @@ export default async function SocialFeedPage() {
             const icon = p.includes("github")
               ? siGithub
               : p.includes("x") || p.includes("twitter")
-              ? siX
-              : p.includes("linkedin")
-              ? siLinkedin
-              : p.includes("youtube")
-              ? siYoutube
-              : siRss;
+                ? siX
+                : p.includes("linkedin")
+                  ? siLinkedin
+                  : p.includes("youtube")
+                    ? siYoutube
+                    : siRss;
             return (
               <Card key={post.id}>
                 <CardHeader>
-                  <div className="flex items-center justify-between gap-3">
-                    <CardTitle className="text-lg">{post.title}</CardTitle>
+                  <CardTitle className="text-lg">{post.title}</CardTitle>
+                  <CardDescription className="text-sm">{post.platform}</CardDescription>
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <span>{new Date(post.posted_at).toLocaleDateString()}</span>
+                      {post.featured ? (
+                        <Badge variant="secondary" className="font-medium uppercase">
+                          Featured
+                        </Badge>
+                      ) : null}
+                    </div>
                     <span
                       aria-hidden
                       className="inline-flex h-8 w-8 items-center justify-center rounded-full"
@@ -48,12 +57,6 @@ export default async function SocialFeedPage() {
                       </svg>
                     </span>
                   </div>
-                  <CardDescription className="flex items-center gap-2 text-sm">
-                    <span>{post.platform}</span>
-                    <span>•</span>
-                    <span>{new Date(post.posted_at).toLocaleDateString()}</span>
-                    {post.featured ? <Badge variant="default">Featured</Badge> : null}
-                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">
                   {post.summary ? <p className="text-muted-foreground">{post.summary}</p> : null}
