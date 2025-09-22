@@ -79,8 +79,13 @@ export default makeSource({
   contentDirPath: "content",
   documentTypes: [ArticleDoc, CaseStudyDoc, LegalDoc],
   mdx: {
-    // @ts-expect-error unified major versions report incompatible plugin signatures.
-    rehypePlugins,
+    rehypePlugins: [
+      rehypeSlug,
+      [rehypeAutolinkHeadings, { behavior: "wrap" }],
+      // @ts-ignore Pretty code plugin uses older unified typings
+      [rehypePrettyCode, { theme: "github-dark" }],
+    ],
+
   },
   disableImportAliasWarning: true,
 });

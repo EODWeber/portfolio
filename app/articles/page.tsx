@@ -36,13 +36,17 @@ export default async function ArticlesPage() {
                     <h2 className="text-2xl font-semibold tracking-tight group-hover:underline">
                       {article.title}
                     </h2>
-                    {article.featured ? <Badge className="mt-1">Featured</Badge> : null}
                     {article.summary ? (
                       <p className="text-muted-foreground mt-2 text-base line-clamp-3">{article.summary}</p>
                     ) : null}
-                    {article.tags?.length ? (
+                    {(article.featured || (article.tags?.length ?? 0) > 0) ? (
                       <div className="mt-3 flex flex-wrap gap-2">
-                        {article.tags.map((tag) => (
+                        {article.featured ? (
+                          <Badge variant="secondary" className="font-medium uppercase">
+                            Featured
+                          </Badge>
+                        ) : null}
+                        {article.tags?.map((tag) => (
                           <Badge key={tag} variant="secondary">
                             {tag}
                           </Badge>

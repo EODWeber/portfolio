@@ -298,16 +298,24 @@ export default async function HomePage() {
                 <Card key={post.id} className="group relative">
                   <Link href={post.url} target="_blank" rel="noreferrer" className="absolute inset-0" aria-label={post.title} />
                   <CardHeader>
-                    <div className="flex items-center justify-between gap-3">
-                      <CardTitle className="text-base group-hover:underline">{post.title}</CardTitle>
-                      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{new Date(post.posted_at).toLocaleDateString()}</span>
-                        <span aria-hidden className="ml-1 inline-flex h-8 w-8 items-center justify-center rounded-full" style={{ backgroundColor: `#${icon.hex}` }} title={post.platform}>
-                          <svg viewBox="0 0 24 24" width="18" height="18" fill="white" xmlns="http://www.w3.org/2000/svg">
-                            <path d={icon.path} />
-                          </svg>
-                        </span>
-                      </div>
+                    <CardTitle className="text-base group-hover:underline">{post.title}</CardTitle>
+                    <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                      <span>{new Date(post.posted_at).toLocaleDateString()}</span>
+                      {post.featured ? (
+                        <Badge variant="secondary" className="font-medium uppercase">
+                          Featured
+                        </Badge>
+                      ) : null}
+                      <span
+                        aria-hidden
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full"
+                        style={{ backgroundColor: `#${icon.hex}` }}
+                        title={post.platform}
+                      >
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="white" xmlns="http://www.w3.org/2000/svg">
+                          <path d={icon.path} />
+                        </svg>
+                      </span>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3 text-sm">

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 
+import { Modal } from "@/components/admin/modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,13 +27,33 @@ function toDatetimeLocal(iso: string) {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
+const FORM_GRID = "grid gap-3 md:grid-cols-2";
+
 export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; status?: string }) {
   const [selectedId, setSelectedId] = useState<string>("");
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [platformFilter, setPlatformFilter] = useState<string>("all");
-  const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection }>({ key: "posted", direction: "desc" });
-  const selected = useMemo(() => posts.find((post) => post.id === selectedId), [posts, selectedId]);
+
+  const selected = useMemo(() => posts.find((post) => post.id === selectedId) ?? null, [posts, selectedId]);
+
+  const filtered = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (!term) return posts;
+    return posts.filter((post) =>
+      [post.title, post.platform, post.summary ?? "", post.url]
+        .some((value) => value.toLowerCase().includes(term)),
+    );
+  }, [posts, query]);
+
+  const handleOpen = (id?: string) => {
+    setSelectedId(id ?? "");
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedId("");
+  };
 
   const platforms = useMemo(() => Array.from(new Set(posts.map((post) => post.platform))).sort(), [posts]);
 
@@ -89,33 +110,14 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
               Manage the external signals that populate the feed and homepage highlights.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-3">
             <Input
-              placeholder="Search title or summary..."
+              placeholder="Search title, platform, url..."
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               className="w-64"
             />
-            <select
-              aria-label="Filter by platform"
-              value={platformFilter}
-              onChange={(event) => setPlatformFilter(event.target.value)}
-              className="border-input bg-background focus:ring-ring rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
-            >
-              <option value="all">All platforms</option>
-              {platforms.map((platform) => (
-                <option key={platform} value={platform}>
-                  {platform}
-                </option>
-              ))}
-            </select>
-            <Button
-              size="sm"
-              onClick={() => {
-                setSelectedId("");
-                setOpen(true);
-              }}
-            >
+            <Button size="sm" onClick={() => handleOpen()}>
               Add post
             </Button>
           </div>
@@ -129,69 +131,32 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
 
       <Card>
         <CardHeader>
-          <CardTitle>Social posts</CardTitle>
-          <CardDescription>Click edit to update metadata or featured status.</CardDescription>
+          <CardTitle>Posts</CardTitle>
+          <CardDescription>Filter by platform or title and edit posts inline.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="max-h-[60vh] overflow-auto rounded-md border">
             <table className="w-full text-left text-sm">
               <thead className="sticky top-0 bg-muted/40">
                 <tr className="border-b">
-                  <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("title")}>
-                      Title {indicator("title")}
-                    </button>
-                  </th>
-                  <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("platform")}>
-                      Platform {indicator("platform")}
-                    </button>
-                  </th>
-                  <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("posted")}>
-                      Posted {indicator("posted")}
-                    </button>
-                  </th>
-                  <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("featured")}>
-                      Featured {indicator("featured")}
-                    </button>
-                  </th>
-                  <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("updated")}>
-                      Updated {indicator("updated")}
-                    </button>
-                  </th>
+                  <th className="px-3 py-2">Title</th>
+                  <th className="px-3 py-2">Platform</th>
+                  <th className="px-3 py-2">Posted</th>
+                  <th className="px-3 py-2">Featured</th>
                   <th className="px-3 py-2">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {list.map((post) => (
+                {filtered.map((post) => (
                   <tr key={post.id} className="border-b last:border-0">
                     <td className="px-3 py-2">{post.title}</td>
                     <td className="px-3 py-2">{post.platform}</td>
                     <td className="px-3 py-2 whitespace-nowrap">{new Date(post.posted_at).toLocaleString()}</td>
                     <td className="px-3 py-2">{post.featured ? "Yes" : "No"}</td>
-                    <td className="px-3 py-2 whitespace-nowrap">{new Date(post.updated_at).toLocaleString()}</td>
                     <td className="px-3 py-2">
-                      <div className="flex flex-wrap gap-2">
-                        <form action={toggleSocialPostFeatured}>
-                          <input type="hidden" name="id" value={post.id} />
-                          <Button size="sm" variant={post.featured ? "default" : "outline"} type="submit">
-                            {post.featured ? "Featured" : "Feature"}
-                          </Button>
-                        </form>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedId(post.id);
-                            setOpen(true);
-                          }}
-                        >
-                          Edit
-                        </Button>
-                      </div>
+                      <Button size="sm" variant="outline" onClick={() => handleOpen(post.id)}>
+                        Edit
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -200,16 +165,9 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
           </div>
         </CardContent>
       </Card>
-
-      <Modal
-        open={open}
-        onClose={() => {
-          setOpen(false);
-          setSelectedId("");
-        }}
-        title={selected ? "Edit post" : "Add post"}
-      >
-        <form key={selected?.id ?? "create"} action={upsertSocialPost} className="grid gap-3 md:grid-cols-2">
+      
+      <Modal open={open} onClose={handleClose} title={selected ? "Edit post" : "Add post"}>
+        <form key={selected?.id ?? "create"} action={upsertSocialPost} className={FORM_GRID}>
           <input type="hidden" name="id" value={selected?.id ?? ""} />
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="platform">
@@ -260,34 +218,33 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
           <div className="flex items-center gap-2">
             <input id="featured" name="featured" type="checkbox" defaultChecked={selected?.featured ?? false} />
             <label className="text-sm font-medium" htmlFor="featured">
-              Featured
+              Featured (max 6)
             </label>
           </div>
-          <div className="flex justify-end gap-2 md:col-span-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setOpen(false);
-                setSelectedId("");
-              }}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" onClick={() => setOpen(false)}>
-              {selected ? "Save post" : "Create post"}
-            </Button>
+          <div className="flex items-center justify-between gap-2 md:col-span-2">
+            {selected ? (
+              <form
+                action={deleteSocialPost}
+                onSubmit={(event) => {
+                  if (!confirm("Delete this social post?")) event.preventDefault();
+                }}
+              >
+                <input type="hidden" name="id" value={selected.id} />
+                <Button variant="destructive" type="submit">
+                  Delete post
+                </Button>
+              </form>
+            ) : (
+              <span />
+            )}
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={handleClose}>
+                Cancel
+              </Button>
+              <Button type="submit">{selected ? "Save post" : "Create post"}</Button>
+            </div>
           </div>
         </form>
-        {selected ? (
-          <form action={deleteSocialPost} className="mt-4 flex justify-between">
-            <input type="hidden" name="id" value={selected.id} />
-            <Button variant="destructive" type="submit">
-              Delete post
-            </Button>
-            <span />
-          </form>
-        ) : null}
       </Modal>
     </div>
   );

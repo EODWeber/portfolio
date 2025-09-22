@@ -36,11 +36,15 @@ export default async function CaseStudiesPage() {
                 <CardTitle className="text-xl">
                   <span className="group-hover:underline">{study.title}</span>
                 </CardTitle>
-                {study.featured ? <div><Badge>Featured</Badge></div> : null}
                 <CardDescription>{study.summary}</CardDescription>
               </CardHeader>
               <CardContent className="mt-auto space-y-3 text-sm">
                 <div className="flex flex-wrap gap-2">
+                  {study.featured ? (
+                    <Badge variant="secondary" className="font-medium uppercase">
+                      Featured
+                    </Badge>
+                  ) : null}
                   {study.tags.map((tag) => (
                     <Badge key={tag} variant="secondary">
                       {tag}
