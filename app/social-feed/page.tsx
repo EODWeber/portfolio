@@ -26,12 +26,12 @@ export default async function SocialFeedPage() {
             const icon = p.includes("github")
               ? siGithub
               : p.includes("x") || p.includes("twitter")
-              ? siX
-              : p.includes("linkedin")
-              ? siLinkedin
-              : p.includes("youtube")
-              ? siYoutube
-              : siRss;
+                ? siX
+                : p.includes("linkedin")
+                  ? siLinkedin
+                  : p.includes("youtube")
+                    ? siYoutube
+                    : siRss;
             return (
               <Card key={post.id}>
                 <CardHeader>
@@ -48,11 +48,11 @@ export default async function SocialFeedPage() {
                     </div>
                     <span
                       aria-hidden
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-full"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full"
                       style={{ backgroundColor: `#${icon.hex}` }}
                       title={post.platform}
                     >
-                      <svg viewBox="0 0 24 24" width="16" height="16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="white" xmlns="http://www.w3.org/2000/svg">
                         <path d={icon.path} />
                       </svg>
                     </span>

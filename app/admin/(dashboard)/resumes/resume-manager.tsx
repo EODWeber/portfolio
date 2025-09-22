@@ -37,8 +37,8 @@ export function ResumeManager({ resumes, status }: ResumeManagerProps) {
       .filter((resume) =>
         query
           ? `${resume.label} ${resume.vertical}`
-              .toLowerCase()
-              .includes(query.toLowerCase())
+            .toLowerCase()
+            .includes(query.toLowerCase())
           : true,
       );
 
@@ -313,27 +313,27 @@ export function ResumeManager({ resumes, status }: ResumeManagerProps) {
               <Button type="submit">{selected ? "Save resume" : "Upload PDF & Save"}</Button>
             </div>
           </form>
-          {selected ? (
-            <div className="mt-3 flex items-center justify-between">
-              <div className="flex gap-2">
-                <form action={toggleArchiveResume}>
-                  <input type="hidden" name="id" value={selected.id} />
-                  <Button variant="outline" type="submit">{selected.archived ? "Restore" : "Archive"}</Button>
-                </form>
-                <form
-                  action={deleteResume}
-                  onSubmit={(e) => {
-                    if (!confirm("Delete this resume? This cannot be undone.")) {
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  <input type="hidden" name="id" value={selected.id} />
-                  <Button variant="destructive" type="submit">Delete resume</Button>
-                </form>
-              </div>
+        {selected ? (
+          <div className="mt-3 flex items-center justify-between">
+            <div className="flex gap-2">
+              <form action={toggleArchiveResume}>
+                <input type="hidden" name="id" value={selected.id} />
+                <Button variant="outline" type="submit">{selected.archived ? "Restore" : "Archive"}</Button>
+              </form>
+              <form
+                action={deleteResume}
+                onSubmit={(e) => {
+                  if (!confirm("Delete this resume? This cannot be undone.")) {
+                    e.preventDefault();
+                  }
+                }}
+              >
+                <input type="hidden" name="id" value={selected.id} />
+                <Button variant="destructive" type="submit">Delete resume</Button>
+              </form>
             </div>
-          ) : null}
+          </div>
+        ) : null}
       </Modal>
     </div>
   );

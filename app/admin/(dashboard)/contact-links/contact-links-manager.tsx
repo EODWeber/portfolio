@@ -6,6 +6,7 @@ import { Modal } from "@/components/admin/modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Modal } from "@/components/admin/modal";
 import type { ContactLink } from "@/lib/supabase/types";
 
 import { deleteContactLink, upsertContactLink } from "./actions";
@@ -48,9 +49,9 @@ export function ContactLinksManager({ links, status }: { links: ContactLink[]; s
       .filter((link) =>
         query
           ? [link.label, link.url, link.category ?? "", link.icon ?? ""]
-              .join(" ")
-              .toLowerCase()
-              .includes(query.toLowerCase())
+            .join(" ")
+            .toLowerCase()
+            .includes(query.toLowerCase())
           : true,
       )
       .filter((link) => (categoryFilter === "all" ? true : link.category === categoryFilter));

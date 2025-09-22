@@ -3,8 +3,20 @@ import { describe, expect, test, vi, beforeEach } from "vitest";
 import { submitContact, type ContactFormState } from "@/app/contact/actions";
 import { contactSchema } from "@/app/contact/schema";
 
-const insertMock = vi.fn(async () => ({ error: null }));
-const fromMock = vi.fn(() => ({ insert: insertMock }));
+const contactInsertMock = vi.fn(async () => ({ error: null }));
+const logInsertMock = vi.fn(async () => ({ error: null }));
+const maybeSingleMock = vi.fn(async () => ({ data: null }));
+const eqMock = vi.fn(() => ({ maybeSingle: maybeSingleMock }));
+const selectMock = vi.fn(() => ({ eq: eqMock }));
+const fromMock = vi.fn((table: string) => {
+    if (table === "notification_settings") {
+        return { select: selectMock } as const;
+    }
+    if (table === "notifications_log") {
+        return { insert: logInsertMock } as const;
+    }
+    return { insert: contactInsertMock } as const;
+});
 
 vi.mock("@/lib/supabase/admin-client", () => ({
   createSupabaseAdminClient: () => ({
@@ -22,7 +34,11 @@ vi.mock("@/lib/analytics/log-event", () => ({
 
 describe("contact form", () => {
   beforeEach(() => {
-    insertMock.mockClear();
+    contactInsertMock.mockClear();
+    logInsertMock.mockClear();
+    maybeSingleMock.mockClear();
+    eqMock.mockClear();
+    selectMock.mockClear();
     fromMock.mockClear();
   });
 
@@ -44,7 +60,7 @@ describe("contact form", () => {
     const state = (await submitContact({} as ContactFormState, formData)) ?? {};
     expect(state.success).toBe(false);
     expect(state.error).toBeDefined();
-    expect(insertMock).not.toHaveBeenCalled();
+    expect(contactInsertMock).not.toHaveBeenCalled();
   });
 
   test("submitContact inserts into Supabase when valid", async () => {
@@ -56,7 +72,8 @@ describe("contact form", () => {
 
     const state = await submitContact({} as ContactFormState, formData);
     expect(state.success).toBe(true);
-    expect(insertMock).toHaveBeenCalledTimes(1);
+    expect(contactInsertMock).toHaveBeenCalledTimes(1);
     expect(fromMock).toHaveBeenCalledWith("contact_requests");
+    expect(logInsertMock).toHaveBeenCalled();
   });
 });

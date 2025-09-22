@@ -202,10 +202,10 @@ export default async function HomePage() {
                   <ul className="text-muted-foreground mt-2 space-y-1">
                     {study.metrics
                       ? Object.entries(study.metrics).map(([metric, value]) => (
-                          <li key={metric}>
-                            <span className="text-foreground font-medium">{metric}:</span> {value}
-                          </li>
-                        ))
+                        <li key={metric}>
+                          <span className="text-foreground font-medium">{metric}:</span> {value}
+                        </li>
+                      ))
                       : null}
                   </ul>
                 </CardContent>
@@ -288,12 +288,12 @@ export default async function HomePage() {
               const icon = p.includes("github")
                 ? siGithub
                 : p.includes("x") || p.includes("twitter")
-                ? siX
-                : p.includes("linkedin")
-                ? siLinkedin
-                : p.includes("youtube")
-                ? siYoutube
-                : siRss;
+                  ? siX
+                  : p.includes("linkedin")
+                    ? siLinkedin
+                    : p.includes("youtube")
+                      ? siYoutube
+                      : siRss;
               return (
                 <Card key={post.id} className="group relative">
                   <Link href={post.url} target="_blank" rel="noreferrer" className="absolute inset-0" aria-label={post.title} />

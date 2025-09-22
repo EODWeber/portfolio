@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Modal } from "@/components/admin/modal";
 import type { SocialPost } from "@/lib/supabase/types";
 
 import { deleteSocialPost, toggleSocialPostFeatured, upsertSocialPost } from "./actions";
@@ -62,9 +63,9 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
       .filter((post) =>
         query
           ? [post.title, post.platform, post.summary ?? "", post.url]
-              .join(" ")
-              .toLowerCase()
-              .includes(query.toLowerCase())
+            .join(" ")
+            .toLowerCase()
+            .includes(query.toLowerCase())
           : true,
       )
       .filter((post) => (platformFilter === "all" ? true : post.platform === platformFilter));
@@ -165,7 +166,7 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
           </div>
         </CardContent>
       </Card>
-      
+
       <Modal open={open} onClose={handleClose} title={selected ? "Edit post" : "Add post"}>
         <form key={selected?.id ?? "create"} action={upsertSocialPost} className={FORM_GRID}>
           <input type="hidden" name="id" value={selected?.id ?? ""} />

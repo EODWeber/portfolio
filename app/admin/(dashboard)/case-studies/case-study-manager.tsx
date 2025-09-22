@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Modal } from "@/components/admin/modal";
 import type { CaseStudy, MdxDocument } from "@/lib/supabase/types";
 
 import { deleteCaseStudy, importCaseStudies, upsertCaseStudy } from "./actions";
@@ -37,7 +38,7 @@ export function CaseStudyManager({
     () => caseStudies.find((study) => study.id === selectedId) ?? null,
     [caseStudies, selectedId],
   );
-  
+
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
     if (!term) return caseStudies;

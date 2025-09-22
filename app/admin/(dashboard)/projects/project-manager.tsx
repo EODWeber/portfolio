@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Modal } from "@/components/admin/modal";
 import type { Project } from "@/lib/supabase/types";
 
 import { deleteProject, importProjects, toggleProjectFeatured, upsertProject } from "./actions";
@@ -166,7 +167,7 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
           </div>
         </CardContent>
       </Card>
-      
+
       <Modal open={open} onClose={handleClose} title={selected ? "Edit project" : "Add project"}>
         <form key={selected?.id ?? "create"} action={upsertProject} className={FORM_GRID}>
           <input type="hidden" name="id" value={selected?.id ?? ""} />
