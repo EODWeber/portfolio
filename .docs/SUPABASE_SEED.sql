@@ -63,7 +63,7 @@ values
     'Implemented provenance tracking and secret scanning across the LLM lifecycle for a Fortune 100 fintech.',
     'ai-security',
     '{"ai-security","supply-chain","governance"}',
-    'case-studies/llm-supply-chain-hardening.mdx',
+    'https://YOUR-SUPABASE-PROJECT.supabase.co/storage/v1/object/public/content/case-studies/llm-supply-chain-hardening.mdx',
     'https://images.unsplash.com/photo-1545239351-1141bd82e8a6?q=80&w=1600',
     '{"roi":"7.3x tooling ROI","blocked_leaks":"14 leaked prompts contained before production","compliance":"SOC2 Type II + internal AI risk controls"}'::jsonb,
     'published'
@@ -74,7 +74,7 @@ values
     'Redesigned a financial compliance platform to ship daily while satisfying strict change-management policy.',
     'secure-devops',
     '{"secure-devops","cicd","compliance"}',
-    'case-studies/zero-downtime-delivery.mdx',
+    'https://YOUR-SUPABASE-PROJECT.supabase.co/storage/v1/object/public/content/case-studies/zero-downtime-delivery.mdx',
     'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?q=80&w=1600',
     '{"deployments_per_week":"28 automated releases","audit_findings":"0 repeat findings across 3 audits","mean_time_recovery":"<7 minutes"}'::jsonb,
     'published'
@@ -97,7 +97,7 @@ values
     'ai-security-blueprint',
     'Blueprint for AI Security Operations',
     'A pragmatic roadmap for building AI abuse detection, model telemetry, and red/blue teaming workflows.',
-    'articles/ai-security-blueprint.mdx',
+    'https://YOUR-SUPABASE-PROJECT.supabase.co/storage/v1/object/public/content/articles/ai-security-blueprint.mdx',
     '{"ai-security","operations"}',
     'published'
   ),
@@ -105,7 +105,7 @@ values
     'defending-llms-from-prompt-injection',
     'Defending LLMs from Prompt Injection',
     'Red vs. blue techniques for hardening generative AI interfaces in enterprise applications.',
-    'articles/defending-llms-from-prompt-injection.mdx',
+    'https://YOUR-SUPABASE-PROJECT.supabase.co/storage/v1/object/public/content/articles/defending-llms-from-prompt-injection.mdx',
     '{"prompt-security","llm"}',
     'published'
   ),
@@ -113,7 +113,7 @@ values
     'legal-privacy',
     'Privacy Notice',
     'How user data is processed, retained, and protected across analytics and contact tooling.',
-    'legal/privacy.mdx',
+    'https://YOUR-SUPABASE-PROJECT.supabase.co/storage/v1/object/public/content/legal/privacy.mdx',
     '{"legal","policy"}',
     'published'
   ),
@@ -121,7 +121,7 @@ values
     'legal-security',
     'Security Overview',
     'Security posture, vulnerability disclosure policy, and assurances for prospective clients.',
-    'legal/security.mdx',
+    'https://YOUR-SUPABASE-PROJECT.supabase.co/storage/v1/object/public/content/legal/security.mdx',
     '{"legal","security"}',
     'published'
   )
@@ -132,6 +132,20 @@ values
     tags = excluded.tags,
     status = excluded.status,
     updated_at = now();
+
+-- MDX documents --------------------------------------------------------------
+insert into public.mdx_documents (key, storage_path, deleted)
+values
+  ('case-studies/llm-supply-chain-hardening.mdx', 'case-studies/llm-supply-chain-hardening.mdx', false),
+  ('case-studies/zero-downtime-delivery.mdx', 'case-studies/zero-downtime-delivery.mdx', false),
+  ('articles/ai-security-blueprint.mdx', 'articles/ai-security-blueprint.mdx', false),
+  ('articles/defending-llms-from-prompt-injection.mdx', 'articles/defending-llms-from-prompt-injection.mdx', false),
+  ('legal/privacy.mdx', 'legal/privacy.mdx', false),
+  ('legal/security.mdx', 'legal/security.mdx', false)
+on conflict (key) do update set
+  storage_path = excluded.storage_path,
+  deleted = excluded.deleted,
+  updated_at = now();
 
 -- Resumes ---------------------------------------------------------------------
 -- Seed resumes idempotently: delete by label then insert

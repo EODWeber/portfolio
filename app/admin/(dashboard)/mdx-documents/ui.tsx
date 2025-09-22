@@ -11,7 +11,6 @@ import { Modal } from "@/components/admin/modal";
 import type { MdxDocument } from "@/lib/supabase/types";
 
 import { deleteDocument, toggleDeleted, upsertMdxDocument } from "./actions";
-import { Modal } from "@/components/admin/modal";
 
 type SortKey = "key" | "updated" | "deleted";
 type SortDirection = "asc" | "desc";
@@ -197,6 +196,9 @@ export function MdxDocumentsManager({ initialDocs }: { initialDocs: MdxDocument[
               Key
             </label>
             <Input id="key" name="key" defaultValue={selected?.key ?? ""} required />
+            {selected?.public_url ? (
+              <p className="text-xs text-muted-foreground break-all">Public URL: {selected.public_url}</p>
+            ) : null}
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="content">
@@ -217,6 +219,9 @@ export function MdxDocumentsManager({ initialDocs }: { initialDocs: MdxDocument[
                 }
               }}
             />
+            {selected?.download_error ? (
+              <p className="text-xs text-destructive">Unable to load from storage: {selected.download_error}</p>
+            ) : null}
             <div className="flex justify-end">
               <button
                 type="button"

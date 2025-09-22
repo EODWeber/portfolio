@@ -144,7 +144,9 @@ export async function getNotificationSettings(): Promise<NotificationSettings | 
   return (data as NotificationSettings | null) ?? null;
 }
 
-import type { NotificationLog } from "@/lib/supabase/types";
+import type { MdxDocument, NotificationLog } from "@/lib/supabase/types";
+import { readStorageText } from "@/lib/supabase/storage";
+import { toContentKey } from "@/lib/content/resolve";
 
 export async function getNotificationsLog(limit = 20): Promise<NotificationLog[]> {
   const admin = createSupabaseAdminClient();
@@ -158,27 +160,68 @@ export async function getNotificationsLog(limit = 20): Promise<NotificationLog[]
 }
 
 // MDX documents ------------------------------------------------------
+type BaseMdxDocument = Omit<MdxDocument, "content" | "download_error" | "public_url">;
+
 export async function fetchAllMdxDocuments(): Promise<MdxDocument[]> {
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin
     .from("mdx_documents")
-    .select("*")
+    .select("id, key, storage_path, deleted, created_at, updated_at")
     .order("updated_at", { ascending: false });
   if (error) throw new Error(error.message);
-  return (data as MdxDocument[]) ?? [];
+
+  const docs = (data as BaseMdxDocument[]) ?? [];
+  const mapped = await Promise.all(
+    docs.map(async (doc) => {
+      const { data: file, error: downloadError } = await admin.storage.from("content").download(doc.storage_path);
+      if (downloadError) {
+        const { data: publicData } = admin.storage.from("content").getPublicUrl(doc.storage_path);
+        return {
+          ...doc,
+          content: null,
+          download_error: downloadError.message,
+          public_url: publicData.publicUrl ?? null,
+        } satisfies MdxDocument;
+      }
+
+      const { text, error: readError } = await readStorageText(file);
+      const { data: publicData } = admin.storage.from("content").getPublicUrl(doc.storage_path);
+      return {
+        ...doc,
+        content: readError ? null : text ?? "",
+        download_error: readError,
+        public_url: publicData.publicUrl ?? null,
+      } satisfies MdxDocument;
+    }),
+  );
+
+  return mapped;
 }
 
 export async function fetchAvailableMdxDocuments(): Promise<MdxDocument[]> {
   const admin = createSupabaseAdminClient();
-  // Select docs not linked in articles or case_studies
   const { data, error } = await admin
     .from("mdx_documents")
-    .select("*")
+    .select("id, key, storage_path, deleted, created_at, updated_at")
     .eq("deleted", false);
   if (error) throw new Error(error.message);
 
-  const docs = (data as MdxDocument[]) ?? [];
+  const docs = (data as BaseMdxDocument[]) ?? [];
   const [articles, studies] = await Promise.all([fetchAllArticles(), fetchAllCaseStudies()]);
-  const used = new Set<string>([...articles.map((a) => a.body_path), ...studies.map((s) => s.body_path)]);
-  return docs.filter((d) => !used.has(d.key));
+  const used = new Set<string>([
+    ...articles.map((article) => toContentKey(article.body_path ?? "")),
+    ...studies.map((study) => toContentKey(study.body_path ?? "")),
+  ]);
+
+  return docs
+    .filter((doc) => !used.has(doc.key))
+    .map((doc) => {
+      const { data: publicData } = admin.storage.from("content").getPublicUrl(doc.storage_path);
+      return {
+        ...doc,
+        content: null,
+        download_error: null,
+        public_url: publicData.publicUrl ?? null,
+      } satisfies MdxDocument;
+    });
 }
