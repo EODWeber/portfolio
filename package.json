@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "doppler run -- next dev --turbopack",
     "build": "doppler run -- next build --turbopack",
+    "vercel-build": "contentlayer build && next build",
     "start": "doppler run -- next start",
     "lint": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --max-warnings=0 --fix",
@@ -85,7 +86,7 @@
     ]
   },
   "engines": {
-    "node": ">=18.18.0"
+    "node": "20.x"
   },
   "packageManager": "pnpm@10.17.0"
 }
