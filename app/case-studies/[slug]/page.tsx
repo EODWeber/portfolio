@@ -9,12 +9,13 @@ import { findCaseStudyDoc, getMdxSourceOrNull } from "@/lib/content/resolve";
 import { getCaseStudyBySlug, getVerticalProjects } from "@/lib/supabase/queries";
 import type { Vertical } from "@/lib/supabase/types";
 
-type CaseStudyPageProps = {
-  params: { slug: string };
-};
-
-export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
-  const caseStudy = await getCaseStudyBySlug(params.slug);
+export default async function CaseStudyPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const p = await params;
+  const caseStudy = await getCaseStudyBySlug(p.slug);
 
   if (!caseStudy) {
     notFound();

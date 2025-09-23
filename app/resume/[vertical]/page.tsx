@@ -6,12 +6,13 @@ import { getResumeByVertical } from "@/lib/supabase/queries";
 import { getSignedResumeForVertical } from "@/lib/supabase/storage";
 import type { Vertical } from "@/lib/supabase/types";
 
-type ResumeDownloadPageProps = {
-  params: { vertical: Vertical };
-};
-
-export default async function ResumeDownloadPage({ params }: ResumeDownloadPageProps) {
-  const resume = await getResumeByVertical(params.vertical);
+export default async function ResumeDownloadPage({
+  params,
+}: {
+  params: Promise<{ vertical: Vertical }>;
+}) {
+  const p = await params;
+  const resume = await getResumeByVertical(p.vertical);
 
   if (!resume) {
     notFound();

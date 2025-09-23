@@ -35,6 +35,9 @@ export async function createSignedResumeUrl(
   filePath: string,
   expiresInSeconds = 120,
 ): Promise<string> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("Supabase admin credentials missing for signed URL generation");
+  }
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin.storage
     .from("resumes")

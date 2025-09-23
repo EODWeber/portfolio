@@ -4,18 +4,16 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 function getSupabaseEnv() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !anonKey) {
-    throw new Error(
-      "Supabase URL or anon key is missing. Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set via Doppler or .env.",
-    );
-  }
-
   return { url, anonKey };
 }
 
 export async function createSupabaseServerClient() {
   const { url, anonKey } = getSupabaseEnv();
+  if (!url || !anonKey) {
+    throw new Error(
+      "Supabase URL or anon key is missing. Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set via Doppler or .env.",
+    );
+  }
   const cookieStore = await cookies();
 
   return createServerClient(url, anonKey, {

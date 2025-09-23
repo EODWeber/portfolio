@@ -2,16 +2,17 @@ import { fetchAllArticles, fetchAvailableMdxDocuments } from "@/lib/admin/querie
 
 import { ArticleManager } from "./article-manager";
 
-type ArticlesPageProps = {
-  searchParams?: { [key: string]: string | string[] | undefined };
-};
-
-export default async function ArticlesAdminPage({ searchParams }: ArticlesPageProps) {
+export default async function ArticlesAdminPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = await searchParams;
   const [articles, availableDocs] = await Promise.all([
     fetchAllArticles(),
     fetchAvailableMdxDocuments(),
   ]);
-  const status = typeof searchParams?.status === "string" ? searchParams.status : undefined;
+  const status = typeof sp?.status === "string" ? sp.status : undefined;
 
   return <ArticleManager articles={articles} availableDocs={availableDocs} status={status} />;
 }

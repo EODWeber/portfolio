@@ -6,13 +6,14 @@ import { getSiteSettings } from "@/lib/supabase/queries";
 
 import { upsertSiteSettings } from "./actions";
 
-type SiteSettingsPageProps = {
-  searchParams?: { [key: string]: string | string[] | undefined };
-};
-
-export default async function SiteSettingsAdminPage({ searchParams }: SiteSettingsPageProps) {
+export default async function SiteSettingsAdminPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = await searchParams;
   const settings = await getSiteSettings();
-  const saved = searchParams?.status === "success";
+  const saved = sp?.status === "success";
 
   return (
     <div className="space-y-6">

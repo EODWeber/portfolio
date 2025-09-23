@@ -2,13 +2,14 @@ import { fetchAllContactRequests } from "@/lib/admin/queries";
 
 import { ContactRequestsManager } from "./contact-request-manager";
 
-type ContactRequestsPageProps = {
-  searchParams?: { [key: string]: string | string[] | undefined };
-};
-
-export default async function ContactRequestsPage({ searchParams }: ContactRequestsPageProps) {
+export default async function ContactRequestsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = await searchParams;
   const requests = await fetchAllContactRequests();
-  const status = typeof searchParams?.status === "string" ? searchParams.status : undefined;
+  const status = typeof sp?.status === "string" ? sp.status : undefined;
 
   return <ContactRequestsManager requests={requests} status={status} />;
 }

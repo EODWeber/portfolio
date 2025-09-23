@@ -11,13 +11,14 @@ import { getSiteProfile } from "@/lib/supabase/queries";
 
 import { upsertSiteProfile } from "./actions";
 
-type SiteProfilePageProps = {
-  searchParams?: { [key: string]: string | string[] | undefined };
-};
-
-export default async function SiteProfileAdminPage({ searchParams }: SiteProfilePageProps) {
+export default async function SiteProfileAdminPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = await searchParams;
   const profile = await getSiteProfile();
-  const saved = searchParams?.status === "success";
+  const saved = sp?.status === "success";
 
   return (
     <div className="space-y-6">

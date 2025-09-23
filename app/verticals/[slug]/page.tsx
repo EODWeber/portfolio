@@ -13,12 +13,12 @@ import {
 import type { Vertical } from "@/lib/supabase/types";
 import { getVerticalMeta } from "@/lib/verticals";
 
-type VerticalPageProps = {
-  params: { slug: string };
-};
-
-export default async function VerticalDetailPage({ params }: VerticalPageProps) {
-  const { slug } = params;
+export default async function VerticalDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
   const meta = getVerticalMeta(slug);
 
   if (!meta) {
@@ -119,10 +119,10 @@ export default async function VerticalDetailPage({ params }: VerticalPageProps) 
                   <ul className="text-muted-foreground mt-2 space-y-1">
                     {study.metrics
                       ? Object.entries(study.metrics).map(([metric, value]) => (
-                          <li key={metric}>
-                            <span className="text-foreground font-medium">{metric}:</span> {value}
-                          </li>
-                        ))
+                        <li key={metric}>
+                          <span className="text-foreground font-medium">{metric}:</span> {value}
+                        </li>
+                      ))
                       : null}
                   </ul>
                 </CardContent>

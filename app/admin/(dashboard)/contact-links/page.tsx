@@ -2,13 +2,14 @@ import { getContactLinks } from "@/lib/supabase/queries";
 
 import { ContactLinksManager } from "./contact-links-manager";
 
-type ContactLinksPageProps = {
-  searchParams?: { [key: string]: string | string[] | undefined };
-};
-
-export default async function ContactLinksAdminPage({ searchParams }: ContactLinksPageProps) {
+export default async function ContactLinksAdminPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = await searchParams;
   const links = await getContactLinks();
-  const status = typeof searchParams?.status === "string" ? searchParams.status : undefined;
+  const status = typeof sp?.status === "string" ? sp.status : undefined;
 
   return <ContactLinksManager links={links} status={status} />;
 }

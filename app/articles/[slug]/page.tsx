@@ -9,12 +9,13 @@ import type { ArticleDoc } from "contentlayer/generated";
 import { findArticleDoc, getMdxSourceOrNull } from "@/lib/content/resolve";
 import { getArticleBySlug } from "@/lib/supabase/queries";
 
-type ArticlePageProps = {
-  params: { slug: string };
-};
-
-export default async function ArticlePage({ params }: ArticlePageProps) {
-  const article = await getArticleBySlug(params.slug);
+export default async function ArticlePage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const p = await params;
+  const article = await getArticleBySlug(p.slug);
 
   if (!article) {
     notFound();

@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import Image from "next/image";
 import Link from "next/link";
 
@@ -217,10 +220,10 @@ export default async function HomePage() {
                   <ul className="text-muted-foreground mt-2 space-y-1">
                     {study.metrics
                       ? Object.entries(study.metrics).map(([metric, value]) => (
-                          <li key={metric}>
-                            <span className="text-foreground font-medium">{metric}:</span> {value}
-                          </li>
-                        ))
+                        <li key={metric}>
+                          <span className="text-foreground font-medium">{metric}:</span> {value}
+                        </li>
+                      ))
                       : null}
                   </ul>
                 </CardContent>
