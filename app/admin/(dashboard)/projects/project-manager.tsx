@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { Project } from "@/lib/supabase/types";
+import { Modal } from "@/components/admin/modal";
 
 import { deleteProject, importProjects, toggleProjectFeatured, upsertProject } from "./actions";
 
@@ -42,7 +43,7 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
   const displayed = useMemo(() => {
     const items = [...filtered];
     const direction = sort.direction === "asc" ? 1 : -1;
-        
+
     return items.sort((a, b) => {
       switch (sort.key) {
         case "title":

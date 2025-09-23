@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { SocialPost } from "@/lib/supabase/types";
 
-import { deleteSocialPost, upsertSocialPost } from "./actions";
+import { deleteSocialPost, toggleSocialPostFeatured, upsertSocialPost } from "./actions";
 
 function toDatetimeLocal(iso: string) {
   const date = new Date(iso);
@@ -30,22 +30,28 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [platformFilter, setPlatformFilter] = useState<string>("all");
-  const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection }>({ key: "posted", direction: "desc" });
 
   const selected = useMemo(
     () => posts.find((post) => post.id === selectedId) ?? null,
     [posts, selectedId],
   );
 
+  const platforms = useMemo(
+    () => Array.from(new Set(posts.map((p) => p.platform))).sort((a, b) => a.localeCompare(b)),
+    [posts],
+  );
+
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
-    if (!term) return posts;
-    return posts.filter((post) =>
-      [post.title, post.platform, post.summary ?? "", post.url].some((value) =>
+    return posts.filter((post) => {
+      const matchesPlatform = platformFilter === "all" || post.platform === platformFilter;
+      if (!matchesPlatform) return false;
+      if (!term) return true;
+      return [post.title, post.platform, post.summary ?? "", post.url].some((value) =>
         value.toLowerCase().includes(term),
-      ),
-    );
-  }, [posts, query]);
+      );
+    });
+  }, [posts, query, platformFilter]);
 
   const handleOpen = (id?: string) => {
     setSelectedId(id ?? "");
@@ -109,31 +115,15 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
             <table className="w-full text-left text-sm">
               <thead className="bg-muted/40 sticky top-0">
                 <tr className="border-b">
-                  <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("title")}>
-                      Title {indicator("title")}
-                    </button>
-                  </th>
-                  <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("platform")}>
-                      Platform {indicator("platform")}
-                    </button>
-                  </th>
-                  <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("posted")}>
-                      Posted {indicator("posted")}
-                    </button>
-                  </th>
-                  <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("featured")}>
-                      Featured {indicator("featured")}
-                    </button>
-                  </th>
+                  <th className="px-3 py-2">Title</th>
+                  <th className="px-3 py-2">Platform</th>
+                  <th className="px-3 py-2">Posted</th>
+                  <th className="px-3 py-2">Featured</th>
                   <th className="px-3 py-2">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {list.map((post) => (
+                {filtered.map((post) => (
                   <tr key={post.id} className="border-b last:border-0">
                     <td className="px-3 py-2">{post.title}</td>
                     <td className="px-3 py-2">{post.platform}</td>
