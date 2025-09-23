@@ -61,7 +61,10 @@ export async function upsertArticle(formData: FormData) {
     if ((a.data && a.data.length > 0) || (s.data && s.data.length > 0)) {
       throw new Error("Selected MDX file is already linked");
     }
-    const { error: restoreErr } = await admin.from("mdx_documents").update({ deleted: false }).eq("key", linkKey);
+    const { error: restoreErr } = await admin
+      .from("mdx_documents")
+      .update({ deleted: false })
+      .eq("key", linkKey);
     if (restoreErr) throw new Error(restoreErr.message);
     body_path = publicUrl;
   } else if (content) {
@@ -92,7 +95,9 @@ export async function upsertArticle(formData: FormData) {
         .eq("id", existing.id);
       if (updateErr) throw new Error(updateErr.message);
     } else {
-      const { error: insertErr } = await admin.from("mdx_documents").insert({ key, storage_path: key });
+      const { error: insertErr } = await admin
+        .from("mdx_documents")
+        .insert({ key, storage_path: key });
       if (insertErr) throw new Error(insertErr.message);
     }
     body_path = publicUrl;
@@ -104,7 +109,10 @@ export async function upsertArticle(formData: FormData) {
     const key = `articles/${payload.slug}-${Date.now()}.${ext}`;
     const { error: uploadErr } = await admin.storage
       .from("images")
-      .upload(key, await heroFile.arrayBuffer(), { upsert: false, contentType: heroFile.type || "image/*" });
+      .upload(key, await heroFile.arrayBuffer(), {
+        upsert: false,
+        contentType: heroFile.type || "image/*",
+      });
     if (uploadErr) throw new Error(uploadErr.message);
     const { data } = admin.storage.from("images").getPublicUrl(key);
     hero_url = data.publicUrl;
@@ -182,7 +190,9 @@ export async function importArticles(formData: FormData): Promise<void> {
       slug: r.slug,
       summary: r.summary,
       body_path: r.body_path,
-      tags: Array.isArray(r.tags) ? (r.tags as unknown[]).join(",") : (r.tags as string | undefined),
+      tags: Array.isArray(r.tags)
+        ? (r.tags as unknown[]).join(",")
+        : (r.tags as string | undefined),
       status: (r as { status?: string }).status ?? "draft",
     });
 

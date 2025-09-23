@@ -8,7 +8,11 @@ import { z } from "zod";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin-client";
 
-const upsertSchema = z.object({ key: z.string().min(1), content: z.string().min(1), id: z.string().optional() });
+const upsertSchema = z.object({
+  key: z.string().min(1),
+  content: z.string().min(1),
+  id: z.string().optional(),
+});
 const toggleSchema = z.object({ id: z.string().uuid(), deleted: z.boolean() });
 const deleteSchema = z.object({ id: z.string().uuid() });
 
@@ -44,7 +48,9 @@ export async function upsertMdxDocument(formData: FormData) {
       .eq("id", existing.id);
     if (error) throw new Error(error.message);
   } else {
-    const { error } = await admin.from("mdx_documents").insert({ key: payload.key, storage_path: payload.key });
+    const { error } = await admin
+      .from("mdx_documents")
+      .insert({ key: payload.key, storage_path: payload.key });
     if (error) throw new Error(error.message);
   }
   revalidatePath("/admin/mdx-documents");
@@ -52,9 +58,15 @@ export async function upsertMdxDocument(formData: FormData) {
 
 export async function toggleDeleted(formData: FormData) {
   await requireAdminUser();
-  const payload = toggleSchema.parse({ id: formData.get("id")?.toString(), deleted: formData.get("deleted")?.toString() === "true" });
+  const payload = toggleSchema.parse({
+    id: formData.get("id")?.toString(),
+    deleted: formData.get("deleted")?.toString() === "true",
+  });
   const admin = createSupabaseAdminClient();
-  const { error } = await admin.from("mdx_documents").update({ deleted: payload.deleted }).eq("id", payload.id);
+  const { error } = await admin
+    .from("mdx_documents")
+    .update({ deleted: payload.deleted })
+    .eq("id", payload.id);
   if (error) throw new Error(error.message);
   revalidatePath("/admin/mdx-documents");
 }
@@ -77,4 +89,3 @@ export async function deleteDocument(formData: FormData) {
   if (error) throw new Error(error.message);
   revalidatePath("/admin/mdx-documents");
 }
-

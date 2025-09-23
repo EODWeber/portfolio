@@ -70,7 +70,10 @@ export async function upsertCaseStudy(formData: FormData) {
     if ((a.data && a.data.length > 0) || (s.data && s.data.length > 0)) {
       throw new Error("Selected MDX file is already linked");
     }
-    const { error: restoreErr } = await admin.from("mdx_documents").update({ deleted: false }).eq("key", linkKey);
+    const { error: restoreErr } = await admin
+      .from("mdx_documents")
+      .update({ deleted: false })
+      .eq("key", linkKey);
     if (restoreErr) throw new Error(restoreErr.message);
     body_path = publicUrl;
   } else if (content) {
@@ -101,7 +104,9 @@ export async function upsertCaseStudy(formData: FormData) {
         .eq("id", existing.id);
       if (updateErr) throw new Error(updateErr.message);
     } else {
-      const { error: insertErr } = await admin.from("mdx_documents").insert({ key, storage_path: key });
+      const { error: insertErr } = await admin
+        .from("mdx_documents")
+        .insert({ key, storage_path: key });
       if (insertErr) throw new Error(insertErr.message);
     }
     body_path = publicUrl;
@@ -121,7 +126,10 @@ export async function upsertCaseStudy(formData: FormData) {
     const key = `case-studies/${payload.slug}-${Date.now()}.${ext}`;
     const { error: uploadErr } = await admin.storage
       .from("images")
-      .upload(key, await heroFile.arrayBuffer(), { upsert: false, contentType: heroFile.type || "image/*" });
+      .upload(key, await heroFile.arrayBuffer(), {
+        upsert: false,
+        contentType: heroFile.type || "image/*",
+      });
     if (uploadErr) throw new Error(uploadErr.message);
     const { data } = admin.storage.from("images").getPublicUrl(key);
     hero_url = data.publicUrl;
@@ -202,17 +210,22 @@ export async function importCaseStudies(formData: FormData): Promise<void> {
       slug: r.slug,
       summary: r.summary,
       vertical: r.vertical,
-      tags: Array.isArray(r.tags) ? (r.tags as unknown[]).join(",") : (r.tags as string | undefined),
+      tags: Array.isArray(r.tags)
+        ? (r.tags as unknown[]).join(",")
+        : (r.tags as string | undefined),
       body_path: r.body_path,
       hero_url: r.hero_url,
       metrics: r.metrics,
       status: (r as { status?: string }).status ?? "draft",
     });
 
-    const metrics = parseKeyValueLines(candidate.metrics ?? "").reduce<Record<string, string>>((acc, { key, value }) => {
-      acc[key] = value;
-      return acc;
-    }, {});
+    const metrics = parseKeyValueLines(candidate.metrics ?? "").reduce<Record<string, string>>(
+      (acc, { key, value }) => {
+        acc[key] = value;
+        return acc;
+      },
+      {},
+    );
 
     return {
       id: candidate.id,
@@ -243,7 +256,11 @@ export async function toggleCaseStudyFeatured(formData: FormData) {
   await requireAdminUser();
   const parsed = idOnly.parse({ id: formData.get("id")?.toString() });
   const admin = createSupabaseAdminClient();
-  const { data: row, error: readErr } = await admin.from("case_studies").select("featured").eq("id", parsed.id).maybeSingle();
+  const { data: row, error: readErr } = await admin
+    .from("case_studies")
+    .select("featured")
+    .eq("id", parsed.id)
+    .maybeSingle();
   if (readErr) throw new Error(readErr.message);
   if (!row) throw new Error("Case study not found");
   const next = !row.featured;

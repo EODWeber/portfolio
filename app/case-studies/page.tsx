@@ -28,9 +28,19 @@ export default async function CaseStudiesPage() {
         <div className="grid gap-6 md:grid-cols-2">
           {caseStudies.map((study) => (
             <Card key={study.id} className="group relative flex flex-col overflow-hidden">
-              <Link href={`/case-studies/${study.slug}`} className="absolute inset-0" aria-label={study.title} />
+              <Link
+                href={`/case-studies/${study.slug}`}
+                className="absolute inset-0"
+                aria-label={study.title}
+              />
               <AspectRatio ratio={16 / 9}>
-                <Image src={study.hero_url || "/default-card.svg"} alt="" fill sizes="(min-width:768px) 50vw, 100vw" className="object-cover" />
+                <Image
+                  src={study.hero_url || "/default-card.svg"}
+                  alt=""
+                  fill
+                  sizes="(min-width:768px) 50vw, 100vw"
+                  className="object-cover"
+                />
               </AspectRatio>
               <CardHeader>
                 <CardTitle className="text-xl">

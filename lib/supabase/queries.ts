@@ -274,10 +274,17 @@ export const getMdxByKey = cache(async (key: string): Promise<MdxDocument | null
   const baseDoc = data as Omit<MdxDocument, "content" | "download_error" | "public_url">;
   const { data: publicData } = supabase.storage.from("content").getPublicUrl(baseDoc.storage_path);
   const publicUrl = publicData.publicUrl ?? null;
-  const { data: file, error: storageError } = await supabase.storage.from("content").download(baseDoc.storage_path);
+  const { data: file, error: storageError } = await supabase.storage
+    .from("content")
+    .download(baseDoc.storage_path);
 
   if (storageError) {
-    return { ...baseDoc, content: null, download_error: storageError.message, public_url: publicUrl };
+    return {
+      ...baseDoc,
+      content: null,
+      download_error: storageError.message,
+      public_url: publicUrl,
+    };
   }
 
   const { text, error: readError } = await readStorageText(file);

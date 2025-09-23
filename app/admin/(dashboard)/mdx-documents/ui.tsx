@@ -23,13 +23,14 @@ export function MdxDocumentsManager({ initialDocs }: { initialDocs: MdxDocument[
   const [selected, setSelected] = useState<MdxDocument | null>(null);
   const [open, setOpen] = useState(false);
   const [previewHtml, setPreviewHtml] = useState<string>("");
-  const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection }>({ key: "updated", direction: "desc" });
+  const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection }>({
+    key: "updated",
+    direction: "desc",
+  });
 
   const docs = useMemo(() => {
     const filtered = initialDocs
-      .filter((doc) =>
-        filter ? doc.key.toLowerCase().includes(filter.toLowerCase()) : true,
-      )
+      .filter((doc) => (filter ? doc.key.toLowerCase().includes(filter.toLowerCase()) : true))
       .filter((doc) => {
         if (deletedFilter === "all") return true;
         if (deletedFilter === "active") return !doc.deleted;
@@ -53,7 +54,9 @@ export function MdxDocumentsManager({ initialDocs }: { initialDocs: MdxDocument[
 
   const toggleSort = (key: SortKey) => {
     setSort((prev) =>
-      prev.key === key ? { key, direction: prev.direction === "asc" ? "desc" : "asc" } : { key, direction: "asc" },
+      prev.key === key
+        ? { key, direction: prev.direction === "asc" ? "desc" : "asc" }
+        : { key, direction: "asc" },
     );
   };
 
@@ -73,7 +76,9 @@ export function MdxDocumentsManager({ initialDocs }: { initialDocs: MdxDocument[
       <header className="space-y-2">
         <div className="flex flex-col gap-1">
           <h1 className="text-3xl font-semibold">MDX Documents</h1>
-          <p className="text-muted-foreground text-sm">Create, link, and manage MDX content bodies.</p>
+          <p className="text-muted-foreground text-sm">
+            Create, link, and manage MDX content bodies.
+          </p>
         </div>
       </header>
 
@@ -110,20 +115,32 @@ export function MdxDocumentsManager({ initialDocs }: { initialDocs: MdxDocument[
         <CardContent>
           <div className="max-h-[60vh] overflow-auto rounded-md border">
             <table className="w-full text-left text-sm">
-              <thead className="sticky top-0 bg-muted/40">
+              <thead className="bg-muted/40 sticky top-0">
                 <tr className="border-b">
                   <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("key")}>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1"
+                      onClick={() => toggleSort("key")}
+                    >
                       Key {indicator("key")}
                     </button>
                   </th>
                   <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("updated")}>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1"
+                      onClick={() => toggleSort("updated")}
+                    >
                       Updated {indicator("updated")}
                     </button>
                   </th>
                   <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("deleted")}>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1"
+                      onClick={() => toggleSort("deleted")}
+                    >
                       Deleted {indicator("deleted")}
                     </button>
                   </th>
@@ -132,13 +149,15 @@ export function MdxDocumentsManager({ initialDocs }: { initialDocs: MdxDocument[
               </thead>
               <tbody>
                 {docs.map((doc) => (
-                  <tr key={doc.id} className="border-b last:border-0 hover:bg-muted/20">
+                  <tr key={doc.id} className="hover:bg-muted/20 border-b last:border-0">
                     <td className="px-3 py-2">
                       <button className="hover:underline" onClick={() => handleOpen(doc)}>
                         {doc.key}
                       </button>
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap">{new Date(doc.updated_at).toLocaleString()}</td>
+                    <td className="whitespace-nowrap px-3 py-2">
+                      {new Date(doc.updated_at).toLocaleString()}
+                    </td>
                     <td className="px-3 py-2">{doc.deleted ? "Yes" : "No"}</td>
                     <td className="px-3 py-2">
                       <form action={toggleDeleted} className="inline-flex items-center gap-2">
@@ -197,7 +216,9 @@ export function MdxDocumentsManager({ initialDocs }: { initialDocs: MdxDocument[
             </label>
             <Input id="key" name="key" defaultValue={selected?.key ?? ""} required />
             {selected?.public_url ? (
-              <p className="text-xs text-muted-foreground break-all">Public URL: {selected.public_url}</p>
+              <p className="text-muted-foreground break-all text-xs">
+                Public URL: {selected.public_url}
+              </p>
             ) : null}
           </div>
           <div className="space-y-2">
@@ -220,12 +241,14 @@ export function MdxDocumentsManager({ initialDocs }: { initialDocs: MdxDocument[
               }}
             />
             {selected?.download_error ? (
-              <p className="text-xs text-destructive">Unable to load from storage: {selected.download_error}</p>
+              <p className="text-destructive text-xs">
+                Unable to load from storage: {selected.download_error}
+              </p>
             ) : null}
             <div className="flex justify-end">
               <button
                 type="button"
-                className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+                className="hover:bg-muted rounded-md border px-3 py-1.5 text-sm"
                 onClick={async () => {
                   const textarea = document.getElementById("content") as HTMLTextAreaElement | null;
                   const value = textarea?.value ?? "";

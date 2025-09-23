@@ -7,14 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Modal } from "@/components/admin/modal";
 import type { SocialPost } from "@/lib/supabase/types";
 
-import { deleteSocialPost, toggleSocialPostFeatured, upsertSocialPost } from "./actions";
-import { Modal } from "@/components/admin/modal";
+import { deleteSocialPost, upsertSocialPost } from "./actions";
 
-type SortKey = "title" | "platform" | "posted" | "featured" | "updated";
-type SortDirection = "asc" | "desc";
+// Sorting can be added later if needed.
 
 function toDatetimeLocal(iso: string) {
   const date = new Date(iso);
@@ -35,14 +32,18 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
 
-  const selected = useMemo(() => posts.find((post) => post.id === selectedId) ?? null, [posts, selectedId]);
+  const selected = useMemo(
+    () => posts.find((post) => post.id === selectedId) ?? null,
+    [posts, selectedId],
+  );
 
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
     if (!term) return posts;
     return posts.filter((post) =>
-      [post.title, post.platform, post.summary ?? "", post.url]
-        .some((value) => value.toLowerCase().includes(term)),
+      [post.title, post.platform, post.summary ?? "", post.url].some((value) =>
+        value.toLowerCase().includes(term),
+      ),
     );
   }, [posts, query]);
 
@@ -56,50 +57,7 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
     setSelectedId("");
   };
 
-  const platforms = useMemo(() => Array.from(new Set(posts.map((post) => post.platform))).sort(), [posts]);
-
-  const list = useMemo(() => {
-    const filtered = posts
-      .filter((post) =>
-        query
-          ? [post.title, post.platform, post.summary ?? "", post.url]
-            .join(" ")
-            .toLowerCase()
-            .includes(query.toLowerCase())
-          : true,
-      )
-      .filter((post) => (platformFilter === "all" ? true : post.platform === platformFilter));
-
-    const direction = sort.direction === "asc" ? 1 : -1;
-    return filtered.sort((a, b) => {
-      switch (sort.key) {
-        case "title":
-          return a.title.localeCompare(b.title) * direction;
-        case "platform":
-          return a.platform.localeCompare(b.platform) * direction;
-        case "posted":
-          return (new Date(a.posted_at).getTime() - new Date(b.posted_at).getTime()) * direction;
-        case "featured":
-          if (a.featured === b.featured) return 0;
-          return (a.featured ? -1 : 1) * direction;
-        case "updated":
-          return (new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()) * direction;
-        default:
-          return 0;
-      }
-    });
-  }, [posts, query, platformFilter, sort]);
-
-  const toggleSort = (key: SortKey) => {
-    setSort((prev) =>
-      prev.key === key ? { key, direction: prev.direction === "asc" ? "desc" : "asc" } : { key, direction: "asc" },
-    );
-  };
-
-  const indicator = (key: SortKey) => {
-    if (sort.key !== key) return null;
-    return sort.direction === "asc" ? "↑" : "↓";
-  };
+  // Compute platforms if needed for future filters
 
   return (
     <div className="space-y-6">
@@ -138,7 +96,7 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
         <CardContent>
           <div className="max-h-[60vh] overflow-auto rounded-md border">
             <table className="w-full text-left text-sm">
-              <thead className="sticky top-0 bg-muted/40">
+              <thead className="bg-muted/40 sticky top-0">
                 <tr className="border-b">
                   <th className="px-3 py-2">Title</th>
                   <th className="px-3 py-2">Platform</th>
@@ -152,7 +110,9 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
                   <tr key={post.id} className="border-b last:border-0">
                     <td className="px-3 py-2">{post.title}</td>
                     <td className="px-3 py-2">{post.platform}</td>
-                    <td className="px-3 py-2 whitespace-nowrap">{new Date(post.posted_at).toLocaleString()}</td>
+                    <td className="whitespace-nowrap px-3 py-2">
+                      {new Date(post.posted_at).toLocaleString()}
+                    </td>
                     <td className="px-3 py-2">{post.featured ? "Yes" : "No"}</td>
                     <td className="px-3 py-2">
                       <Button size="sm" variant="outline" onClick={() => handleOpen(post.id)}>
@@ -174,7 +134,13 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
             <label className="text-sm font-medium" htmlFor="platform">
               Platform
             </label>
-            <Input id="platform" name="platform" defaultValue={selected?.platform ?? ""} list="platforms" required />
+            <Input
+              id="platform"
+              name="platform"
+              defaultValue={selected?.platform ?? ""}
+              list="platforms"
+              required
+            />
             <datalist id="platforms">
               <option value="GitHub" />
               <option value="X" />
@@ -217,7 +183,12 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
             />
           </div>
           <div className="flex items-center gap-2">
-            <input id="featured" name="featured" type="checkbox" defaultChecked={selected?.featured ?? false} />
+            <input
+              id="featured"
+              name="featured"
+              type="checkbox"
+              defaultChecked={selected?.featured ?? false}
+            />
             <label className="text-sm font-medium" htmlFor="featured">
               Featured (max 6)
             </label>

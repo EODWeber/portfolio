@@ -80,7 +80,11 @@ export async function toggleSocialPostFeatured(formData: FormData) {
   await requireAdminUser();
   const parsed = idOnly.parse({ id: formData.get("id")?.toString() });
   const admin = createSupabaseAdminClient();
-  const { data: row, error: readErr } = await admin.from("social_posts").select("featured").eq("id", parsed.id).maybeSingle();
+  const { data: row, error: readErr } = await admin
+    .from("social_posts")
+    .select("featured")
+    .eq("id", parsed.id)
+    .maybeSingle();
   if (readErr) throw new Error(readErr.message);
   if (!row) throw new Error("Post not found");
   const next = !row.featured;

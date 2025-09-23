@@ -23,7 +23,10 @@ export function ResumeManager({ resumes, status }: ResumeManagerProps) {
   const [query, setQuery] = useState("");
   const [verticalFilter, setVerticalFilter] = useState<VerticalFilter>("all");
   const [showArchived, setShowArchived] = useState(false);
-  const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection }>({ key: "featured", direction: "desc" });
+  const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection }>({
+    key: "featured",
+    direction: "desc",
+  });
 
   const selected = useMemo(
     () => resumes.find((resume) => resume.id === selectedId) ?? null,
@@ -36,9 +39,7 @@ export function ResumeManager({ resumes, status }: ResumeManagerProps) {
       .filter((resume) => (verticalFilter === "all" ? true : resume.vertical === verticalFilter))
       .filter((resume) =>
         query
-          ? `${resume.label} ${resume.vertical}`
-            .toLowerCase()
-            .includes(query.toLowerCase())
+          ? `${resume.label} ${resume.vertical}`.toLowerCase().includes(query.toLowerCase())
           : true,
       );
 
@@ -66,13 +67,7 @@ export function ResumeManager({ resumes, status }: ResumeManagerProps) {
             const bDate = b.published_at ? new Date(b.published_at).getTime() : 0;
             return (aDate - bDate) * direction;
           }
-          return sort.direction === "asc"
-            ? a.featured
-              ? 1
-              : -1
-            : a.featured
-              ? -1
-              : 1;
+          return sort.direction === "asc" ? (a.featured ? 1 : -1) : a.featured ? -1 : 1;
         }
       }
     });
@@ -80,7 +75,9 @@ export function ResumeManager({ resumes, status }: ResumeManagerProps) {
 
   const toggleSort = (key: SortKey) => {
     setSort((prev) =>
-      prev.key === key ? { key, direction: prev.direction === "asc" ? "desc" : "asc" } : { key, direction: "asc" },
+      prev.key === key
+        ? { key, direction: prev.direction === "asc" ? "desc" : "asc" }
+        : { key, direction: "asc" },
     );
   };
 
@@ -96,7 +93,8 @@ export function ResumeManager({ resumes, status }: ResumeManagerProps) {
           <div>
             <h1 className="text-3xl font-semibold">Resumes</h1>
             <p className="text-muted-foreground text-sm">
-              Manage Supabase Storage-backed resumes served on the resume, portfolio, and contact pages.
+              Manage Supabase Storage-backed resumes served on the resume, portfolio, and contact
+              pages.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -119,8 +117,12 @@ export function ResumeManager({ resumes, status }: ResumeManagerProps) {
                 </option>
               ))}
             </select>
-            <label className="text-sm font-medium flex items-center gap-2">
-              <input type="checkbox" checked={showArchived} onChange={(event) => setShowArchived(event.target.checked)} />
+            <label className="flex items-center gap-2 text-sm font-medium">
+              <input
+                type="checkbox"
+                checked={showArchived}
+                onChange={(event) => setShowArchived(event.target.checked)}
+              />
               Show archived
             </label>
             <Button
@@ -149,30 +151,50 @@ export function ResumeManager({ resumes, status }: ResumeManagerProps) {
         <CardContent>
           <div className="max-h-[60vh] overflow-auto rounded-md border">
             <table className="w-full text-left text-sm">
-              <thead className="sticky top-0 bg-muted/40">
+              <thead className="bg-muted/40 sticky top-0">
                 <tr className="border-b">
                   <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("label")}>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1"
+                      onClick={() => toggleSort("label")}
+                    >
                       Label {indicator("label")}
                     </button>
                   </th>
                   <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("vertical")}>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1"
+                      onClick={() => toggleSort("vertical")}
+                    >
                       Vertical {indicator("vertical")}
                     </button>
                   </th>
                   <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("published")}>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1"
+                      onClick={() => toggleSort("published")}
+                    >
                       Published {indicator("published")}
                     </button>
                   </th>
                   <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("uploaded")}>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1"
+                      onClick={() => toggleSort("uploaded")}
+                    >
                       Uploaded {indicator("uploaded")}
                     </button>
                   </th>
                   <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("featured")}>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1"
+                      onClick={() => toggleSort("featured")}
+                    >
                       Primary {indicator("featured")}
                     </button>
                   </th>
@@ -184,10 +206,12 @@ export function ResumeManager({ resumes, status }: ResumeManagerProps) {
                   <tr key={resume.id} className="border-b last:border-0">
                     <td className="px-3 py-2">{resume.label}</td>
                     <td className="px-3 py-2">{resume.vertical}</td>
-                    <td className="px-3 py-2 whitespace-nowrap">
-                      {resume.published_at ? new Date(resume.published_at).toLocaleDateString() : "—"}
+                    <td className="whitespace-nowrap px-3 py-2">
+                      {resume.published_at
+                        ? new Date(resume.published_at).toLocaleDateString()
+                        : "—"}
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap">
+                    <td className="whitespace-nowrap px-3 py-2">
                       {new Date(resume.created_at ?? resume.updated_at).toLocaleString()}
                     </td>
                     <td className="px-3 py-2">{resume.featured ? "Yes" : "No"}</td>
@@ -195,7 +219,11 @@ export function ResumeManager({ resumes, status }: ResumeManagerProps) {
                       <div className="flex flex-wrap gap-2">
                         <form action={setPrimaryResume}>
                           <input type="hidden" name="id" value={resume.id} />
-                          <Button size="sm" variant={resume.featured ? "default" : "outline"} type="submit">
+                          <Button
+                            size="sm"
+                            variant={resume.featured ? "default" : "outline"}
+                            type="submit"
+                          >
                             {resume.featured ? "Unset primary" : "Set primary"}
                           </Button>
                         </form>
@@ -227,7 +255,12 @@ export function ResumeManager({ resumes, status }: ResumeManagerProps) {
         }}
         title={selected ? "Edit resume" : "Add resume"}
       >
-        <form id="resume-form" key={selected?.id ?? "create"} action={upsertResume} className="grid gap-3 md:grid-cols-2">
+        <form
+          id="resume-form"
+          key={selected?.id ?? "create"}
+          action={upsertResume}
+          className="grid gap-3 md:grid-cols-2"
+        >
           <input type="hidden" name="id" value={selected?.id ?? ""} />
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="vertical">
@@ -254,7 +287,7 @@ export function ResumeManager({ resumes, status }: ResumeManagerProps) {
           </div>
           {selected ? (
             <div className="space-y-1 md:col-span-2">
-              <p className="text-xs text-muted-foreground">Current file: {selected.file_path}</p>
+              <p className="text-muted-foreground text-xs">Current file: {selected.file_path}</p>
             </div>
           ) : (
             <div className="space-y-2 md:col-span-2">
@@ -267,7 +300,7 @@ export function ResumeManager({ resumes, status }: ResumeManagerProps) {
                 type="file"
                 accept="application/pdf"
                 required
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
+                className="border-input bg-background file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 w-full rounded-md border px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:px-3 file:py-2 file:text-sm file:font-medium"
               />
             </div>
           )}
@@ -279,7 +312,11 @@ export function ResumeManager({ resumes, status }: ResumeManagerProps) {
               id="published_at"
               name="published_at"
               type="date"
-              defaultValue={selected?.published_at ? new Date(selected.published_at).toISOString().slice(0, 10) : ""}
+              defaultValue={
+                selected?.published_at
+                  ? new Date(selected.published_at).toISOString().slice(0, 10)
+                  : ""
+              }
             />
           </div>
         </form>
@@ -306,34 +343,25 @@ export function ResumeManager({ resumes, status }: ResumeManagerProps) {
                 </Button>
               </form>
             </div>
-            <div className="flex items-center justify-end gap-2 md:col-span-2">
-              <Button type="button" variant="outline" onClick={() => { setSelectedId(""); setOpen(false); }}>
-                Cancel
-              </Button>
-              <Button type="submit">{selected ? "Save resume" : "Upload PDF & Save"}</Button>
-            </div>
-          </form>
-        {selected ? (
-          <div className="mt-3 flex items-center justify-between">
-            <div className="flex gap-2">
-              <form action={toggleArchiveResume}>
-                <input type="hidden" name="id" value={selected.id} />
-                <Button variant="outline" type="submit">{selected.archived ? "Restore" : "Archive"}</Button>
-              </form>
-              <form
-                action={deleteResume}
-                onSubmit={(e) => {
-                  if (!confirm("Delete this resume? This cannot be undone.")) {
-                    e.preventDefault();
-                  }
-                }}
-              >
-                <input type="hidden" name="id" value={selected.id} />
-                <Button variant="destructive" type="submit">Delete resume</Button>
-              </form>
-            </div>
+          ) : (
+            <span />
+          )}
+          <div className="flex items-center justify-end gap-2 md:col-span-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setSelectedId("");
+                setOpen(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" form="resume-form">
+              {selected ? "Save resume" : "Upload PDF & Save"}
+            </Button>
           </div>
-        ) : null}
+        </div>
       </Modal>
     </div>
   );

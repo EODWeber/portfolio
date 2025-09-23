@@ -19,7 +19,13 @@ const links = [
   { href: "/social-feed", label: "Social Feed" },
 ];
 
-export function SiteHeader({ siteTitle, isAuthenticated }: { siteTitle: string; isAuthenticated?: boolean }) {
+export function SiteHeader({
+  siteTitle,
+  isAuthenticated,
+}: {
+  siteTitle: string;
+  isAuthenticated?: boolean;
+}) {
   return (
     <header className="supports-[backdrop-filter]:bg-background/80 border-border/60 bg-background/95 sticky top-0 z-40 w-full border-b backdrop-blur">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3 sm:px-6">

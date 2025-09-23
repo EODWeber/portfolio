@@ -62,7 +62,10 @@ export async function upsertProject(formData: FormData) {
     const key = `projects/${payload.slug}-${Date.now()}.${ext}`;
     const { error: uploadErr } = await admin.storage
       .from("images")
-      .upload(key, await heroFile.arrayBuffer(), { upsert: false, contentType: heroFile.type || "image/*" });
+      .upload(key, await heroFile.arrayBuffer(), {
+        upsert: false,
+        contentType: heroFile.type || "image/*",
+      });
     if (uploadErr) throw new Error(uploadErr.message);
     const { data } = admin.storage.from("images").getPublicUrl(key);
     hero_url = data.publicUrl;
@@ -144,7 +147,9 @@ export async function importProjects(formData: FormData): Promise<void> {
       slug: r.slug,
       summary: r.summary,
       vertical: r.vertical,
-      tags: Array.isArray(r.tags) ? (r.tags as unknown[]).join(",") : (r.tags as string | undefined),
+      tags: Array.isArray(r.tags)
+        ? (r.tags as unknown[]).join(",")
+        : (r.tags as string | undefined),
       tech_stack: Array.isArray(r.tech_stack)
         ? (r.tech_stack as unknown[]).join(",")
         : (r.tech_stack as string | undefined),
@@ -152,13 +157,16 @@ export async function importProjects(formData: FormData): Promise<void> {
       hero_url: r.hero_url,
       outcomes: Array.isArray((r as { outcomes?: unknown }).outcomes)
         ? ((r as { outcomes?: Array<{ metric?: string; value?: string }> }).outcomes ?? [])
-          .map((outcome) => `${outcome.metric ?? ""}|${outcome.value ?? ""}`)
-          .join("\n")
+            .map((outcome) => `${outcome.metric ?? ""}|${outcome.value ?? ""}`)
+            .join("\n")
         : ((r as { outcomes?: string }).outcomes as string | undefined),
       status: (r as { status?: string }).status ?? "draft",
     });
 
-    const outcomes = parseKeyValueLines(candidate.outcomes ?? "").map(({ key, value }) => ({ metric: key, value }));
+    const outcomes = parseKeyValueLines(candidate.outcomes ?? "").map(({ key, value }) => ({
+      metric: key,
+      value,
+    }));
 
     return {
       id: candidate.id,
@@ -190,7 +198,11 @@ export async function toggleProjectFeatured(formData: FormData) {
   await requireAdminUser();
   const parsed = idOnly.parse({ id: formData.get("id")?.toString() });
   const admin = createSupabaseAdminClient();
-  const { data: row, error: readErr } = await admin.from("projects").select("featured").eq("id", parsed.id).maybeSingle();
+  const { data: row, error: readErr } = await admin
+    .from("projects")
+    .select("featured")
+    .eq("id", parsed.id)
+    .maybeSingle();
   if (readErr) throw new Error(readErr.message);
   if (!row) throw new Error("Project not found");
   const next = !row.featured;

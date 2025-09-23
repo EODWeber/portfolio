@@ -5,7 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { siGithub, siX, siLinkedin, siYoutube, siRss } from "simple-icons";
-import { getFeaturedProjects, getFeaturedArticles, getFeaturedCaseStudies, getSiteProfile, getSiteSettings, getSocialPosts } from "@/lib/supabase/queries";
+import {
+  getFeaturedProjects,
+  getFeaturedArticles,
+  getFeaturedCaseStudies,
+  getSiteProfile,
+  getSiteSettings,
+  getSocialPosts,
+} from "@/lib/supabase/queries";
 
 export default async function HomePage() {
   const [settings, profile, projects, caseStudies, articles, posts] = await Promise.all([
@@ -39,8 +46,8 @@ export default async function HomePage() {
         <div className="relative flex flex-col gap-10 p-8 sm:p-10 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
             <div className="relative h-32 w-32 flex-shrink-0 sm:h-40 sm:w-40">
-              <div className="absolute inset-0 rounded-[28%_72%_64%_36%/37%_39%_61%_63%] bg-gradient-to-br from-primary/30 to-primary/10 blur"></div>
-              <div className="relative mx-auto h-full w-full overflow-hidden rounded-[28%_72%_64%_36%/37%_39%_61%_63%] ring-2 ring-primary/30 shadow-xl">
+              <div className="from-primary/30 to-primary/10 absolute inset-0 rounded-[28%_72%_64%_36%/37%_39%_61%_63%] bg-gradient-to-br blur"></div>
+              <div className="ring-primary/30 relative mx-auto h-full w-full overflow-hidden rounded-[28%_72%_64%_36%/37%_39%_61%_63%] shadow-xl ring-2">
                 <Image
                   src={avatarUrl}
                   alt={profile?.full_name ?? "Profile avatar"}
@@ -116,9 +123,9 @@ export default async function HomePage() {
             <>
               {[0, 1, 2].map((i) => (
                 <Card key={i} className="overflow-hidden">
-                  <div className="h-36 w-full animate-pulse bg-muted" />
+                  <div className="bg-muted h-36 w-full animate-pulse" />
                   <CardHeader>
-                    <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
+                    <div className="bg-muted h-4 w-2/3 animate-pulse rounded" />
                   </CardHeader>
                 </Card>
               ))}
@@ -126,7 +133,11 @@ export default async function HomePage() {
           ) : (
             projects.map((project) => (
               <Card key={project.id} className="group relative flex flex-col overflow-hidden">
-                <Link href={`/portfolio/${project.slug}`} className="absolute inset-0" aria-label={project.title} />
+                <Link
+                  href={`/portfolio/${project.slug}`}
+                  className="absolute inset-0"
+                  aria-label={project.title}
+                />
                 <div className="relative h-36 w-full">
                   <Image
                     src={project.hero_url || "/default-card.svg"}
@@ -173,9 +184,9 @@ export default async function HomePage() {
             <>
               {[0, 1].map((i) => (
                 <Card key={i} className="overflow-hidden">
-                  <div className="h-36 w-full animate-pulse bg-muted" />
+                  <div className="bg-muted h-36 w-full animate-pulse" />
                   <CardHeader>
-                    <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
+                    <div className="bg-muted h-4 w-2/3 animate-pulse rounded" />
                   </CardHeader>
                 </Card>
               ))}
@@ -183,7 +194,11 @@ export default async function HomePage() {
           ) : (
             caseStudies.slice(0, 2).map((study) => (
               <Card key={study.id} className="group relative overflow-hidden">
-                <Link href={`/case-studies/${study.slug}`} className="absolute inset-0" aria-label={study.title} />
+                <Link
+                  href={`/case-studies/${study.slug}`}
+                  className="absolute inset-0"
+                  aria-label={study.title}
+                />
                 <div className="relative h-36 w-full">
                   <Image
                     src={study.hero_url || "/default-card.svg"}
@@ -202,10 +217,10 @@ export default async function HomePage() {
                   <ul className="text-muted-foreground mt-2 space-y-1">
                     {study.metrics
                       ? Object.entries(study.metrics).map(([metric, value]) => (
-                        <li key={metric}>
-                          <span className="text-foreground font-medium">{metric}:</span> {value}
-                        </li>
-                      ))
+                          <li key={metric}>
+                            <span className="text-foreground font-medium">{metric}:</span> {value}
+                          </li>
+                        ))
                       : null}
                   </ul>
                 </CardContent>
@@ -232,9 +247,9 @@ export default async function HomePage() {
             <>
               {[0, 1, 2].map((i) => (
                 <Card key={i} className="overflow-hidden">
-                  <div className="h-36 w-full animate-pulse bg-muted" />
+                  <div className="bg-muted h-36 w-full animate-pulse" />
                   <CardHeader>
-                    <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
+                    <div className="bg-muted h-4 w-2/3 animate-pulse rounded" />
                   </CardHeader>
                 </Card>
               ))}
@@ -242,7 +257,11 @@ export default async function HomePage() {
           ) : (
             articles.slice(0, 3).map((article) => (
               <Card key={article.id} className="group relative overflow-hidden">
-                <Link href={`/articles/${article.slug}`} className="absolute inset-0" aria-label={article.title} />
+                <Link
+                  href={`/articles/${article.slug}`}
+                  className="absolute inset-0"
+                  aria-label={article.title}
+                />
                 <div className="relative h-36 w-full">
                   <Image
                     src={article.hero_url || "/default-card.svg"}
@@ -296,10 +315,16 @@ export default async function HomePage() {
                       : siRss;
               return (
                 <Card key={post.id} className="group relative">
-                  <Link href={post.url} target="_blank" rel="noreferrer" className="absolute inset-0" aria-label={post.title} />
+                  <Link
+                    href={post.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="absolute inset-0"
+                    aria-label={post.title}
+                  />
                   <CardHeader>
                     <CardTitle className="text-base group-hover:underline">{post.title}</CardTitle>
-                    <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="text-muted-foreground mt-2 flex items-center gap-2 text-xs">
                       <span>{new Date(post.posted_at).toLocaleDateString()}</span>
                       {post.featured ? (
                         <Badge variant="secondary" className="font-medium uppercase">
@@ -312,7 +337,13 @@ export default async function HomePage() {
                         style={{ backgroundColor: `#${icon.hex}` }}
                         title={post.platform}
                       >
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="white" xmlns="http://www.w3.org/2000/svg">
+                        <svg
+                          viewBox="0 0 24 24"
+                          width="18"
+                          height="18"
+                          fill="white"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
                           <path d={icon.path} />
                         </svg>
                       </span>

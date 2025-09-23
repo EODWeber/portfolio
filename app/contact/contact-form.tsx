@@ -115,7 +115,10 @@ export function ContactForm({ siteKey }: { siteKey?: string }) {
       {/* Cloudflare Turnstile widget */}
       {!turnstileDisabled && siteKey ? (
         <div className="md:col-span-2">
-          <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" strategy="afterInteractive" />
+          <Script
+            src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+            strategy="afterInteractive"
+          />
           <div
             className="cf-turnstile mt-2"
             data-sitekey={siteKey}

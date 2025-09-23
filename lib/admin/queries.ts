@@ -2,7 +2,6 @@ import type {
   Article,
   CaseStudy,
   ContactRequest,
-  MdxDocument,
   Project,
   Resume,
   SiteProfile,
@@ -160,7 +159,10 @@ export async function getNotificationsLog(limit = 20): Promise<NotificationLog[]
 }
 
 // MDX documents ------------------------------------------------------
-type BaseMdxDocument = Omit<MdxDocument, "content" | "download_error" | "public_url">;
+type BaseMdxDocument = Omit<
+  import("@/lib/supabase/types").MdxDocument,
+  "content" | "download_error" | "public_url"
+>;
 
 export async function fetchAllMdxDocuments(): Promise<MdxDocument[]> {
   const admin = createSupabaseAdminClient();
@@ -173,7 +175,9 @@ export async function fetchAllMdxDocuments(): Promise<MdxDocument[]> {
   const docs = (data as BaseMdxDocument[]) ?? [];
   const mapped = await Promise.all(
     docs.map(async (doc) => {
-      const { data: file, error: downloadError } = await admin.storage.from("content").download(doc.storage_path);
+      const { data: file, error: downloadError } = await admin.storage
+        .from("content")
+        .download(doc.storage_path);
       if (downloadError) {
         const { data: publicData } = admin.storage.from("content").getPublicUrl(doc.storage_path);
         return {
@@ -188,7 +192,7 @@ export async function fetchAllMdxDocuments(): Promise<MdxDocument[]> {
       const { data: publicData } = admin.storage.from("content").getPublicUrl(doc.storage_path);
       return {
         ...doc,
-        content: readError ? null : text ?? "",
+        content: readError ? null : (text ?? ""),
         download_error: readError,
         public_url: publicData.publicUrl ?? null,
       } satisfies MdxDocument;
