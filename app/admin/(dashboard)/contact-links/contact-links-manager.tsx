@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import type { ContactLink } from "@/lib/supabase/types";
 
 import { deleteContactLink, upsertContactLink } from "./actions";
-// Sorting/filtering helpers can be added later as needed.
 
 const FORM_GRID = "grid gap-3 md:grid-cols-2";
 
@@ -42,8 +41,6 @@ export function ContactLinksManager({ links, status }: { links: ContactLink[]; s
     setOpen(false);
     setSelectedId("");
   };
-
-  // Removed unused list/sort logic to avoid undefined references.
 
   return (
     <div className="space-y-6">

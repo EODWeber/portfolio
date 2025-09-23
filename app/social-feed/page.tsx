@@ -65,7 +65,21 @@ export default async function SocialFeedPage() {
                         <path d={icon.path} />
                       </svg>
                     </span>
-                  </div>
+                    &nbsp;
+                    {post.platform}
+                    &nbsp; - &nbsp;
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <span>{new Date(post.posted_at).toLocaleDateString()}</span>
+                        {post.featured ? (
+                          <Badge variant="secondary" className="font-medium uppercase">
+                            Featured
+                          </Badge>
+                        ) : null}
+                      </div>
+                    </div>
+                  </CardDescription>
+
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">
                   {post.summary ? <p className="text-muted-foreground">{post.summary}</p> : null}

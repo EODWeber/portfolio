@@ -11,8 +11,6 @@ import type { SocialPost } from "@/lib/supabase/types";
 
 import { deleteSocialPost, upsertSocialPost } from "./actions";
 
-// Sorting can be added later if needed.
-
 function toDatetimeLocal(iso: string) {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "";
@@ -31,6 +29,8 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
   const [selectedId, setSelectedId] = useState<string>("");
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [platformFilter, setPlatformFilter] = useState<string>("all");
+  const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection }>({ key: "posted", direction: "desc" });
 
   const selected = useMemo(
     () => posts.find((post) => post.id === selectedId) ?? null,
@@ -57,8 +57,6 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
     setSelectedId("");
   };
 
-  // Compute platforms if needed for future filters
-
   return (
     <div className="space-y-6">
       <header className="space-y-2">
@@ -76,6 +74,19 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
               onChange={(event) => setQuery(event.target.value)}
               className="w-64"
             />
+            <select
+              aria-label="Filter by platform"
+              value={platformFilter}
+              onChange={(e) => setPlatformFilter(e.target.value)}
+              className="border-input bg-background focus:ring-ring rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+            >
+              <option value="all">All platforms</option>
+              {platforms.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
             <Button size="sm" onClick={() => handleOpen()}>
               Add post
             </Button>
@@ -98,15 +109,31 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
             <table className="w-full text-left text-sm">
               <thead className="bg-muted/40 sticky top-0">
                 <tr className="border-b">
-                  <th className="px-3 py-2">Title</th>
-                  <th className="px-3 py-2">Platform</th>
-                  <th className="px-3 py-2">Posted</th>
-                  <th className="px-3 py-2">Featured</th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("title")}>
+                      Title {indicator("title")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("platform")}>
+                      Platform {indicator("platform")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("posted")}>
+                      Posted {indicator("posted")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2">
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("featured")}>
+                      Featured {indicator("featured")}
+                    </button>
+                  </th>
                   <th className="px-3 py-2">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((post) => (
+                {list.map((post) => (
                   <tr key={post.id} className="border-b last:border-0">
                     <td className="px-3 py-2">{post.title}</td>
                     <td className="px-3 py-2">{post.platform}</td>
@@ -115,9 +142,17 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
                     </td>
                     <td className="px-3 py-2">{post.featured ? "Yes" : "No"}</td>
                     <td className="px-3 py-2">
-                      <Button size="sm" variant="outline" onClick={() => handleOpen(post.id)}>
-                        Edit
-                      </Button>
+                      <div className="flex gap-2">
+                        <form action={toggleSocialPostFeatured}>
+                          <input type="hidden" name="id" value={post.id} />
+                          <Button size="sm" variant={post.featured ? "default" : "outline"}>
+                            {post.featured ? "Featured" : "Feature"}
+                          </Button>
+                        </form>
+                        <Button size="sm" variant="outline" onClick={() => handleOpen(post.id)}>
+                          Edit
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

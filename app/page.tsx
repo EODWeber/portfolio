@@ -347,6 +347,7 @@ export default async function HomePage() {
                           <path d={icon.path} />
                         </svg>
                       </span>
+                      <span>{new Date(post.posted_at).toLocaleDateString()}</span>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3 text-sm">

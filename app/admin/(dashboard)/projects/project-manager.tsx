@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 
-import { Modal } from "@/components/admin/modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -43,6 +42,7 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
   const displayed = useMemo(() => {
     const items = [...filtered];
     const direction = sort.direction === "asc" ? 1 : -1;
+        
     return items.sort((a, b) => {
       switch (sort.key) {
         case "title":
