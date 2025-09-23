@@ -10,8 +10,6 @@ import type { ContactLink } from "@/lib/supabase/types";
 
 import { deleteContactLink, upsertContactLink } from "./actions";
 
-// Sorting types removed for now; can be reintroduced when sorting UI is added.
-
 const FORM_GRID = "grid gap-3 md:grid-cols-2";
 
 export function ContactLinksManager({ links, status }: { links: ContactLink[]; status?: string }) {
@@ -19,7 +17,10 @@ export function ContactLinksManager({ links, status }: { links: ContactLink[]; s
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
 
-  const selected = useMemo(() => links.find((link) => link.id === selectedId) ?? null, [links, selectedId]);
+  const selected = useMemo(
+    () => links.find((link) => link.id === selectedId) ?? null,
+    [links, selectedId],
+  );
 
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -40,8 +41,6 @@ export function ContactLinksManager({ links, status }: { links: ContactLink[]; s
     setOpen(false);
     setSelectedId("");
   };
-
-  // Note: Sorting and category filtering can be added later. For now, rely on the basic query filter above.
 
   return (
     <div className="space-y-6">
@@ -80,7 +79,7 @@ export function ContactLinksManager({ links, status }: { links: ContactLink[]; s
         <CardContent>
           <div className="max-h-[60vh] overflow-auto rounded-md border">
             <table className="w-full text-left text-sm">
-              <thead className="sticky top-0 bg-muted/40">
+              <thead className="bg-muted/40 sticky top-0">
                 <tr className="border-b">
                   <th className="px-3 py-2">Label</th>
                   <th className="px-3 py-2">URL</th>
@@ -93,7 +92,7 @@ export function ContactLinksManager({ links, status }: { links: ContactLink[]; s
                 {filtered.map((link) => (
                   <tr key={link.id} className="border-b last:border-0">
                     <td className="px-3 py-2">{link.label}</td>
-                    <td className="px-3 py-2 break-all">{link.url}</td>
+                    <td className="break-all px-3 py-2">{link.url}</td>
                     <td className="px-3 py-2">{link.category ?? "—"}</td>
                     <td className="px-3 py-2">{link.order_index}</td>
                     <td className="px-3 py-2">
@@ -128,13 +127,23 @@ export function ContactLinksManager({ links, status }: { links: ContactLink[]; s
             <label className="text-sm font-medium" htmlFor="category">
               Category
             </label>
-            <Input id="category" name="category" defaultValue={selected?.category ?? ""} placeholder="primary, social, etc." />
+            <Input
+              id="category"
+              name="category"
+              defaultValue={selected?.category ?? ""}
+              placeholder="primary, social, etc."
+            />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="icon">
               Icon
             </label>
-            <Input id="icon" name="icon" defaultValue={selected?.icon ?? ""} placeholder="github, linkedin" />
+            <Input
+              id="icon"
+              name="icon"
+              defaultValue={selected?.icon ?? ""}
+              placeholder="github, linkedin"
+            />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="order_index">

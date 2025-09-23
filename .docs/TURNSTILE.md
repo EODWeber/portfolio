@@ -11,10 +11,12 @@ This app uses Cloudflare Turnstile on the contact form to deter spam.
 ## Environment Variables
 
 Required for production/staging:
+
 - `TURNSTILE_SITE_KEY` or `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (client widget)
 - `TURNSTILE_SECRET_KEY` (server verification)
 
 Dev-friendly toggles:
+
 - `TURNSTILE_DISABLED` (server) — when `"true"` or `"1"`, server skips verification.
 - `NEXT_PUBLIC_TURNSTILE_DISABLED` (client) — when `"true"` or `"1"`, client hides the widget.
 - Additionally, when `NODE_ENV=development`, both client and server treat Turnstile as disabled by default.
@@ -29,6 +31,7 @@ Dev-friendly toggles:
 ## Local Development
 
 Turnstile is disabled by default in development. If you want to test the widget locally:
+
 1. Set `NEXT_PUBLIC_TURNSTILE_DISABLED=false` (or unset it).
 2. Ensure your Turnstile site key allows `localhost` as an allowed domain.
 3. Keep `TURNSTILE_SECRET_KEY` set for the server verification path.

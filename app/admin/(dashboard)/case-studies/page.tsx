@@ -13,5 +13,7 @@ export default async function CaseStudiesAdminPage({ searchParams }: CaseStudies
   ]);
   const status = typeof searchParams?.status === "string" ? searchParams.status : undefined;
 
-  return <CaseStudyManager caseStudies={caseStudies} availableDocs={availableDocs} status={status} />;
+  return (
+    <CaseStudyManager caseStudies={caseStudies} availableDocs={availableDocs} status={status} />
+  );
 }

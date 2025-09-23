@@ -21,7 +21,7 @@ export default async function AnalyticsPage() {
     <div className="space-y-6">
       <header className="space-y-1">
         <h1 className="text-3xl font-semibold">Analytics</h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Engagement snapshots derived from Supabase events and contact requests.
         </p>
       </header>
@@ -34,7 +34,9 @@ export default async function AnalyticsPage() {
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <p className="text-foreground text-xl font-semibold">{contactStats.total}</p>
-            <p className="text-muted-foreground">{contactStats.new} awaiting review · {contactStats.replied} replied</p>
+            <p className="text-muted-foreground">
+              {contactStats.new} awaiting review · {contactStats.replied} replied
+            </p>
             <Link href="/admin/contact-requests" className="text-primary text-xs hover:underline">
               Manage inbox →
             </Link>
@@ -45,7 +47,9 @@ export default async function AnalyticsPage() {
             <CardHeader>
               <CardTitle className="capitalize">{event.type.replace(/_/g, " ")}</CardTitle>
             </CardHeader>
-            <CardContent className="text-foreground text-2xl font-semibold">{event.count}</CardContent>
+            <CardContent className="text-foreground text-2xl font-semibold">
+              {event.count}
+            </CardContent>
           </Card>
         ))}
       </div>
@@ -58,7 +62,7 @@ export default async function AnalyticsPage() {
         <CardContent className="space-y-3">
           <div className="max-h-96 overflow-auto rounded-md border">
             <table className="w-full text-left text-sm">
-              <thead className="sticky top-0 bg-muted/40">
+              <thead className="bg-muted/40 sticky top-0">
                 <tr className="border-b">
                   <th className="px-3 py-2">Time</th>
                   <th className="px-3 py-2">Type</th>
@@ -68,12 +72,12 @@ export default async function AnalyticsPage() {
               <tbody>
                 {recent.map((ev) => (
                   <tr key={ev.id} className="border-b last:border-0">
-                    <td className="px-3 py-2 whitespace-nowrap">
+                    <td className="whitespace-nowrap px-3 py-2">
                       {new Date(ev.created_at).toLocaleString()}
                     </td>
                     <td className="px-3 py-2">{ev.type}</td>
                     <td className="px-3 py-2">
-                      <pre className="max-w-[40ch] truncate whitespace-pre-wrap break-words text-xs text-muted-foreground">
+                      <pre className="text-muted-foreground max-w-[40ch] truncate whitespace-pre-wrap break-words text-xs">
                         {typeof ev.metadata === "string"
                           ? ev.metadata
                           : JSON.stringify(ev.metadata)}

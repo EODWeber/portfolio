@@ -13,4 +13,3 @@ export async function GET() {
   const log = await getNotificationsLog(20);
   return NextResponse.json(log);
 }
-

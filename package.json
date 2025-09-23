@@ -2,7 +2,7 @@
   "name": "portfolio",
   "version": "0.1.0",
   "private": true,
-  "description": "Personal portfolio built with Next.js and Supabase.",
+  "description": "Jeff Weber's personal portfolio website.",
   "scripts": {
     "dev": "doppler run -- next dev --turbopack",
     "build": "doppler run -- next build --turbopack",

@@ -55,7 +55,13 @@ export async function upsertResume(formData: FormData) {
     if (existing && existing.data?.file_path) file_path = existing.data.file_path;
   }
 
-  const parsed = resumeSchema.parse({ id, vertical, label, file_path, published_at: publishedAtRaw });
+  const parsed = resumeSchema.parse({
+    id,
+    vertical,
+    label,
+    file_path,
+    published_at: publishedAtRaw,
+  });
 
   if (!parsed.id && !parsed.file_path) {
     throw new Error("Resume file is required for new entries.");
@@ -63,12 +69,12 @@ export async function upsertResume(formData: FormData) {
 
   const published_at = parsed.published_at
     ? (() => {
-      const date = new Date(parsed.published_at);
-      if (Number.isNaN(date.getTime())) {
-        throw new Error("Invalid published date");
-      }
-      return date.toISOString();
-    })()
+        const date = new Date(parsed.published_at);
+        if (Number.isNaN(date.getTime())) {
+          throw new Error("Invalid published date");
+        }
+        return date.toISOString();
+      })()
     : null;
 
   const payload: Record<string, unknown> = {
@@ -158,12 +164,12 @@ export async function importResumes(formData: FormData): Promise<void> {
 
     const iso = candidate.published_at
       ? (() => {
-        const date = new Date(candidate.published_at as string);
-        if (Number.isNaN(date.getTime())) {
-          throw new Error("Invalid published_at in import payload");
-        }
-        return date.toISOString();
-      })()
+          const date = new Date(candidate.published_at as string);
+          if (Number.isNaN(date.getTime())) {
+            throw new Error("Invalid published_at in import payload");
+          }
+          return date.toISOString();
+        })()
       : null;
 
     return {
@@ -199,12 +205,21 @@ export async function setPrimaryResume(formData: FormData) {
     .maybeSingle();
   if (!target) throw new Error("Resume not found");
   if (target.featured) {
-    const { error: unsetErr } = await admin.from("resumes").update({ featured: false }).eq("id", target.id);
+    const { error: unsetErr } = await admin
+      .from("resumes")
+      .update({ featured: false })
+      .eq("id", target.id);
     if (unsetErr) throw new Error(unsetErr.message);
   } else {
-    const { error: clearErr } = await admin.from("resumes").update({ featured: false }).eq("vertical", target.vertical);
+    const { error: clearErr } = await admin
+      .from("resumes")
+      .update({ featured: false })
+      .eq("vertical", target.vertical);
     if (clearErr) throw new Error(clearErr.message);
-    const { error: setErr } = await admin.from("resumes").update({ featured: true }).eq("id", parsed.id);
+    const { error: setErr } = await admin
+      .from("resumes")
+      .update({ featured: true })
+      .eq("id", parsed.id);
     if (setErr) throw new Error(setErr.message);
   }
   revalidatePath("/resume");
@@ -219,7 +234,11 @@ export async function toggleArchiveResume(formData: FormData) {
   const parsed = idSchema.parse({ id: formData.get("id")?.toString() });
   const admin = createSupabaseAdminClient();
   // Read current state
-  const { data: row } = await admin.from("resumes").select("archived").eq("id", parsed.id).maybeSingle();
+  const { data: row } = await admin
+    .from("resumes")
+    .select("archived")
+    .eq("id", parsed.id)
+    .maybeSingle();
   if (!row) throw new Error("Resume not found");
   const update: Record<string, unknown> = { archived: !row.archived };
   if (!row.archived) {
@@ -233,4 +252,3 @@ export async function toggleArchiveResume(formData: FormData) {
   revalidatePath("/admin/resumes");
   redirect("/admin/resumes");
 }
-

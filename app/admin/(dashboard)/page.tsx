@@ -57,8 +57,6 @@ export default async function AdminDashboardPage() {
         </form>
       </div>
 
-      {/* UserCard removed per request to simplify overview */}
-
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader>

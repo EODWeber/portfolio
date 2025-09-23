@@ -51,9 +51,19 @@ export default async function VerticalDetailPage({ params }: VerticalPageProps) 
           <div className="grid gap-6 md:grid-cols-2">
             {projects.map((project) => (
               <Card key={project.id} className="group relative overflow-hidden">
-                <Link href={`/portfolio/${project.slug}`} className="absolute inset-0" aria-label={project.title} />
+                <Link
+                  href={`/portfolio/${project.slug}`}
+                  className="absolute inset-0"
+                  aria-label={project.title}
+                />
                 <AspectRatio ratio={16 / 9}>
-                  <Image src={project.hero_url || "/default-card.svg"} alt="" fill sizes="(min-width:768px) 50vw, 100vw" className="object-cover" />
+                  <Image
+                    src={project.hero_url || "/default-card.svg"}
+                    alt=""
+                    fill
+                    sizes="(min-width:768px) 50vw, 100vw"
+                    className="object-cover"
+                  />
                 </AspectRatio>
                 <CardHeader>
                   <CardTitle className="text-xl group-hover:underline">{project.title}</CardTitle>
@@ -86,9 +96,19 @@ export default async function VerticalDetailPage({ params }: VerticalPageProps) 
           <div className="grid gap-6 md:grid-cols-2">
             {caseStudies.map((study) => (
               <Card key={study.id} className="group relative overflow-hidden">
-                <Link href={`/case-studies/${study.slug}`} className="absolute inset-0" aria-label={study.title} />
+                <Link
+                  href={`/case-studies/${study.slug}`}
+                  className="absolute inset-0"
+                  aria-label={study.title}
+                />
                 <AspectRatio ratio={16 / 9}>
-                  <Image src={study.hero_url || "/default-card.svg"} alt="" fill sizes="(min-width:768px) 50vw, 100vw" className="object-cover" />
+                  <Image
+                    src={study.hero_url || "/default-card.svg"}
+                    alt=""
+                    fill
+                    sizes="(min-width:768px) 50vw, 100vw"
+                    className="object-cover"
+                  />
                 </AspectRatio>
                 <CardHeader>
                   <CardTitle className="text-xl group-hover:underline">{study.title}</CardTitle>
@@ -122,7 +142,11 @@ export default async function VerticalDetailPage({ params }: VerticalPageProps) 
           <div className="grid gap-6 md:grid-cols-2">
             {articles.map((article) => (
               <Card key={article.id} className="group relative">
-                <Link href={`/articles/${article.slug}`} className="absolute inset-0" aria-label={article.title} />
+                <Link
+                  href={`/articles/${article.slug}`}
+                  className="absolute inset-0"
+                  aria-label={article.title}
+                />
                 <CardHeader>
                   <CardTitle className="text-xl group-hover:underline">{article.title}</CardTitle>
                   {article.summary ? <CardDescription>{article.summary}</CardDescription> : null}

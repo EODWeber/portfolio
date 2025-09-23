@@ -6,4 +6,3 @@ export default async function MdxDocumentsAdminPage() {
   const docs = await fetchAllMdxDocuments();
   return <MdxDocumentsManager initialDocs={docs} />;
 }
-

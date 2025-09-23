@@ -62,7 +62,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 py-12 sm:px-6 sm:py-16">
       <header className="space-y-4">
         <AspectRatio ratio={16 / 9}>
-          <Image src={article.hero_url || "/default-card.svg"} alt="" fill sizes="100vw" className="rounded-md object-cover" />
+          <Image
+            src={article.hero_url || "/default-card.svg"}
+            alt=""
+            fill
+            sizes="100vw"
+            className="rounded-md object-cover"
+          />
         </AspectRatio>
         <div className="flex flex-wrap gap-2">
           {article.tags.map((tag) => (

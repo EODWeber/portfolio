@@ -35,7 +35,7 @@ export function RecentNotifications({ initial }: { initial: NotificationLog[] })
         ) : (
           <div className="max-h-96 overflow-auto rounded-md border">
             <table className="w-full text-left text-sm">
-              <thead className="sticky top-0 bg-muted/40">
+              <thead className="bg-muted/40 sticky top-0">
                 <tr className="border-b">
                   <th className="px-3 py-2">Time</th>
                   <th className="px-3 py-2">Channel</th>
@@ -46,10 +46,12 @@ export function RecentNotifications({ initial }: { initial: NotificationLog[] })
               <tbody>
                 {log.map((item) => (
                   <tr key={item.id} className="border-b last:border-0">
-                    <td className="px-3 py-2 whitespace-nowrap">{new Date(item.created_at).toLocaleString()}</td>
+                    <td className="whitespace-nowrap px-3 py-2">
+                      {new Date(item.created_at).toLocaleString()}
+                    </td>
                     <td className="px-3 py-2">{item.channel}</td>
                     <td className="px-3 py-2">{item.status}</td>
-                    <td className="px-3 py-2 text-xs text-muted-foreground">{item.detail ?? ""}</td>
+                    <td className="text-muted-foreground px-3 py-2 text-xs">{item.detail ?? ""}</td>
                   </tr>
                 ))}
               </tbody>

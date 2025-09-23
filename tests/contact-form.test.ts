@@ -9,13 +9,13 @@ const maybeSingleMock = vi.fn(async () => ({ data: null }));
 const eqMock = vi.fn(() => ({ maybeSingle: maybeSingleMock }));
 const selectMock = vi.fn(() => ({ eq: eqMock }));
 const fromMock = vi.fn((table: string) => {
-    if (table === "notification_settings") {
-        return { select: selectMock } as const;
-    }
-    if (table === "notifications_log") {
-        return { insert: logInsertMock } as const;
-    }
-    return { insert: contactInsertMock } as const;
+  if (table === "notification_settings") {
+    return { select: selectMock } as const;
+  }
+  if (table === "notifications_log") {
+    return { insert: logInsertMock } as const;
+  }
+  return { insert: contactInsertMock } as const;
 });
 
 vi.mock("@/lib/supabase/admin-client", () => ({
@@ -29,7 +29,7 @@ vi.mock("next/cache", () => ({
 }));
 
 vi.mock("@/lib/analytics/log-event", () => ({
-  logEvent: vi.fn(async () => { })
+  logEvent: vi.fn(async () => {}),
 }));
 
 describe("contact form", () => {

@@ -9,10 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { SocialPost } from "@/lib/supabase/types";
 
-import { deleteSocialPost, toggleSocialPostFeatured, upsertSocialPost } from "./actions";
-
-type SortKey = "title" | "platform" | "posted" | "featured" | "updated";
-type SortDirection = "asc" | "desc";
+import { deleteSocialPost, upsertSocialPost } from "./actions";
 
 function toDatetimeLocal(iso: string) {
   const date = new Date(iso);
@@ -35,7 +32,10 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
   const [platformFilter, setPlatformFilter] = useState<string>("all");
   const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection }>({ key: "posted", direction: "desc" });
 
-  const selected = useMemo(() => posts.find((post) => post.id === selectedId) ?? null, [posts, selectedId]);
+  const selected = useMemo(
+    () => posts.find((post) => post.id === selectedId) ?? null,
+    [posts, selectedId],
+  );
 
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -55,49 +55,6 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
   const handleClose = () => {
     setOpen(false);
     setSelectedId("");
-  };
-
-  const platforms = useMemo(() => Array.from(new Set(posts.map((post) => post.platform))).sort(), [posts]);
-
-  const list = useMemo(() => {
-    const items = filtered.filter((post) =>
-      platformFilter === "all" ? true : post.platform === platformFilter,
-    );
-    const direction = sort.direction === "asc" ? 1 : -1;
-    return items.sort((a, b) => {
-      switch (sort.key) {
-        case "title":
-          return a.title.localeCompare(b.title) * direction;
-        case "platform":
-          return a.platform.localeCompare(b.platform) * direction;
-        case "posted":
-          return (
-            new Date(a.posted_at).getTime() - new Date(b.posted_at).getTime()
-          ) * direction;
-        case "featured": {
-          const af = a.featured ? 1 : 0;
-          const bf = b.featured ? 1 : 0;
-          return (af - bf) * direction;
-        }
-        case "updated":
-          return (
-            new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()
-          ) * direction;
-        default:
-          return 0;
-      }
-    });
-  }, [filtered, platformFilter, sort]);
-
-  const toggleSort = (key: SortKey) => {
-    setSort((prev) =>
-      prev.key === key ? { key, direction: prev.direction === "asc" ? "desc" : "asc" } : { key, direction: "asc" },
-    );
-  };
-
-  const indicator = (key: SortKey) => {
-    if (sort.key !== key) return null;
-    return sort.direction === "asc" ? "↑" : "↓";
   };
 
   return (
@@ -150,7 +107,7 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
         <CardContent>
           <div className="max-h-[60vh] overflow-auto rounded-md border">
             <table className="w-full text-left text-sm">
-              <thead className="sticky top-0 bg-muted/40">
+              <thead className="bg-muted/40 sticky top-0">
                 <tr className="border-b">
                   <th className="px-3 py-2">
                     <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("title")}>
@@ -180,7 +137,9 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
                   <tr key={post.id} className="border-b last:border-0">
                     <td className="px-3 py-2">{post.title}</td>
                     <td className="px-3 py-2">{post.platform}</td>
-                    <td className="px-3 py-2 whitespace-nowrap">{new Date(post.posted_at).toLocaleString()}</td>
+                    <td className="whitespace-nowrap px-3 py-2">
+                      {new Date(post.posted_at).toLocaleString()}
+                    </td>
                     <td className="px-3 py-2">{post.featured ? "Yes" : "No"}</td>
                     <td className="px-3 py-2">
                       <div className="flex gap-2">
@@ -210,7 +169,13 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
             <label className="text-sm font-medium" htmlFor="platform">
               Platform
             </label>
-            <Input id="platform" name="platform" defaultValue={selected?.platform ?? ""} list="platforms" required />
+            <Input
+              id="platform"
+              name="platform"
+              defaultValue={selected?.platform ?? ""}
+              list="platforms"
+              required
+            />
             <datalist id="platforms">
               <option value="GitHub" />
               <option value="X" />
@@ -253,7 +218,12 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
             />
           </div>
           <div className="flex items-center gap-2">
-            <input id="featured" name="featured" type="checkbox" defaultChecked={selected?.featured ?? false} />
+            <input
+              id="featured"
+              name="featured"
+              type="checkbox"
+              defaultChecked={selected?.featured ?? false}
+            />
             <label className="text-sm font-medium" htmlFor="featured">
               Featured (max 6)
             </label>

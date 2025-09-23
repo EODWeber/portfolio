@@ -12,11 +12,7 @@ import type { CaseStudy, MdxDocument } from "@/lib/supabase/types";
 import { deleteCaseStudy, importCaseStudies, upsertCaseStudy } from "./actions";
 
 const FORM_GRID = "grid gap-3 md:grid-cols-2";
-type SortKey = "title" | "slug" | "vertical" | "status" | "featured" | "updated";
-type SortDirection = "asc" | "desc";
 const VERTICAL_OPTIONS = ["ai-security", "secure-devops", "soc"] as const;
-type VerticalFilter = (typeof VERTICAL_OPTIONS)[number] | "all";
-type StatusFilter = "all" | "draft" | "published";
 
 export function CaseStudyManager({
   caseStudies,
@@ -105,12 +101,14 @@ export function CaseStudyManager({
       <Card>
         <CardHeader>
           <CardTitle>Case studies</CardTitle>
-          <CardDescription>Filter to find a study, then edit its metadata and linked MDX.</CardDescription>
+          <CardDescription>
+            Filter to find a study, then edit its metadata and linked MDX.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="max-h-[60vh] overflow-auto rounded-md border">
             <table className="w-full text-left text-sm">
-              <thead className="sticky top-0 bg-muted/40">
+              <thead className="bg-muted/40 sticky top-0">
                 <tr className="border-b">
                   <th className="px-3 py-2">Title</th>
                   <th className="px-3 py-2">Slug</th>
@@ -141,7 +139,11 @@ export function CaseStudyManager({
         </CardContent>
       </Card>
 
-      <Modal open={open} onClose={handleClose} title={selected ? "Edit case study" : "Add case study"}>
+      <Modal
+        open={open}
+        onClose={handleClose}
+        title={selected ? "Edit case study" : "Add case study"}
+      >
         <form key={selected?.id ?? "create"} action={upsertCaseStudy} className={FORM_GRID}>
           <input type="hidden" name="id" value={selected?.id ?? ""} />
           <div className="space-y-2 md:col-span-2">
@@ -151,10 +153,18 @@ export function CaseStudyManager({
             <Input id="title" name="title" defaultValue={selected?.title ?? ""} required />
           </div>
           <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium" htmlFor="hero_image">Cover image</label>
-            <input id="hero_image" name="hero_image" type="file" accept="image/*" className="text-sm" />
+            <label className="text-sm font-medium" htmlFor="hero_image">
+              Cover image
+            </label>
+            <input
+              id="hero_image"
+              name="hero_image"
+              type="file"
+              accept="image/*"
+              className="text-sm"
+            />
             {selected?.hero_url ? (
-              <p className="text-xs text-muted-foreground">Current: {selected.hero_url}</p>
+              <p className="text-muted-foreground text-xs">Current: {selected.hero_url}</p>
             ) : null}
           </div>
           <div className="space-y-2">
@@ -182,7 +192,13 @@ export function CaseStudyManager({
             <label className="text-sm font-medium" htmlFor="summary">
               Summary
             </label>
-            <Textarea id="summary" name="summary" defaultValue={selected?.summary ?? ""} rows={3} required />
+            <Textarea
+              id="summary"
+              name="summary"
+              defaultValue={selected?.summary ?? ""}
+              rows={3}
+              required
+            />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="tags">
@@ -197,23 +213,48 @@ export function CaseStudyManager({
             <Input id="hero_url" name="hero_url" defaultValue={selected?.hero_url ?? ""} />
           </div>
           <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium" htmlFor="body_path">Body path (managed)</label>
-            <Input id="body_path" name="body_path" defaultValue={selected?.body_path ?? ""} readOnly disabled />
-            <p className="text-xs text-muted-foreground">Set automatically when creating or linking an MDX document.</p>
+            <label className="text-sm font-medium" htmlFor="body_path">
+              Body path (managed)
+            </label>
+            <Input
+              id="body_path"
+              name="body_path"
+              defaultValue={selected?.body_path ?? ""}
+              readOnly
+              disabled
+            />
+            <p className="text-muted-foreground text-xs">
+              Set automatically when creating or linking an MDX document.
+            </p>
           </div>
           <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium" htmlFor="mdx_content">Content (MDX)</label>
+            <label className="text-sm font-medium" htmlFor="mdx_content">
+              Content (MDX)
+            </label>
             <Textarea
               id="mdx_content"
               name="mdx_content"
               rows={10}
-              placeholder={selected?.body_path ? "Leave blank to keep existing MDX; paste to replace" : "Write case study in MDX here"}
+              placeholder={
+                selected?.body_path
+                  ? "Leave blank to keep existing MDX; paste to replace"
+                  : "Write case study in MDX here"
+              }
             />
-            <p className="text-xs text-muted-foreground">On save, a doc will be created at case-studies/&lt;slug&gt;.mdx if not present, or updated if it exists.</p>
+            <p className="text-muted-foreground text-xs">
+              On save, a doc will be created at case-studies/&lt;slug&gt;.mdx if not present, or
+              updated if it exists.
+            </p>
           </div>
           <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium" htmlFor="link_key">Link existing MDX</label>
-            <Input placeholder="Quick filter..." value={mdxFilter} onChange={(event) => setMdxFilter(event.target.value)} />
+            <label className="text-sm font-medium" htmlFor="link_key">
+              Link existing MDX
+            </label>
+            <Input
+              placeholder="Quick filter..."
+              value={mdxFilter}
+              onChange={(event) => setMdxFilter(event.target.value)}
+            />
             <select
               id="link_key"
               name="link_key"
@@ -229,13 +270,20 @@ export function CaseStudyManager({
                   </option>
                 ))}
             </select>
-            <p className="text-xs text-muted-foreground">Only unlinked documents are listed. Linking ignores the Content field.</p>
+            <p className="text-muted-foreground text-xs">
+              Only unlinked documents are listed. Linking ignores the Content field.
+            </p>
           </div>
           <div className="space-y-2 md:col-span-2">
             <label className="text-sm font-medium" htmlFor="metrics">
               Metrics (one per line: Metric|Value)
             </label>
-            <Textarea id="metrics" name="metrics" defaultValue={formatMetrics(selected ?? undefined)} rows={4} />
+            <Textarea
+              id="metrics"
+              name="metrics"
+              defaultValue={formatMetrics(selected ?? undefined)}
+              rows={4}
+            />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="status">
@@ -252,7 +300,12 @@ export function CaseStudyManager({
             </select>
           </div>
           <div className="flex items-center gap-2">
-            <input id="featured" name="featured" type="checkbox" defaultChecked={selected?.featured ?? false} />
+            <input
+              id="featured"
+              name="featured"
+              type="checkbox"
+              defaultChecked={selected?.featured ?? false}
+            />
             <label htmlFor="featured" className="text-sm font-medium">
               Featured (max 6)
             </label>
@@ -300,9 +353,19 @@ export function CaseStudyManager({
             <Input id="title" name="title" defaultValue={selected?.title ?? ""} required />
           </div>
           <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium" htmlFor="hero_image">Cover image</label>
-            <input id="hero_image" name="hero_image" type="file" accept="image/*" className="text-sm" />
-            {selected?.hero_url ? <p className="text-xs text-muted-foreground">Current: {selected.hero_url}</p> : null}
+            <label className="text-sm font-medium" htmlFor="hero_image">
+              Cover image
+            </label>
+            <input
+              id="hero_image"
+              name="hero_image"
+              type="file"
+              accept="image/*"
+              className="text-sm"
+            />
+            {selected?.hero_url ? (
+              <p className="text-muted-foreground text-xs">Current: {selected.hero_url}</p>
+            ) : null}
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="slug">
@@ -331,7 +394,13 @@ export function CaseStudyManager({
             <label className="text-sm font-medium" htmlFor="summary">
               Summary
             </label>
-            <Textarea id="summary" name="summary" defaultValue={selected?.summary ?? ""} rows={3} required />
+            <Textarea
+              id="summary"
+              name="summary"
+              defaultValue={selected?.summary ?? ""}
+              rows={3}
+              required
+            />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="tags">
@@ -346,25 +415,48 @@ export function CaseStudyManager({
             <Input id="hero_url" name="hero_url" defaultValue={selected?.hero_url ?? ""} />
           </div>
           <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium" htmlFor="body_path">Body path (managed)</label>
-            <Input id="body_path" name="body_path" defaultValue={selected?.body_path ?? ""} readOnly disabled />
-            <p className="text-xs text-muted-foreground">Set automatically when creating or linking an MDX document.</p>
+            <label className="text-sm font-medium" htmlFor="body_path">
+              Body path (managed)
+            </label>
+            <Input
+              id="body_path"
+              name="body_path"
+              defaultValue={selected?.body_path ?? ""}
+              readOnly
+              disabled
+            />
+            <p className="text-muted-foreground text-xs">
+              Set automatically when creating or linking an MDX document.
+            </p>
           </div>
           <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium" htmlFor="mdx_content">Content (MDX)</label>
+            <label className="text-sm font-medium" htmlFor="mdx_content">
+              Content (MDX)
+            </label>
             <Textarea
               id="mdx_content"
               name="mdx_content"
               rows={10}
-              placeholder={selected?.body_path ? "Leave blank to keep existing MDX; paste to replace" : "Write case study in MDX here"}
+              placeholder={
+                selected?.body_path
+                  ? "Leave blank to keep existing MDX; paste to replace"
+                  : "Write case study in MDX here"
+              }
             />
-            <p className="text-xs text-muted-foreground">
-              On save, a doc will be created at case-studies/&lt;slug&gt;.mdx if not present, or updated if it exists.
+            <p className="text-muted-foreground text-xs">
+              On save, a doc will be created at case-studies/&lt;slug&gt;.mdx if not present, or
+              updated if it exists.
             </p>
           </div>
           <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium" htmlFor="link_key">Link existing MDX</label>
-            <Input placeholder="Quick filter..." value={mdxFilter} onChange={(e) => setMdxFilter(e.target.value)} />
+            <label className="text-sm font-medium" htmlFor="link_key">
+              Link existing MDX
+            </label>
+            <Input
+              placeholder="Quick filter..."
+              value={mdxFilter}
+              onChange={(e) => setMdxFilter(e.target.value)}
+            />
             <select
               id="link_key"
               name="link_key"
@@ -380,7 +472,9 @@ export function CaseStudyManager({
                   </option>
                 ))}
             </select>
-            <p className="text-xs text-muted-foreground">Only unlinked documents are listed. Linking ignores the Content field.</p>
+            <p className="text-muted-foreground text-xs">
+              Only unlinked documents are listed. Linking ignores the Content field.
+            </p>
           </div>
           <div className="space-y-2 md:col-span-2">
             <label className="text-sm font-medium" htmlFor="metrics">
@@ -403,8 +497,15 @@ export function CaseStudyManager({
             </select>
           </div>
           <div className="flex items-center gap-2 md:col-span-2">
-            <input id="featured" name="featured" type="checkbox" defaultChecked={selected?.featured ?? false} />
-            <label htmlFor="featured" className="text-sm font-medium">Featured (max 6)</label>
+            <input
+              id="featured"
+              name="featured"
+              type="checkbox"
+              defaultChecked={selected?.featured ?? false}
+            />
+            <label htmlFor="featured" className="text-sm font-medium">
+              Featured (max 6)
+            </label>
           </div>
           <div className="flex justify-end gap-2 md:col-span-2">
             <Button
@@ -436,7 +537,9 @@ export function CaseStudyManager({
       <Card>
         <CardHeader>
           <CardTitle>Bulk import</CardTitle>
-          <CardDescription>Paste JSON exported above to insert or update multiple records.</CardDescription>
+          <CardDescription>
+            Paste JSON exported above to insert or update multiple records.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form action={importCaseStudies} className="space-y-3">
@@ -444,7 +547,7 @@ export function CaseStudyManager({
               name="payload"
               rows={6}
               required
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
               placeholder='[{"title":"Case Study","slug":"zero-downtime-delivery","summary":"..."}]'
             />
             <Button type="submit" variant="outline">

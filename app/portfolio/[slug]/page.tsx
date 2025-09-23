@@ -100,7 +100,11 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           <div className="grid gap-4 md:grid-cols-2">
             {relatedCaseStudies.map((study) => (
               <Card key={study.id} className="group relative">
-                <Link href={`/case-studies/${study.slug}`} className="absolute inset-0" aria-label={study.title} />
+                <Link
+                  href={`/case-studies/${study.slug}`}
+                  className="absolute inset-0"
+                  aria-label={study.title}
+                />
                 <CardHeader>
                   <CardTitle className="text-lg group-hover:underline">{study.title}</CardTitle>
                   <CardDescription>{study.summary}</CardDescription>

@@ -79,14 +79,35 @@ create index if not exists articles_featured_idx on public.articles (featured, c
 
 -- MDX documents (Supabase-managed content bodies)
 create table if not exists public.mdx_documents (
-  id         uuid primary key default gen_random_uuid(),
-  key        text not null unique, -- e.g., articles/my-post.mdx, case-studies/my-study.mdx
-  content    text not null,
-  deleted    boolean not null default false,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  id           uuid primary key default gen_random_uuid(),
+  key          text not null unique, -- e.g., articles/my-post.mdx, case-studies/my-study.mdx
+  storage_path text not null,
+  deleted      boolean not null default false,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
 );
 alter table public.mdx_documents enable row level security;
+
+do
+$$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'mdx_documents' and column_name = 'content'
+  ) then
+    alter table public.mdx_documents drop column if exists content;
+  end if;
+
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'mdx_documents' and column_name = 'storage_path'
+  ) then
+    alter table public.mdx_documents add column storage_path text;
+    update public.mdx_documents set storage_path = key where storage_path is null;
+    alter table public.mdx_documents alter column storage_path set not null;
+  end if;
+end
+$$;
 
 create table if not exists public.resumes (
   id          uuid primary key default gen_random_uuid(),
@@ -386,7 +407,8 @@ $plpgsql$;
 insert into storage.buckets (id, name, public)
 values
   ('images',  'images',  true),
-  ('resumes', 'resumes', false)
+  ('resumes', 'resumes', false),
+  ('content', 'content', true)
 on conflict (id) do update
   set name = excluded.name,
       public = excluded.public;
@@ -403,6 +425,17 @@ begin
                on storage.objects
                for select to public
                using (bucket_id = ''images'');';
+  end if;
+
+  if not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'storage' and tablename = 'objects' and policyname = 'storage_content_public_read'
+  ) then
+    execute 'create policy "storage_content_public_read"
+               on storage.objects
+               for select to public
+               using (bucket_id = ''content'');';
   end if;
 end
 $plpgsql$;

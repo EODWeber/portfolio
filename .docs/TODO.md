@@ -6,7 +6,7 @@
 - Legal pages: manage via MDX Documents (done); verify overrides in production.
 - Seed: ensure idempotent resume inserts without ON CONFLICT on vertical (done).
 - Home: show skeletons if no featured items (done).
-- Exclude legal-* from Articles listing and vertical listings (done).
+- Exclude legal-\* from Articles listing and vertical listings (done).
 - Social feed: home card layout with date/icon under title (done); full color icons on /social-feed (done).
 
 # V3

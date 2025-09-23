@@ -13,12 +13,15 @@ export default async function SocialFeedPage() {
       <header className="space-y-4">
         <h1 className="text-4xl font-semibold tracking-tight">Social feed</h1>
         <p className="text-muted-foreground text-lg">
-          Talks, open-source drops, and long-form posts—automatically surfaced from connected accounts.
+          Talks, open-source drops, and long-form posts—automatically surfaced from connected
+          accounts.
         </p>
       </header>
 
       {posts.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No posts logged yet. Seed `public.social_posts` to populate this feed.</p>
+        <p className="text-muted-foreground text-sm">
+          No posts logged yet. Seed `public.social_posts` to populate this feed.
+        </p>
       ) : (
         <div className="grid gap-4">
           {posts.map((post) => {
@@ -36,14 +39,29 @@ export default async function SocialFeedPage() {
               <Card key={post.id}>
                 <CardHeader>
                   <CardTitle className="text-lg">{post.title}</CardTitle>
-                  <CardDescription className="text-sm w-full flex items-center">
+                  <CardDescription className="text-sm">{post.platform}</CardDescription>
+                  <div className="text-muted-foreground flex items-center gap-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span>{new Date(post.posted_at).toLocaleDateString()}</span>
+                      {post.featured ? (
+                        <Badge variant="secondary" className="font-medium uppercase">
+                          Featured
+                        </Badge>
+                      ) : null}
+                    </div>
                     <span
                       aria-hidden
                       className="inline-flex h-8 w-8 items-center justify-center rounded-full"
                       style={{ backgroundColor: `#${icon.hex}` }}
                       title={post.platform}
                     >
-                      <svg viewBox="0 0 24 24" width="18" height="18" fill="white" xmlns="http://www.w3.org/2000/svg">
+                      <svg
+                        viewBox="0 0 24 24"
+                        width="18"
+                        height="18"
+                        fill="white"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
                         <path d={icon.path} />
                       </svg>
                     </span>
@@ -65,7 +83,12 @@ export default async function SocialFeedPage() {
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">
                   {post.summary ? <p className="text-muted-foreground">{post.summary}</p> : null}
-                  <Link href={post.url} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                  <Link
+                    href={post.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary hover:underline"
+                  >
                     Open link →
                   </Link>
                 </CardContent>

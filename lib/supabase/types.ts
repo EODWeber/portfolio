@@ -138,10 +138,13 @@ export type ContactLink = {
 export type MdxDocument = {
   id: string;
   key: string; // e.g., articles/slug.mdx
-  content: string;
+  storage_path: string;
   deleted: boolean;
   created_at: string;
   updated_at: string;
+  content?: string | null;
+  download_error?: string | null;
+  public_url?: string | null;
 };
 
 export type NotificationSettings = {

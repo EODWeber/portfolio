@@ -35,11 +35,14 @@ export default async function PortfolioPage() {
               Tailored resumes hosted in Supabase Storage for quick recruiter access.
             </p>
           </div>
-          <CardDescription className="hidden sm:block">Also listed on the Contact page.</CardDescription>
+          <CardDescription className="hidden sm:block">
+            Also listed on the Contact page.
+          </CardDescription>
         </div>
         {resumes.length === 0 ? (
           <p className="text-muted-foreground text-sm">
-            Upload resume PDFs to the Supabase `resumes` bucket and manage entries in the admin portal to display them here.
+            Upload resume PDFs to the Supabase `resumes` bucket and manage entries in the admin
+            portal to display them here.
           </p>
         ) : (
           <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
@@ -47,10 +50,15 @@ export default async function PortfolioPage() {
               <Card key={resume.id} className="py-1">
                 <CardHeader className="py-2">
                   <CardTitle className="text-sm">{resume.label}</CardTitle>
-                  <CardDescription className="text-xs">Optimized for {resume.vertical.replace("-", " ")} roles.</CardDescription>
+                  <CardDescription className="text-xs">
+                    Optimized for {resume.vertical.replace("-", " ")} roles.
+                  </CardDescription>
                 </CardHeader>
-                <CardContent className="pt-0 -mt-3">
-                  <Link href={`/resume/${resume.vertical}`} className="text-primary text-xs hover:underline">
+                <CardContent className="-mt-3 pt-0">
+                  <Link
+                    href={`/resume/${resume.vertical}`}
+                    className="text-primary text-xs hover:underline"
+                  >
                     Generate secure download →
                   </Link>
                 </CardContent>
@@ -77,8 +85,15 @@ export default async function PortfolioPage() {
             </div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {grouped[vertical].map((project) => (
-                <Card key={project.id} className="group relative flex h-full flex-col overflow-hidden">
-                  <Link href={`/portfolio/${project.slug}`} className="absolute inset-0" aria-label={project.title} />
+                <Card
+                  key={project.id}
+                  className="group relative flex h-full flex-col overflow-hidden"
+                >
+                  <Link
+                    href={`/portfolio/${project.slug}`}
+                    className="absolute inset-0"
+                    aria-label={project.title}
+                  />
                   <div className="relative h-40 w-full">
                     <Image
                       src={project.hero_url || "/default-card.svg"}

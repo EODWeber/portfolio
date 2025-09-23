@@ -6,24 +6,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Modal } from "@/components/admin/modal";
 import type { Project } from "@/lib/supabase/types";
 
 import { deleteProject, importProjects, toggleProjectFeatured, upsertProject } from "./actions";
 
 const FORM_GRID = "grid gap-3 md:grid-cols-2";
-
 type SortKey = "title" | "slug" | "vertical" | "status" | "featured" | "updated";
 type SortDirection = "asc" | "desc";
-const VERTICAL_OPTIONS = ["ai-security", "secure-devops", "soc"] as const;
-type VerticalFilter = (typeof VERTICAL_OPTIONS)[number] | "all";
-type StatusFilter = "all" | "draft" | "published";
 
 export function ProjectManager({ projects, status }: { projects: Project[]; status?: string }) {
   const [selectedId, setSelectedId] = useState<string>("");
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection }>({ key: "updated", direction: "desc" });
+  const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection }>({
+    key: "updated",
+    direction: "desc",
+  });
 
   const selected = useMemo(
     () => projects.find((project) => project.id === selectedId) ?? null,
@@ -42,8 +40,9 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
   }, [projects, query]);
 
   const displayed = useMemo(() => {
-    const direction = sort.direction === "asc" ? 1 : -1;
     const items = [...filtered];
+    const direction = sort.direction === "asc" ? 1 : -1;
+        
     return items.sort((a, b) => {
       switch (sort.key) {
         case "title":
@@ -54,14 +53,14 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
           return a.vertical.localeCompare(b.vertical) * direction;
         case "status":
           return a.status.localeCompare(b.status) * direction;
-        case "featured":
-          return ((a.featured ? 1 : 0) - (b.featured ? 1 : 0)) * direction;
+        case "featured": {
+          const af = a.featured ? 1 : 0;
+          const bf = b.featured ? 1 : 0;
+          return (af - bf) * direction;
+        }
         case "updated":
-          return (
-            new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()
-          ) * direction;
         default:
-          return 0;
+          return (new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()) * direction;
       }
     });
   }, [filtered, sort]);
@@ -108,7 +107,6 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
             </p>
           </div>
           <div className="flex items-center gap-3">
-
             <Input
               placeholder="Search title, slug, tag..."
               value={query}
@@ -137,40 +135,66 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
       <Card>
         <CardHeader>
           <CardTitle>Projects</CardTitle>
-          <CardDescription>Use the table to filter, feature, and edit individual projects.</CardDescription>
+          <CardDescription>
+            Use the table to filter, feature, and edit individual projects.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="max-h-[60vh] overflow-auto rounded-md border">
             <table className="w-full text-left text-sm">
-              <thead className="sticky top-0 bg-muted/40">
+              <thead className="bg-muted/40 sticky top-0">
                 <tr className="border-b">
                   <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("title")}>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1"
+                      onClick={() => toggleSort("title")}
+                    >
                       Title {indicator("title")}
                     </button>
                   </th>
                   <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("slug")}>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1"
+                      onClick={() => toggleSort("slug")}
+                    >
                       Slug {indicator("slug")}
                     </button>
                   </th>
                   <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("vertical")}>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1"
+                      onClick={() => toggleSort("vertical")}
+                    >
                       Vertical {indicator("vertical")}
                     </button>
                   </th>
                   <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("status")}>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1"
+                      onClick={() => toggleSort("status")}
+                    >
                       Status {indicator("status")}
                     </button>
                   </th>
                   <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("featured")}>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1"
+                      onClick={() => toggleSort("featured")}
+                    >
                       Featured {indicator("featured")}
                     </button>
                   </th>
                   <th className="px-3 py-2">
-                    <button type="button" className="inline-flex items-center gap-1" onClick={() => toggleSort("updated")}>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1"
+                      onClick={() => toggleSort("updated")}
+                    >
                       Updated {indicator("updated")}
                     </button>
                   </th>
@@ -192,7 +216,9 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
                         </Button>
                       </form>
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap">{new Date(project.updated_at).toLocaleString()}</td>
+                    <td className="whitespace-nowrap px-3 py-2">
+                      {new Date(project.updated_at).toLocaleString()}
+                    </td>
                     <td className="px-3 py-2">
                       <Button size="sm" variant="outline" onClick={() => handleOpen(project.id)}>
                         Edit
@@ -216,10 +242,18 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
             <Input id="title" name="title" defaultValue={selected?.title ?? ""} required />
           </div>
           <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium" htmlFor="hero_image">Cover image</label>
-            <input id="hero_image" name="hero_image" type="file" accept="image/*" className="text-sm" />
+            <label className="text-sm font-medium" htmlFor="hero_image">
+              Cover image
+            </label>
+            <input
+              id="hero_image"
+              name="hero_image"
+              type="file"
+              accept="image/*"
+              className="text-sm"
+            />
             {selected?.hero_url ? (
-              <p className="text-xs text-muted-foreground">Current: {selected.hero_url}</p>
+              <p className="text-muted-foreground text-xs">Current: {selected.hero_url}</p>
             ) : null}
           </div>
           <div className="space-y-2">
@@ -247,7 +281,13 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
             <label className="text-sm font-medium" htmlFor="summary">
               Summary
             </label>
-            <Textarea id="summary" name="summary" defaultValue={selected?.summary ?? ""} rows={3} required />
+            <Textarea
+              id="summary"
+              name="summary"
+              defaultValue={selected?.summary ?? ""}
+              rows={3}
+              required
+            />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="tags">
@@ -259,7 +299,11 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
             <label className="text-sm font-medium" htmlFor="tech_stack">
               Tech stack (comma separated)
             </label>
-            <Input id="tech_stack" name="tech_stack" defaultValue={selected ? selected.tech_stack.join(", ") : ""} />
+            <Input
+              id="tech_stack"
+              name="tech_stack"
+              defaultValue={selected ? selected.tech_stack.join(", ") : ""}
+            />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="repo_url">
@@ -277,7 +321,12 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
             <label className="text-sm font-medium" htmlFor="outcomes">
               Outcomes (one per line: Metric|Value)
             </label>
-            <Textarea id="outcomes" name="outcomes" defaultValue={formatOutcomes(selected ?? undefined)} rows={4} />
+            <Textarea
+              id="outcomes"
+              name="outcomes"
+              defaultValue={formatOutcomes(selected ?? undefined)}
+              rows={4}
+            />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="status">
@@ -294,7 +343,12 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
             </select>
           </div>
           <div className="flex items-center gap-2">
-            <input id="featured" name="featured" type="checkbox" defaultChecked={selected?.featured ?? false} />
+            <input
+              id="featured"
+              name="featured"
+              type="checkbox"
+              defaultChecked={selected?.featured ?? false}
+            />
             <label htmlFor="featured" className="text-sm font-medium">
               Featured (max 6)
             </label>
@@ -328,7 +382,9 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
       <Card>
         <CardHeader>
           <CardTitle>Bulk import</CardTitle>
-          <CardDescription>Paste a JSON array exported above to upsert multiple records at once.</CardDescription>
+          <CardDescription>
+            Paste a JSON array exported above to upsert multiple records at once.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form action={importProjects} className="space-y-3">
@@ -336,7 +392,7 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
               name="payload"
               rows={6}
               required
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
               placeholder='[{"title":"Example","slug":"example","summary":"Impact...","vertical":"ai-security"}]'
             />
             <Button type="submit" variant="outline">

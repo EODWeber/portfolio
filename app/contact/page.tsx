@@ -76,7 +76,7 @@ export default async function ContactPage() {
                     focus.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="pt-0 -mt-3">
+                <CardContent className="-mt-3 pt-0">
                   <Link
                     href={`/resume/${resume.vertical}`}
                     className="text-primary text-xs hover:underline"

@@ -1,5 +1,7 @@
 "use server";
 
+import { Buffer } from "node:buffer";
+
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -47,32 +49,58 @@ export async function upsertArticle(formData: FormData) {
   let hero_url: string | undefined = undefined;
 
   if (linkKey) {
+    const { data: publicLink } = admin.storage.from("content").getPublicUrl(linkKey);
+    const publicUrl = publicLink.publicUrl;
+    if (!publicUrl) {
+      throw new Error("Unable to resolve public URL for the selected MDX document.");
+    }
     const [a, s] = await Promise.all([
-      admin.from("articles").select("id").eq("body_path", linkKey).limit(1),
-      admin.from("case_studies").select("id").eq("body_path", linkKey).limit(1),
+      admin.from("articles").select("id").eq("body_path", publicUrl).limit(1),
+      admin.from("case_studies").select("id").eq("body_path", publicUrl).limit(1),
     ]);
     if ((a.data && a.data.length > 0) || (s.data && s.data.length > 0)) {
       throw new Error("Selected MDX file is already linked");
     }
-    body_path = linkKey;
+    const { error: restoreErr } = await admin
+      .from("mdx_documents")
+      .update({ deleted: false })
+      .eq("key", linkKey);
+    if (restoreErr) throw new Error(restoreErr.message);
+    body_path = publicUrl;
   } else if (content) {
     const key = `articles/${payload.slug}.mdx`;
     const { data: existing } = await admin
       .from("mdx_documents")
-      .select("id")
+      .select("id, storage_path")
       .eq("key", key)
       .maybeSingle();
+
+    const payloadBuffer = Buffer.from(content, "utf8");
+    const { error: uploadErr } = await admin.storage
+      .from("content")
+      .upload(key, payloadBuffer, { upsert: true, contentType: "text/markdown" });
+    if (uploadErr) throw new Error(uploadErr.message);
+
+    const { data: publicUrlData } = admin.storage.from("content").getPublicUrl(key);
+    const publicUrl = publicUrlData.publicUrl;
+    if (!publicUrl) throw new Error("Unable to resolve public URL for uploaded MDX document.");
+
     if (existing?.id) {
+      if (existing.storage_path && existing.storage_path !== key) {
+        await admin.storage.from("content").remove([existing.storage_path]);
+      }
       const { error: updateErr } = await admin
         .from("mdx_documents")
-        .update({ content, deleted: false })
+        .update({ key, storage_path: key, deleted: false })
         .eq("id", existing.id);
       if (updateErr) throw new Error(updateErr.message);
     } else {
-      const { error: insertErr } = await admin.from("mdx_documents").insert({ key, content });
+      const { error: insertErr } = await admin
+        .from("mdx_documents")
+        .insert({ key, storage_path: key });
       if (insertErr) throw new Error(insertErr.message);
     }
-    body_path = key;
+    body_path = publicUrl;
   }
 
   // Upload cover image if provided
@@ -81,7 +109,10 @@ export async function upsertArticle(formData: FormData) {
     const key = `articles/${payload.slug}-${Date.now()}.${ext}`;
     const { error: uploadErr } = await admin.storage
       .from("images")
-      .upload(key, await heroFile.arrayBuffer(), { upsert: false, contentType: heroFile.type || "image/*" });
+      .upload(key, await heroFile.arrayBuffer(), {
+        upsert: false,
+        contentType: heroFile.type || "image/*",
+      });
     if (uploadErr) throw new Error(uploadErr.message);
     const { data } = admin.storage.from("images").getPublicUrl(key);
     hero_url = data.publicUrl;
@@ -159,7 +190,9 @@ export async function importArticles(formData: FormData): Promise<void> {
       slug: r.slug,
       summary: r.summary,
       body_path: r.body_path,
-      tags: Array.isArray(r.tags) ? (r.tags as unknown[]).join(",") : (r.tags as string | undefined),
+      tags: Array.isArray(r.tags)
+        ? (r.tags as unknown[]).join(",")
+        : (r.tags as string | undefined),
       status: (r as { status?: string }).status ?? "draft",
     });
 

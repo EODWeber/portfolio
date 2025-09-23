@@ -61,7 +61,7 @@ export async function submitContact(
         headers: { "content-type": "application/x-www-form-urlencoded" },
         body,
       });
-      const result = (await res.json()) as { success: boolean;[k: string]: unknown };
+      const result = (await res.json()) as { success: boolean; [k: string]: unknown };
       if (!result.success) {
         console.error("Turnstile verification failed", { result });
         return { success: false, error: "Captcha verification failed", values: raw };

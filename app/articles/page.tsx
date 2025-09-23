@@ -29,7 +29,13 @@ export default async function ArticlesPage() {
                 <div className="flex gap-4">
                   <div className="w-40 flex-shrink-0">
                     <AspectRatio ratio={16 / 9}>
-                      <Image src={article.hero_url || "/default-card.svg"} alt="" fill sizes="160px" className="rounded-md object-cover" />
+                      <Image
+                        src={article.hero_url || "/default-card.svg"}
+                        alt=""
+                        fill
+                        sizes="160px"
+                        className="rounded-md object-cover"
+                      />
                     </AspectRatio>
                   </div>
                   <div className="min-w-0">
@@ -37,9 +43,11 @@ export default async function ArticlesPage() {
                       {article.title}
                     </h2>
                     {article.summary ? (
-                      <p className="text-muted-foreground mt-2 text-base line-clamp-3">{article.summary}</p>
+                      <p className="text-muted-foreground mt-2 line-clamp-3 text-base">
+                        {article.summary}
+                      </p>
                     ) : null}
-                    {(article.featured || (article.tags?.length ?? 0) > 0) ? (
+                    {article.featured || (article.tags?.length ?? 0) > 0 ? (
                       <div className="mt-3 flex flex-wrap gap-2">
                         {article.featured ? (
                           <Badge variant="secondary" className="font-medium uppercase">

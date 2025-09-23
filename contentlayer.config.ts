@@ -67,13 +67,7 @@ const LegalDoc = defineDocumentType(() => ({
   },
 }));
 
-import type { PluggableList } from "unified";
-
-const rehypePlugins = [
-  rehypeSlug,
-  [rehypeAutolinkHeadings, { behavior: "wrap" }],
-  [rehypePrettyCode, { theme: "github-dark" }],
-] as const;
+// Rehype plugin chain configured inline to avoid type conflicts between unified versions
 
 export default makeSource({
   contentDirPath: "content",
@@ -82,10 +76,9 @@ export default makeSource({
     rehypePlugins: [
       rehypeSlug,
       [rehypeAutolinkHeadings, { behavior: "wrap" }],
-      // @ts-ignore Pretty code plugin uses older unified typings
+      // @ts-expect-error rehype-pretty-code's typings may not match unified version
       [rehypePrettyCode, { theme: "github-dark" }],
     ],
-
   },
   disableImportAliasWarning: true,
 });
