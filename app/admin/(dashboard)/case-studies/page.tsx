@@ -3,6 +3,7 @@ import {
   fetchAllCaseStudies,
   fetchAllMdxDocuments,
   fetchAllProjects,
+  fetchArticleIdsByCaseStudy,
   fetchProjectIdsByCaseStudy,
 } from "@/lib/admin/queries";
 import { toContentKey } from "@/lib/content/resolve";
@@ -15,13 +16,15 @@ export default async function CaseStudiesAdminPage({
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = await searchParams;
-  const [caseStudies, articles, availableDocs, projects, rel] = await Promise.all([
-    fetchAllCaseStudies(),
-    fetchAllArticles(),
-    fetchAllMdxDocuments(),
-    fetchAllProjects(),
-    fetchProjectIdsByCaseStudy(),
-  ]);
+  const [caseStudies, articles, availableDocs, projects, projectMap, articleMap] =
+    await Promise.all([
+      fetchAllCaseStudies(),
+      fetchAllArticles(),
+      fetchAllMdxDocuments(),
+      fetchAllProjects(),
+      fetchProjectIdsByCaseStudy(),
+      fetchArticleIdsByCaseStudy(),
+    ]);
   const status = typeof sp?.status === "string" ? sp.status : undefined;
   const used = new Set<string>([
     ...caseStudies.map((s) => toContentKey(s.body_path ?? "")),
@@ -34,7 +37,8 @@ export default async function CaseStudiesAdminPage({
       usedKeys={[...used]}
       projects={projects}
       articles={articles}
-      relatedProjectIdsByCaseStudy={rel}
+      relatedProjectIdsByCaseStudy={projectMap}
+      relatedArticleIdsByCaseStudy={articleMap}
       status={status}
     />
   );

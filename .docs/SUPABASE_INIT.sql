@@ -226,6 +226,10 @@ alter table public.site_profile add column if not exists interests jsonb default
 alter table public.site_profile add column if not exists speaking jsonb default '[]';
 alter table public.site_profile add column if not exists certifications jsonb default '[]';
 alter table public.site_profile add column if not exists awards jsonb default '[]';
+alter table public.site_profile add column if not exists pronouns text;
+alter table public.site_profile add column if not exists phonetic_name text;
+alter table public.site_profile add column if not exists languages jsonb default '[]';
+alter table public.site_profile add column if not exists access_notes text;
 
 -- Relationship tables for explicit related content ------------------
 create table if not exists public.article_related_projects (

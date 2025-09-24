@@ -295,7 +295,27 @@ on conflict (id) do update set
   updated_at = now();
 
 -- Site profile ---------------------------------------------------------------
-insert into public.site_profile (id, full_name, headline, subheadline, summary, avatar_url, location, hiring_status, resume_preference, highlights, hobbies, interests)
+insert into public.site_profile (
+  id,
+  full_name,
+  headline,
+  subheadline,
+  summary,
+  avatar_url,
+  location,
+  hiring_status,
+  resume_preference,
+  highlights,
+  hobbies,
+  interests,
+  speaking,
+  certifications,
+  awards,
+  pronouns,
+  phonetic_name,
+  languages,
+  access_notes
+)
 values (
   '22222222-2222-2222-2222-222222222222',
   'Jeff Weber',
@@ -308,7 +328,14 @@ values (
   'ai-security',
   '[{"label":"7.3x reduction in AI risk remediation","value":"Fortune 100 fintech"},{"label":"0 critical audit findings","value":"After secure DevOps transformation"},{"label":"2.4x analyst throughput","value":"SOC automation program"}]'::jsonb,
   '["Cycling","Climbing","Maker projects"]'::jsonb,
-  '["AI safety","Developer experience","Cloud governance"]'::jsonb
+  '["AI safety","Developer experience","Cloud governance"]'::jsonb,
+  '["BSides SF 2024 keynote","OWASP AppSec 2023"]'::jsonb,
+  '["CISSP","OSCP"]'::jsonb,
+  '["DEF CON CTF finalist","Supabase Launch Week award"]'::jsonb,
+  'he/him',
+  'JEFF WEE-bur',
+  '["English (native)","Spanish (conversational)"]'::jsonb,
+  'Happy to accommodate ASL interpreters and flexible meeting hours across time zones.'
 )
 on conflict (id) do update set
   full_name = excluded.full_name,
@@ -322,6 +349,13 @@ on conflict (id) do update set
   highlights = excluded.highlights,
   hobbies = excluded.hobbies,
   interests = excluded.interests,
+  speaking = excluded.speaking,
+  certifications = excluded.certifications,
+  awards = excluded.awards,
+  pronouns = excluded.pronouns,
+  phonetic_name = excluded.phonetic_name,
+  languages = excluded.languages,
+  access_notes = excluded.access_notes,
   updated_at = now();
 
 -- Contact links --------------------------------------------------------------

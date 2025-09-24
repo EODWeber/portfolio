@@ -161,17 +161,9 @@ export function ContactLinksManager({ links, status }: { links: ContactLink[]; s
               defaultValue={selected?.order_index ?? links.length}
             />
           </div>
-          <div className="flex items-center justify-end gap-2 pt-2 md:col-span-2">
-            <Button type="button" variant="outline" onClick={handleClose}>
-              Cancel
-            </Button>
-            <Button type="submit" form="contact-link-form">
-              {selected ? "Save" : "Create"}
-            </Button>
-          </div>
         </form>
-        {selected ? (
-          <div className="flex items-center justify-between pt-3">
+        <div className="flex items-center justify-between gap-2 pt-3">
+          {selected ? (
             <form
               action={deleteContactLink}
               onSubmit={(event) => {
@@ -184,9 +176,18 @@ export function ContactLinksManager({ links, status }: { links: ContactLink[]; s
                 Delete
               </Button>
             </form>
+          ) : (
             <span />
+          )}
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button type="submit" form="contact-link-form">
+              {selected ? "Save" : "Create"}
+            </Button>
           </div>
-        ) : null}
+        </div>
       </Modal>
     </div>
   );

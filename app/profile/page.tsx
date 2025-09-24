@@ -29,6 +29,11 @@ export default async function ProfilePage() {
                 {profile.hiring_status}
               </Badge>
             ) : null}
+            {profile?.pronouns ? (
+              <Badge variant="secondary" className="uppercase tracking-wide">
+                {profile.pronouns}
+              </Badge>
+            ) : null}
             {profile?.location ? (
               <span className="text-muted-foreground">{profile.location}</span>
             ) : null}
@@ -36,6 +41,9 @@ export default async function ProfilePage() {
           <h1 className="text-4xl font-semibold tracking-tight">
             {profile?.full_name ?? "Profile"}
           </h1>
+          {profile?.phonetic_name ? (
+            <p className="text-muted-foreground text-sm">Pronounced: {profile.phonetic_name}</p>
+          ) : null}
           {profile?.headline ? (
             <p className="text-muted-foreground text-lg">{profile.headline}</p>
           ) : null}
@@ -106,6 +114,37 @@ export default async function ProfilePage() {
           </CardContent>
         </Card>
       </section>
+
+      {(profile?.languages && profile.languages.length > 0) || profile?.access_notes ? (
+        <section className="grid gap-6 md:grid-cols-2">
+          {profile?.languages && profile.languages.length > 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Languages</CardTitle>
+                <CardDescription>How I collaborate</CardDescription>
+              </CardHeader>
+              <CardContent className="text-muted-foreground text-sm">
+                <ul className="list-disc space-y-1 pl-5">
+                  {profile.languages?.map((language) => (
+                    <li key={language}>{language}</li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          ) : null}
+          {profile?.access_notes ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Access & preferences</CardTitle>
+                <CardDescription>Supportive collaboration</CardDescription>
+              </CardHeader>
+              <CardContent className="text-muted-foreground text-sm">
+                <p>{profile.access_notes}</p>
+              </CardContent>
+            </Card>
+          ) : null}
+        </section>
+      ) : null}
 
       {(profile?.speaking && profile.speaking.length > 0) ||
       (profile?.certifications && profile.certifications.length > 0) ||

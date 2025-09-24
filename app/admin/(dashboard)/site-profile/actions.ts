@@ -22,6 +22,10 @@ const profileSchema = z.object({
   speaking: z.string().optional(),
   certifications: z.string().optional(),
   awards: z.string().optional(),
+  pronouns: z.string().optional(),
+  phonetic_name: z.string().optional(),
+  languages: z.string().optional(),
+  access_notes: z.string().optional(),
 });
 
 export async function upsertSiteProfile(formData: FormData) {
@@ -45,6 +49,10 @@ export async function upsertSiteProfile(formData: FormData) {
     speaking: formData.get("speaking")?.toString() ?? "",
     certifications: formData.get("certifications")?.toString() ?? "",
     awards: formData.get("awards")?.toString() ?? "",
+    pronouns: formData.get("pronouns")?.toString() ?? "",
+    phonetic_name: formData.get("phonetic_name")?.toString() ?? "",
+    languages: formData.get("languages")?.toString() ?? "",
+    access_notes: formData.get("access_notes")?.toString() ?? "",
   });
 
   const admin = createSupabaseAdminClient();
@@ -54,6 +62,11 @@ export async function upsertSiteProfile(formData: FormData) {
       .split(/\r?\n/)
       .map((l) => l.trim())
       .filter(Boolean);
+
+  const cleanText = (value: string | undefined) => {
+    const trimmed = (value ?? "").trim();
+    return trimmed.length > 0 ? trimmed : null;
+  };
 
   const { error } = await admin.from("site_profile").upsert({
     id: payload.id,
@@ -70,6 +83,10 @@ export async function upsertSiteProfile(formData: FormData) {
     speaking: toLines(payload.speaking ?? ""),
     certifications: toLines(payload.certifications ?? ""),
     awards: toLines(payload.awards ?? ""),
+    pronouns: cleanText(payload.pronouns),
+    phonetic_name: cleanText(payload.phonetic_name),
+    languages: toLines(payload.languages ?? ""),
+    access_notes: cleanText(payload.access_notes),
   });
 
   if (error) {
