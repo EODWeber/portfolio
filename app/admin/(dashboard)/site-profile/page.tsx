@@ -36,6 +36,11 @@ export default async function SiteProfileAdminPage({
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <Badge variant="outline">{profile?.hiring_status ?? "Open to opportunities"}</Badge>
+            {profile?.pronouns ? (
+              <Badge variant="secondary" className="uppercase tracking-wide">
+                {profile.pronouns}
+              </Badge>
+            ) : null}
             <div>
               <p className="text-lg font-semibold">
                 {profile?.headline ?? "Security-first engineering leader."}
@@ -44,6 +49,9 @@ export default async function SiteProfileAdminPage({
                 {profile?.summary ?? "Add a summary to describe your focus."}
               </p>
             </div>
+            {profile?.phonetic_name ? (
+              <p className="text-muted-foreground text-xs">Pronounced: {profile.phonetic_name}</p>
+            ) : null}
             {/* Highlights removed from profile; hero metrics now derive from featured case studies. */}
             {profile?.avatar_url ? (
               <div className="relative mt-4 h-32 w-32 overflow-hidden rounded-full border">
@@ -77,6 +85,30 @@ export default async function SiteProfileAdminPage({
                   defaultValue={profile?.full_name ?? ""}
                   required
                 />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="pronouns">
+                    Pronouns
+                  </label>
+                  <Input
+                    id="pronouns"
+                    name="pronouns"
+                    defaultValue={profile?.pronouns ?? ""}
+                    placeholder="they/them"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="phonetic_name">
+                    Name pronunciation
+                  </label>
+                  <Input
+                    id="phonetic_name"
+                    name="phonetic_name"
+                    defaultValue={profile?.phonetic_name ?? ""}
+                    placeholder="JEFF WEE-bur"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="headline">
@@ -219,6 +251,33 @@ export default async function SiteProfileAdminPage({
                     defaultValue={(profile?.interests ?? []).join("\n")}
                     rows={5}
                   />
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="languages">
+                    Languages (one per line)
+                  </label>
+                  <Textarea
+                    id="languages"
+                    name="languages"
+                    defaultValue={(profile?.languages ?? []).join("\n")}
+                    rows={4}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="access_notes">
+                    Collaboration & access notes
+                  </label>
+                  <Textarea
+                    id="access_notes"
+                    name="access_notes"
+                    defaultValue={profile?.access_notes ?? ""}
+                    rows={4}
+                  />
+                  <p className="text-muted-foreground text-xs">
+                    Optional: share accessibility preferences, scheduling needs, or accommodations.
+                  </p>
                 </div>
               </div>
               {saved ? <p className="text-sm text-emerald-600">Profile saved.</p> : null}

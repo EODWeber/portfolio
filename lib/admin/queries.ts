@@ -80,6 +80,34 @@ export async function fetchCaseStudyIdsByProject(): Promise<Record<string, strin
   return map;
 }
 
+export async function fetchArticleIdsByCaseStudy(): Promise<Record<string, string[]>> {
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .from("article_related_case_studies")
+    .select("article_id, case_study_id");
+  if (error) throw new Error(error.message);
+  const map: Record<string, string[]> = {};
+  for (const row of (data as Array<{ article_id: string; case_study_id: string }> | null) ?? []) {
+    map[row.case_study_id] = map[row.case_study_id] || [];
+    map[row.case_study_id].push(row.article_id);
+  }
+  return map;
+}
+
+export async function fetchArticleIdsByProject(): Promise<Record<string, string[]>> {
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .from("article_related_projects")
+    .select("article_id, project_id");
+  if (error) throw new Error(error.message);
+  const map: Record<string, string[]> = {};
+  for (const row of (data as Array<{ article_id: string; project_id: string }> | null) ?? []) {
+    map[row.project_id] = map[row.project_id] || [];
+    map[row.project_id].push(row.article_id);
+  }
+  return map;
+}
+
 export async function fetchRelationsForArticles(): Promise<
   Record<string, { projectIds: string[]; caseStudyIds: string[] }>
 > {

@@ -114,6 +114,10 @@ export type SiteProfile = {
   speaking?: string[] | null;
   certifications?: string[] | null;
   awards?: string[] | null;
+  pronouns?: string | null;
+  phonetic_name?: string | null;
+  languages?: string[] | null;
+  access_notes?: string | null;
   created_at: string;
   updated_at: string;
 };
