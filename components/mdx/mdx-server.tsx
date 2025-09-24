@@ -18,7 +18,8 @@ export async function MDXServer({ source }: { source: string }) {
   const { content } = await compileMDX<unknown | undefined>({
     source,
     options: {
-      parseFrontmatter: false,
+      // Parse and strip YAML front‑matter so it never renders on public pages.
+      parseFrontmatter: true,
       mdxOptions: {
         remarkPlugins,
         rehypePlugins,
