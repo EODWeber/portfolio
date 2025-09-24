@@ -71,7 +71,10 @@ export async function deleteSocialPost(formData: FormData) {
   revalidatePath("/feed");
   revalidatePath("/", "page");
   revalidatePath("/admin/social-posts");
-  redirect("/admin/social-posts?status=deleted");
+  const label = formData.get("label")?.toString();
+  const params = new URLSearchParams({ status: "deleted" });
+  if (label) params.set("what", `Social post: ${label}`);
+  redirect(`/admin/social-posts?${params.toString()}`);
 }
 
 const idOnly = z.object({ id: z.string().uuid() });

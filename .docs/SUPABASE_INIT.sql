@@ -156,6 +156,28 @@ create table if not exists public.site_settings (
   updated_at timestamptz not null default now()
 );
 
+-- Additional per‑page headings/subheadings
+alter table public.site_settings add column if not exists home_heading text;
+alter table public.site_settings add column if not exists home_subheading text;
+alter table public.site_settings add column if not exists home_projects_heading text;
+alter table public.site_settings add column if not exists home_projects_subheading text;
+alter table public.site_settings add column if not exists home_studies_heading text;
+alter table public.site_settings add column if not exists home_studies_subheading text;
+alter table public.site_settings add column if not exists home_articles_heading text;
+alter table public.site_settings add column if not exists home_articles_subheading text;
+alter table public.site_settings add column if not exists home_social_heading text;
+alter table public.site_settings add column if not exists home_social_subheading text;
+alter table public.site_settings add column if not exists portfolio_heading text;
+alter table public.site_settings add column if not exists portfolio_subheading text;
+alter table public.site_settings add column if not exists studies_heading text;
+alter table public.site_settings add column if not exists studies_subheading text;
+alter table public.site_settings add column if not exists articles_heading text;
+alter table public.site_settings add column if not exists articles_subheading text;
+alter table public.site_settings add column if not exists social_heading text;
+alter table public.site_settings add column if not exists social_subheading text;
+alter table public.site_settings add column if not exists contact_heading text;
+alter table public.site_settings add column if not exists contact_subheading text;
+
 create table if not exists public.site_profile (
   id uuid primary key default gen_random_uuid(),
   full_name text not null,

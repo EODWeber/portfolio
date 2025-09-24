@@ -7,29 +7,45 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { getPublishedCaseStudies } from "@/lib/supabase/queries";
+import {
+  getPublishedCaseStudies,
+  getPublishedProjects,
+  getSiteSettings,
+} from "@/lib/supabase/queries";
 
-export default async function CaseStudiesPage() {
-  const caseStudies = await getPublishedCaseStudies();
+export default async function CaseStudiesPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = (await searchParams) || {};
+  const tagFilter = typeof sp.tag === "string" ? sp.tag.toLowerCase() : "";
+  const [caseStudies, projects, settings] = await Promise.all([
+    getPublishedCaseStudies(),
+    getPublishedProjects(),
+    getSiteSettings(),
+  ]);
+  const filtered = tagFilter
+    ? caseStudies.filter((s) => (s.tags || []).some((t) => t.toLowerCase() === tagFilter))
+    : caseStudies;
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-12 sm:px-6 sm:py-16">
       <header className="space-y-4">
-        <h1 className="text-4xl font-semibold tracking-tight">Case studies</h1>
+        <h1 className="text-4xl font-semibold tracking-tight">
+          {settings?.studies_heading ?? "Case studies"}
+        </h1>
         <p className="text-muted-foreground text-lg">
-          Detailed stories describing how security-led engineering accelerated delivery while
-          improving trust.
+          {settings?.studies_subheading ??
+            "Detailed stories describing how security-led engineering accelerated delivery while improving trust."}
         </p>
       </header>
 
-      {caseStudies.length === 0 ? (
-        <p className="text-muted-foreground text-sm">
-          No case studies are published yet. Seed the database or add a new entry from Supabase to
-          view them here.
-        </p>
+      {filtered.length === 0 ? (
+        <p className="text-muted-foreground text-sm">No case studies found.</p>
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
-          {caseStudies.map((study) => (
+          {filtered.map((study) => (
             <Card key={study.id} className="group relative flex flex-col overflow-hidden">
               <Link
                 href={`/case-studies/${study.slug}`}
@@ -52,6 +68,17 @@ export default async function CaseStudiesPage() {
                 <CardDescription>{study.summary}</CardDescription>
               </CardHeader>
               <CardContent className="mt-auto space-y-3 text-sm">
+                {study.metrics ? (
+                  <ul className="text-muted-foreground list-disc space-y-1 pl-5">
+                    {Object.entries(study.metrics)
+                      .slice(0, 3)
+                      .map(([metric, value]) => (
+                        <li key={metric}>
+                          <span className="text-foreground font-medium">{metric}:</span> {value}
+                        </li>
+                      ))}
+                  </ul>
+                ) : null}
                 <div className="flex flex-wrap gap-2">
                   {study.featured ? (
                     <Badge variant="secondary" className="font-medium uppercase">
@@ -63,6 +90,26 @@ export default async function CaseStudiesPage() {
                       {tag}
                     </Badge>
                   ))}
+                </div>
+                {projects.length ? (
+                  <div className="text-xs">
+                    <span className="text-muted-foreground mr-2">Related:</span>
+                    {projects
+                      .filter((p) => p.tags.some((t) => study.tags.includes(t)))
+                      .slice(0, 2)
+                      .map((p) => (
+                        <Link
+                          key={p.id}
+                          href={`/portfolio/${p.slug}`}
+                          className="text-primary mr-2 hover:underline"
+                        >
+                          {p.title}
+                        </Link>
+                      ))}
+                  </div>
+                ) : null}
+                <div className="text-muted-foreground text-xs">
+                  {study.vertical.replace("-", " ")}
                 </div>
                 <span className="text-primary">Read case study →</span>
               </CardContent>

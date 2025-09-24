@@ -109,7 +109,12 @@ export function ContactLinksManager({ links, status }: { links: ContactLink[]; s
       </Card>
 
       <Modal open={open} onClose={handleClose} title={selected ? "Edit method" : "Add method"}>
-        <form key={selected?.id ?? "create"} action={upsertContactLink} className={FORM_GRID}>
+        <form
+          id="contact-link-form"
+          key={selected?.id ?? "create"}
+          action={upsertContactLink}
+          className={FORM_GRID}
+        >
           <input type="hidden" name="id" value={selected?.id ?? ""} />
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="label">
@@ -156,7 +161,7 @@ export function ContactLinksManager({ links, status }: { links: ContactLink[]; s
               defaultValue={selected?.order_index ?? links.length}
             />
           </div>
-          <div className="flex items-center justify-between gap-2 md:col-span-2">
+          <div className="flex items-center justify-between gap-2 pt-2 md:col-span-2">
             {selected ? (
               <form
                 action={deleteContactLink}
@@ -165,6 +170,7 @@ export function ContactLinksManager({ links, status }: { links: ContactLink[]; s
                 }}
               >
                 <input type="hidden" name="id" value={selected.id} />
+                <input type="hidden" name="label" value={selected.label} />
                 <Button variant="destructive" type="submit">
                   Delete
                 </Button>
@@ -176,7 +182,9 @@ export function ContactLinksManager({ links, status }: { links: ContactLink[]; s
               <Button type="button" variant="outline" onClick={handleClose}>
                 Cancel
               </Button>
-              <Button type="submit">{selected ? "Save" : "Create"}</Button>
+              <Button type="submit" form="contact-link-form">
+                {selected ? "Save" : "Create"}
+              </Button>
             </div>
           </div>
         </form>

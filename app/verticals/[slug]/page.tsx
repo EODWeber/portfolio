@@ -119,10 +119,10 @@ export default async function VerticalDetailPage({
                   <ul className="text-muted-foreground mt-2 space-y-1">
                     {study.metrics
                       ? Object.entries(study.metrics).map(([metric, value]) => (
-                        <li key={metric}>
-                          <span className="text-foreground font-medium">{metric}:</span> {value}
-                        </li>
-                      ))
+                          <li key={metric}>
+                            <span className="text-foreground font-medium">{metric}:</span> {value}
+                          </li>
+                        ))
                       : null}
                   </ul>
                 </CardContent>

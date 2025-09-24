@@ -67,7 +67,9 @@ export async function upsertCaseStudy(formData: FormData) {
       admin.from("articles").select("id").eq("body_path", publicUrl).limit(1),
       admin.from("case_studies").select("id").eq("body_path", publicUrl).limit(1),
     ]);
-    if ((a.data && a.data.length > 0) || (s.data && s.data.length > 0)) {
+    const linkedElsewhere =
+      (a.data && a.data.length > 0) || (s.data && s.data.length > 0 && s.data[0].id !== payload.id);
+    if (linkedElsewhere) {
       throw new Error("Selected MDX file is already linked");
     }
     const { error: restoreErr } = await admin
@@ -110,6 +112,20 @@ export async function upsertCaseStudy(formData: FormData) {
       if (insertErr) throw new Error(insertErr.message);
     }
     body_path = publicUrl;
+  } else if (!content) {
+    // Ensure a body exists by creating a placeholder MDX if neither link nor content provided
+    const key = `case-studies/${payload.slug}.mdx`;
+    const { data: publicUrlData } = admin.storage.from("content").getPublicUrl(key);
+    const publicUrl = publicUrlData.publicUrl;
+    if (publicUrl) {
+      body_path = publicUrl;
+      await admin.from("mdx_documents").upsert({ key, storage_path: key });
+      const placeholder = "---\n---\n";
+      await admin.storage.from("content").upload(key, Buffer.from(placeholder, "utf8"), {
+        upsert: true,
+        contentType: "text/markdown",
+      });
+    }
   }
 
   const metrics = parseKeyValueLines(payload.metrics).reduce<Record<string, string>>(
@@ -176,7 +192,12 @@ export async function deleteCaseStudy(formData: FormData) {
   revalidatePath("/case-studies");
   revalidatePath("/portfolio");
   revalidatePath("/admin/case-studies");
-  redirect("/admin/case-studies?status=deleted");
+  const title = formData.get("label")?.toString();
+  const body_path = formData.get("body_path")?.toString();
+  const params = new URLSearchParams({ status: "deleted" });
+  if (title) params.set("what", `Case Study: ${title}`);
+  if (body_path) params.set("file", body_path);
+  redirect(`/admin/case-studies?${params.toString()}`);
 }
 
 export async function importCaseStudies(formData: FormData): Promise<void> {

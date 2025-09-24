@@ -191,7 +191,36 @@ values
     updated_at = now();
 
 -- Site settings ---------------------------------------------------------------
-insert into public.site_settings (id, site_title, site_tagline, meta_description, primary_cta_label, primary_cta_url, secondary_cta_label, secondary_cta_url)
+insert into public.site_settings (
+  id,
+  site_title,
+  site_tagline,
+  meta_description,
+  primary_cta_label,
+  primary_cta_url,
+  secondary_cta_label,
+  secondary_cta_url,
+  home_heading,
+  home_subheading,
+  home_projects_heading,
+  home_projects_subheading,
+  home_studies_heading,
+  home_studies_subheading,
+  home_articles_heading,
+  home_articles_subheading,
+  home_social_heading,
+  home_social_subheading,
+  portfolio_heading,
+  portfolio_subheading,
+  studies_heading,
+  studies_subheading,
+  articles_heading,
+  articles_subheading,
+  social_heading,
+  social_subheading,
+  contact_heading,
+  contact_subheading
+)
 values (
   '11111111-1111-1111-1111-111111111111',
   'Jeff Weber · Security Engineering Leader',
@@ -200,7 +229,27 @@ values (
   'View portfolio',
   '/portfolio',
   'Contact',
-  '/contact'
+  '/contact',
+  'Security-led engineering for AI & cloud',
+  'Partnership between product, platform, and security.',
+  'Featured projects',
+  'Supabase-backed casework demonstrating measurable outcomes.',
+  'Recent case studies',
+  'Deep dives into secure delivery, AI governance, and SOC automation.',
+  'Articles',
+  'Research, playbooks, and frameworks for security-first delivery.',
+  'Social feed',
+  'Appearances, repos, and talks worth a follow.',
+  'Portfolio',
+  'Curated projects from AI security, secure DevOps, and SOC.',
+  'Case studies',
+  'Detailed outcomes and evidence from recent engagements.',
+  'Articles',
+  'Research, playbooks, and frameworks.',
+  'Social feed',
+  'Talks, repos, and posts worth a follow.',
+  'Contact',
+  'Connect and get tailored resumes.'
 )
 on conflict (id) do update set
   site_title = excluded.site_title,
@@ -210,6 +259,26 @@ on conflict (id) do update set
   primary_cta_url = excluded.primary_cta_url,
   secondary_cta_label = excluded.secondary_cta_label,
   secondary_cta_url = excluded.secondary_cta_url,
+  home_heading = excluded.home_heading,
+  home_subheading = excluded.home_subheading,
+  home_projects_heading = excluded.home_projects_heading,
+  home_projects_subheading = excluded.home_projects_subheading,
+  home_studies_heading = excluded.home_studies_heading,
+  home_studies_subheading = excluded.home_studies_subheading,
+  home_articles_heading = excluded.home_articles_heading,
+  home_articles_subheading = excluded.home_articles_subheading,
+  home_social_heading = excluded.home_social_heading,
+  home_social_subheading = excluded.home_social_subheading,
+  portfolio_heading = excluded.portfolio_heading,
+  portfolio_subheading = excluded.portfolio_subheading,
+  studies_heading = excluded.studies_heading,
+  studies_subheading = excluded.studies_subheading,
+  articles_heading = excluded.articles_heading,
+  articles_subheading = excluded.articles_subheading,
+  social_heading = excluded.social_heading,
+  social_subheading = excluded.social_subheading,
+  contact_heading = excluded.contact_heading,
+  contact_subheading = excluded.contact_subheading,
   updated_at = now();
 
 -- Site profile ---------------------------------------------------------------

@@ -6,25 +6,25 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { siGithub, siX, siLinkedin, siYoutube, siRss } from "simple-icons";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getSocialPosts } from "@/lib/supabase/queries";
+import { getSocialPosts, getSiteSettings } from "@/lib/supabase/queries";
 
 export default async function SocialFeedPage() {
-  const posts = await getSocialPosts();
+  const [posts, settings] = await Promise.all([getSocialPosts(), getSiteSettings()]);
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-10 px-4 py-12 sm:px-6 sm:py-16">
       <header className="space-y-4">
-        <h1 className="text-4xl font-semibold tracking-tight">Social feed</h1>
+        <h1 className="text-4xl font-semibold tracking-tight">
+          {settings?.social_heading ?? "Social feed"}
+        </h1>
         <p className="text-muted-foreground text-lg">
-          Talks, open-source drops, and long-form posts—automatically surfaced from connected
-          accounts.
+          {settings?.social_subheading ??
+            "Talks, open-source drops, and long-form posts—automatically surfaced from connected accounts."}
         </p>
       </header>
 
       {posts.length === 0 ? (
-        <p className="text-muted-foreground text-sm">
-          No posts logged yet. Seed `public.social_posts` to populate this feed.
-        </p>
+        <p className="text-muted-foreground text-sm">No posts yet. Check back soon.</p>
       ) : (
         <div className="grid gap-4">
           {posts.map((post) => {

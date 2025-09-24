@@ -228,6 +228,7 @@ export function MdxDocumentsManager({ initialDocs }: { initialDocs: MdxDocument[
             <Textarea
               id="content"
               name="content"
+              className="h-[30rem]"
               rows={18}
               defaultValue={selected?.content ?? ""}
               required

@@ -113,7 +113,10 @@ export async function deleteProject(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/portfolio");
   revalidatePath("/admin/projects");
-  redirect("/admin/projects?status=deleted");
+  const label = formData.get("label")?.toString();
+  const params = new URLSearchParams({ status: "deleted" });
+  if (label) params.set("what", `Project: ${label}`);
+  redirect(`/admin/projects?${params.toString()}`);
 }
 
 export async function importProjects(formData: FormData): Promise<void> {

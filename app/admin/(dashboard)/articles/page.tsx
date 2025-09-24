@@ -1,4 +1,5 @@
-import { fetchAllArticles, fetchAvailableMdxDocuments } from "@/lib/admin/queries";
+import { fetchAllArticles, fetchAllCaseStudies, fetchAllMdxDocuments } from "@/lib/admin/queries";
+import { toContentKey } from "@/lib/content/resolve";
 
 import { ArticleManager } from "./article-manager";
 
@@ -8,11 +9,25 @@ export default async function ArticlesAdminPage({
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = await searchParams;
-  const [articles, availableDocs] = await Promise.all([
+  const [articles, caseStudies, availableDocs] = await Promise.all([
     fetchAllArticles(),
-    fetchAvailableMdxDocuments(),
+    fetchAllCaseStudies(),
+    fetchAllMdxDocuments(),
+  ]);
+  const used = new Set<string>([
+    ...articles.map((a) => toContentKey(a.body_path ?? "")),
+    ...caseStudies.map((s) => toContentKey(s.body_path ?? "")),
   ]);
   const status = typeof sp?.status === "string" ? sp.status : undefined;
+  const message = typeof sp?.message === "string" ? sp.message : undefined;
 
-  return <ArticleManager articles={articles} availableDocs={availableDocs} status={status} />;
+  return (
+    <ArticleManager
+      articles={articles}
+      availableDocs={availableDocs}
+      usedKeys={[...used]}
+      status={status}
+      errorMessage={message}
+    />
+  );
 }

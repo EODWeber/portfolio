@@ -2,15 +2,21 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getContactLinks, getResumes, getSiteProfile } from "@/lib/supabase/queries";
+import {
+  getContactLinks,
+  getResumes,
+  getSiteProfile,
+  getSiteSettings,
+} from "@/lib/supabase/queries";
 
 import { ContactForm } from "./contact-form";
 
 export default async function ContactPage() {
-  const [profile, contacts, resumes] = await Promise.all([
+  const [profile, contacts, resumes, settings] = await Promise.all([
     getSiteProfile(),
     getContactLinks(),
     getResumes(),
+    getSiteSettings(),
   ]);
   const siteKey = process.env.TURNSTILE_SITE_KEY || process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
@@ -19,11 +25,11 @@ export default async function ContactPage() {
       <header className="space-y-3">
         <Badge variant="outline">Let’s collaborate</Badge>
         <h1 className="text-4xl font-semibold tracking-tight">
-          Connect with {profile?.full_name ?? "Jeff"}
+          {settings?.contact_heading ?? `Connect with ${profile?.full_name ?? "Jeff"}`}
         </h1>
-        {profile?.summary ? (
-          <p className="text-muted-foreground text-lg">{profile.summary}</p>
-        ) : null}
+        <p className="text-muted-foreground text-lg">
+          {settings?.contact_subheading ?? profile?.summary ?? ""}
+        </p>
       </header>
 
       {/* Send a message (top) */}
@@ -59,6 +65,12 @@ export default async function ContactPage() {
 
       <section className="space-y-4">
         <h2 className="text-2xl font-semibold">Resumes</h2>
+        <p className="text-muted-foreground text-sm">
+          Download tailored resumes or grab the three primaries in one go.{" "}
+          <Link href="/resume/primary" className="text-primary hover:underline">
+            Batch download →
+          </Link>
+        </p>
         {resumes.length === 0 ? (
           <p className="text-muted-foreground text-sm">
             Upload resume PDFs to Supabase Storage and manage entries in the admin portal to expose
@@ -67,7 +79,12 @@ export default async function ContactPage() {
         ) : (
           <div className="grid gap-2 md:grid-cols-2">
             {resumes.map((resume) => (
-              <Card key={resume.id} className="border-primary/30 bg-primary/5 py-1">
+              <Card key={resume.id} className="border-primary/30 bg-primary/5 relative py-1">
+                <Link
+                  href={`/resume/${resume.vertical}`}
+                  className="absolute inset-0"
+                  aria-label={resume.label}
+                />
                 <CardHeader className="py-2">
                   <CardTitle className="text-sm">{resume.label}</CardTitle>
                   <CardDescription className="text-xs">
@@ -76,13 +93,8 @@ export default async function ContactPage() {
                     focus.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="-mt-3 pt-0">
-                  <Link
-                    href={`/resume/${resume.vertical}`}
-                    className="text-primary text-xs hover:underline"
-                  >
-                    Generate secure download →
-                  </Link>
+                <CardContent className="text-primary -mt-3 pt-0 text-xs">
+                  Generate secure download →
                 </CardContent>
               </Card>
             ))}

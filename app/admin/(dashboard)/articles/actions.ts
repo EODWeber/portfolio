@@ -58,7 +58,9 @@ export async function upsertArticle(formData: FormData) {
       admin.from("articles").select("id").eq("body_path", publicUrl).limit(1),
       admin.from("case_studies").select("id").eq("body_path", publicUrl).limit(1),
     ]);
-    if ((a.data && a.data.length > 0) || (s.data && s.data.length > 0)) {
+    const linkedElsewhere =
+      (a.data && a.data.length > 0 && a.data[0].id !== payload.id) || (s.data && s.data.length > 0);
+    if (linkedElsewhere) {
       throw new Error("Selected MDX file is already linked");
     }
     const { error: restoreErr } = await admin
@@ -101,6 +103,20 @@ export async function upsertArticle(formData: FormData) {
       if (insertErr) throw new Error(insertErr.message);
     }
     body_path = publicUrl;
+  } else if (!content) {
+    // Ensure a body exists by creating a placeholder MDX if neither link nor content provided
+    const key = `articles/${payload.slug}.mdx`;
+    const { data: publicUrlData } = admin.storage.from("content").getPublicUrl(key);
+    const publicUrl = publicUrlData.publicUrl;
+    if (publicUrl) {
+      body_path = publicUrl;
+      await admin.from("mdx_documents").upsert({ key, storage_path: key });
+      const placeholder = "---\n---\n";
+      await admin.storage.from("content").upload(key, Buffer.from(placeholder, "utf8"), {
+        upsert: true,
+        contentType: "text/markdown",
+      });
+    }
   }
 
   // Upload cover image if provided
@@ -156,7 +172,12 @@ export async function deleteArticle(formData: FormData) {
 
   revalidatePath("/articles");
   revalidatePath("/admin/articles");
-  redirect("/admin/articles?status=deleted");
+  const title = formData.get("title")?.toString();
+  const body_path = formData.get("body_path")?.toString();
+  const params = new URLSearchParams({ status: "deleted" });
+  if (title) params.set("what", `Article: ${title}`);
+  if (body_path) params.set("file", body_path);
+  redirect(`/admin/articles?${params.toString()}`);
 }
 
 export async function importArticles(formData: FormData): Promise<void> {

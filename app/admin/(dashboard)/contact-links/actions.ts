@@ -64,5 +64,8 @@ export async function deleteContactLink(formData: FormData) {
 
   revalidatePath("/contact");
   revalidatePath("/admin/contact-links");
-  redirect("/admin/contact-links?status=deleted");
+  const label = formData.get("label")?.toString();
+  const params = new URLSearchParams({ status: "deleted" });
+  if (label) params.set("what", `Contact method: ${label}`);
+  redirect(`/admin/contact-links?${params.toString()}`);
 }
