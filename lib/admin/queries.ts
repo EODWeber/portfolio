@@ -51,6 +51,64 @@ export async function fetchAllResumes(): Promise<Resume[]> {
   return (data as Resume[]) ?? [];
 }
 
+// Relations ---------------------------------------------------------
+export async function fetchProjectIdsByCaseStudy(): Promise<Record<string, string[]>> {
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .from("project_related_case_studies")
+    .select("project_id, case_study_id");
+  if (error) throw new Error(error.message);
+  const map: Record<string, string[]> = {};
+  for (const row of (data as Array<{ project_id: string; case_study_id: string }> | null) ?? []) {
+    map[row.case_study_id] = map[row.case_study_id] || [];
+    map[row.case_study_id].push(row.project_id);
+  }
+  return map;
+}
+
+export async function fetchCaseStudyIdsByProject(): Promise<Record<string, string[]>> {
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .from("project_related_case_studies")
+    .select("project_id, case_study_id");
+  if (error) throw new Error(error.message);
+  const map: Record<string, string[]> = {};
+  for (const row of (data as Array<{ project_id: string; case_study_id: string }> | null) ?? []) {
+    map[row.project_id] = map[row.project_id] || [];
+    map[row.project_id].push(row.case_study_id);
+  }
+  return map;
+}
+
+export async function fetchRelationsForArticles(): Promise<
+  Record<string, { projectIds: string[]; caseStudyIds: string[] }>
+> {
+  const admin = createSupabaseAdminClient();
+  const [ap, ac] = await Promise.all([
+    admin.from("article_related_projects").select("article_id, project_id"),
+    admin.from("article_related_case_studies").select("article_id, case_study_id"),
+  ]);
+  if (ap.error) throw new Error(ap.error.message);
+  if (ac.error) throw new Error(ac.error.message);
+  const map: Record<string, { projectIds: string[]; caseStudyIds: string[] }> = {};
+  for (const row of (ap.data as Array<{ article_id: string; project_id: string }> | null) ?? []) {
+    const entry = (map[row.article_id] = map[row.article_id] || {
+      projectIds: [],
+      caseStudyIds: [],
+    });
+    entry.projectIds.push(row.project_id);
+  }
+  for (const row of (ac.data as Array<{ article_id: string; case_study_id: string }> | null) ??
+    []) {
+    const entry = (map[row.article_id] = map[row.article_id] || {
+      projectIds: [],
+      caseStudyIds: [],
+    });
+    entry.caseStudyIds.push(row.case_study_id);
+  }
+  return map;
+}
+
 export async function fetchAllSocialPosts(): Promise<SocialPost[]> {
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin

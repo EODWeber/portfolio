@@ -56,6 +56,8 @@ create table if not exists public.case_studies (
   updated_at  timestamptz not null default now()
 );
 alter table public.case_studies add column if not exists featured boolean not null default false;
+-- Surface a preferred metric for homepage hero when featured
+alter table public.case_studies add column if not exists featured_metric text;
 create index if not exists case_studies_status_vertical_idx on public.case_studies (status, vertical);
 create index if not exists case_studies_tags_idx on public.case_studies using gin (tags);
 create index if not exists case_studies_featured_idx on public.case_studies (featured, created_at desc);
@@ -148,6 +150,13 @@ create table if not exists public.site_settings (
   site_title text not null,
   site_tagline text,
   meta_description text,
+  -- Home > Hero configuration
+  hero_heading text,
+  hero_subheading text,
+  hiring_status text,
+  location text,
+  resume_preference vertical,
+  -- Calls to action (shown on home hero)
   primary_cta_label text,
   primary_cta_url text,
   secondary_cta_label text,
@@ -155,6 +164,19 @@ create table if not exists public.site_settings (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+-- Ensure new columns exist when table pre-existed
+alter table public.site_settings add column if not exists hero_heading text;
+alter table public.site_settings add column if not exists hero_subheading text;
+alter table public.site_settings add column if not exists hiring_status text;
+alter table public.site_settings add column if not exists location text;
+do $$
+begin
+  if exists (select 1 from pg_type where typname = 'vertical') then
+    alter table public.site_settings add column if not exists resume_preference vertical;
+  else
+    alter table public.site_settings add column if not exists resume_preference text;
+  end if;
+end $$;
 
 -- Additional per‑page headings/subheadings
 alter table public.site_settings add column if not exists home_heading text;
@@ -189,9 +211,46 @@ create table if not exists public.site_profile (
   hiring_status text,
   resume_preference vertical default 'ai-security',
   highlights jsonb default '[]',
+  -- Public profile specific fields
+  hobbies jsonb default '[]',
+  interests jsonb default '[]',
+  speaking jsonb default '[]',
+  certifications jsonb default '[]',
+  awards jsonb default '[]',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+-- Ensure new columns exist when table pre-existed
+alter table public.site_profile add column if not exists hobbies jsonb default '[]';
+alter table public.site_profile add column if not exists interests jsonb default '[]';
+alter table public.site_profile add column if not exists speaking jsonb default '[]';
+alter table public.site_profile add column if not exists certifications jsonb default '[]';
+alter table public.site_profile add column if not exists awards jsonb default '[]';
+
+-- Relationship tables for explicit related content ------------------
+create table if not exists public.article_related_projects (
+  article_id uuid not null references public.articles(id) on delete cascade,
+  project_id uuid not null references public.projects(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (article_id, project_id)
+);
+alter table public.article_related_projects enable row level security;
+
+create table if not exists public.article_related_case_studies (
+  article_id uuid not null references public.articles(id) on delete cascade,
+  case_study_id uuid not null references public.case_studies(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (article_id, case_study_id)
+);
+alter table public.article_related_case_studies enable row level security;
+
+create table if not exists public.project_related_case_studies (
+  project_id uuid not null references public.projects(id) on delete cascade,
+  case_study_id uuid not null references public.case_studies(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (project_id, case_study_id)
+);
+alter table public.project_related_case_studies enable row level security;
 
 create table if not exists public.contact_links (
   id uuid primary key default gen_random_uuid(),
@@ -367,6 +426,23 @@ begin
     select 1 from pg_policies where schemaname='public' and tablename='site_profile' and policyname='site_profile_public_read'
   ) then
     execute 'create policy "site_profile_public_read" on public.site_profile for select to public using (true);';
+  end if;
+
+  -- Public read of relation link tables
+  if not exists (
+    select 1 from pg_policies where schemaname='public' and tablename='article_related_projects' and policyname='article_related_projects_public_read'
+  ) then
+    execute 'create policy "article_related_projects_public_read" on public.article_related_projects for select to public using (true)';
+  end if;
+  if not exists (
+    select 1 from pg_policies where schemaname='public' and tablename='article_related_case_studies' and policyname='article_related_case_studies_public_read'
+  ) then
+    execute 'create policy "article_related_case_studies_public_read" on public.article_related_case_studies for select to public using (true)';
+  end if;
+  if not exists (
+    select 1 from pg_policies where schemaname='public' and tablename='project_related_case_studies' and policyname='project_related_case_studies_public_read'
+  ) then
+    execute 'create policy "project_related_case_studies_public_read" on public.project_related_case_studies for select to public using (true)';
   end if;
 
   if not exists (

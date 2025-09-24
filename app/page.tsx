@@ -17,32 +17,40 @@ import {
   getSocialPosts,
 } from "@/lib/supabase/queries";
 
+import { formatMetricKey } from "@/lib/utils";
+
 export default async function HomePage() {
   const [settings, profile, projects, caseStudies, articles, posts] = await Promise.all([
     getSiteSettings(),
     getSiteProfile(),
     getFeaturedProjects(3),
-    getFeaturedCaseStudies(2),
+    getFeaturedCaseStudies(3),
     getFeaturedArticles(3),
     getSocialPosts(3),
   ]);
 
   const headline =
-    settings?.home_heading ??
-    profile?.headline ??
-    settings?.site_tagline ??
-    "Security-led engineering for AI & cloud";
+    (settings?.hero_heading && settings.hero_heading.trim()) ||
+    (settings?.home_heading && settings.home_heading.trim()) ||
+    (profile?.headline && profile.headline.trim()) ||
+    settings?.site_tagline ||
+    "Secure outcomes for AI & cloud";
   const summary =
-    settings?.home_subheading ??
-    profile?.summary ??
-    "Partnering with product, platform, and security teams to accelerate delivery while improving trust—AI security, secure DevOps, and SOC automation.";
-  const hiringStatus = profile?.hiring_status ?? "Open to high‑impact security leadership roles";
+    (settings?.hero_subheading && settings.hero_subheading.trim()) ||
+    (settings?.home_subheading && settings.home_subheading.trim()) ||
+    (profile?.summary && profile.summary.trim()) ||
+    "I help security and platform teams ship confidently—combining AI security, secure DevOps, and SOC automation to deliver measurable outcomes.";
+  const hiringStatus =
+    (settings?.hiring_status && settings.hiring_status.trim()) ||
+    (profile?.hiring_status && profile.hiring_status.trim()) ||
+    "Open to impactful security leadership roles";
   const primaryCtaLabel = settings?.primary_cta_label ?? "View portfolio";
   const primaryCtaUrl = settings?.primary_cta_url ?? "/portfolio";
   const secondaryCtaLabel = settings?.secondary_cta_label ?? "Explore case studies";
   const secondaryCtaUrl = settings?.secondary_cta_url ?? "/case-studies";
   const avatarUrl = profile?.avatar_url ?? "/profile-placeholder.svg";
-  const location = profile?.location ?? "Remote-first";
+  const location =
+    (settings?.location && settings.location.trim()) || profile?.location || "Remote-first";
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-16 px-4 py-12 sm:px-6 sm:py-16">
@@ -88,30 +96,31 @@ export default async function HomePage() {
           </div>
           <Card className="border-border/50 bg-background/80 w-full max-w-sm shadow-lg backdrop-blur">
             <CardHeader>
-              <CardTitle>Recent highlights</CardTitle>
-              <CardDescription>Measurable outcomes tied to case studies.</CardDescription>
+              <CardTitle>Featured metrics</CardTitle>
+              <CardDescription>From featured case studies.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              {profile?.highlights && profile.highlights.length > 0 ? (
-                profile.highlights.map((highlight) => {
-                  const tag = encodeURIComponent(highlight.label);
+              {caseStudies.length === 0 ? (
+                <p className="text-muted-foreground">Feature three case studies to populate.</p>
+              ) : (
+                caseStudies.slice(0, 3).map((study) => {
+                  const metrics = study.metrics ?? {};
+                  const fm = (study as unknown as { featured_metric?: string | null })
+                    .featured_metric;
+                  const entries = Object.entries(metrics);
+                  const [k, v] = fm && metrics[fm] ? [fm, metrics[fm]] : (entries[0] ?? ["", ""]);
+                  if (!k) return null;
                   return (
                     <Link
-                      key={highlight.label}
-                      href={`/case-studies?tag=${tag}`}
-                      className="border-border/40 bg-muted/30 hover:bg-muted/50 rounded-md border px-3 py-2"
+                      key={study.id}
+                      href={`/case-studies/${study.slug}`}
+                      className="border-border/40 bg-muted/30 hover:bg-muted/40 rounded-md border px-3 py-2 no-underline"
                     >
-                      <p className="text-foreground font-medium">{highlight.label}</p>
-                      {highlight.value ? (
-                        <p className="text-muted-foreground text-xs">{highlight.value}</p>
-                      ) : null}
+                      <p className="text-foreground font-medium">{formatMetricKey(k)}</p>
+                      {v ? <p className="text-muted-foreground text-xs">{v}</p> : null}
                     </Link>
                   );
                 })
-              ) : (
-                <p className="text-muted-foreground">
-                  Add highlights in the Site Profile to showcase measurable outcomes.
-                </p>
               )}
             </CardContent>
           </Card>
@@ -236,7 +245,10 @@ export default async function HomePage() {
                     {study.metrics
                       ? Object.entries(study.metrics).map(([metric, value]) => (
                           <li key={metric}>
-                            <span className="text-foreground font-medium">{metric}:</span> {value}
+                            <span className="text-foreground font-medium">
+                              {formatMetricKey(metric)}:
+                            </span>{" "}
+                            {value}
                           </li>
                         ))
                       : null}
@@ -351,11 +363,6 @@ export default async function HomePage() {
                     <CardTitle className="text-base group-hover:underline">{post.title}</CardTitle>
                     <div className="text-muted-foreground mt-2 flex items-center gap-2 text-xs">
                       <span>{new Date(post.posted_at).toLocaleDateString()}</span>
-                      {post.featured ? (
-                        <Badge variant="secondary" className="font-medium uppercase">
-                          Featured
-                        </Badge>
-                      ) : null}
                       <span
                         aria-hidden
                         className="inline-flex h-8 w-8 items-center justify-center rounded-full"
@@ -372,7 +379,6 @@ export default async function HomePage() {
                           <path d={icon.path} />
                         </svg>
                       </span>
-                      <span>{new Date(post.posted_at).toLocaleDateString()}</span>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3 text-sm">

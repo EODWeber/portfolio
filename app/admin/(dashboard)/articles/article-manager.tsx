@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import type { Article, MdxDocument } from "@/lib/supabase/types";
+import type { Article, MdxDocument, Project, CaseStudy } from "@/lib/supabase/types";
 
 import { deleteArticle, upsertArticle, importArticles } from "./actions";
 import { Modal } from "@/components/admin/modal";
@@ -16,12 +16,18 @@ const FORM_GRID = "grid gap-3 md:grid-cols-2";
 export function ArticleManager({
   articles,
   availableDocs,
+  projects,
+  caseStudies,
+  relationsByArticle,
   status,
   usedKeys = [],
   errorMessage,
 }: {
   articles: Article[];
   availableDocs: MdxDocument[];
+  projects: Project[];
+  caseStudies: CaseStudy[];
+  relationsByArticle: Record<string, { projectIds: string[]; caseStudyIds: string[] }>;
   status?: string;
   usedKeys?: string[];
   errorMessage?: string;
@@ -195,6 +201,22 @@ export function ArticleManager({
             <Textarea id="summary" name="summary" defaultValue={selected?.summary ?? ""} rows={3} />
           </div>
           {/* Link existing MDX (above editor) */}
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium">Related projects</label>
+            <RelatedChecklist
+              name="related_project_ids"
+              items={projects.map((p) => ({ id: p.id, label: `${p.title} (${p.slug})` }))}
+              selected={(selected?.id && relationsByArticle[selected.id]?.projectIds) || []}
+            />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium">Related case studies</label>
+            <RelatedChecklist
+              name="related_case_study_ids"
+              items={caseStudies.map((s) => ({ id: s.id, label: `${s.title} (${s.slug})` }))}
+              selected={(selected?.id && relationsByArticle[selected.id]?.caseStudyIds) || []}
+            />
+          </div>
           <div className="space-y-2 md:col-span-2">
             <label className="text-sm font-medium" htmlFor="link_key">
               Link existing MDX
@@ -409,6 +431,55 @@ export function ArticleManager({
           </form>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function RelatedChecklist({
+  name,
+  items,
+  selected,
+}: {
+  name: string;
+  items: Array<{ id: string; label: string }>;
+  selected: string[];
+}) {
+  const [query, setQuery] = useState("");
+  const [chosen, setChosen] = useState<string[]>(selected);
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return q ? items.filter((i) => i.label.toLowerCase().includes(q)) : items;
+  }, [items, query]);
+  const toggle = (id: string) =>
+    setChosen((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  return (
+    <div className="rounded-md border">
+      <div className="flex items-center gap-2 border-b p-2">
+        <Input placeholder="Search..." value={query} onChange={(e) => setQuery(e.target.value)} />
+        {chosen.map((id) => (
+          <input key={id} type="hidden" name={name} value={id} />
+        ))}
+      </div>
+      <div className="max-h-48 overflow-auto p-2 text-sm">
+        <table className="w-full">
+          <tbody>
+            {filtered.map((i) => (
+              <tr key={i.id}>
+                <td className="py-1">
+                  <label className="inline-flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={chosen.includes(i.id)}
+                      onChange={() => toggle(i.id)}
+                    />
+                    {i.label}
+                  </label>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

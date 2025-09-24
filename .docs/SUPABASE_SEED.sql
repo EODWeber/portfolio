@@ -55,7 +55,7 @@ values
     updated_at = now();
 
 -- Case studies ----------------------------------------------------------------
-insert into public.case_studies (slug, title, summary, vertical, tags, body_path, hero_url, metrics, status)
+insert into public.case_studies (slug, title, summary, vertical, tags, body_path, hero_url, metrics, status, featured_metric)
 values
   (
     'llm-supply-chain-hardening',
@@ -66,7 +66,8 @@ values
     'https://YOUR-SUPABASE-PROJECT.supabase.co/storage/v1/object/public/content/case-studies/llm-supply-chain-hardening.mdx',
     'https://images.unsplash.com/photo-1545239351-1141bd82e8a6?q=80&w=1600',
     '{"roi":"7.3x tooling ROI","blocked_leaks":"14 leaked prompts contained before production","compliance":"SOC2 Type II + internal AI risk controls"}'::jsonb,
-    'published'
+    'published',
+    'roi'
   ),
   (
     'zero-downtime-delivery',
@@ -77,7 +78,8 @@ values
     'https://YOUR-SUPABASE-PROJECT.supabase.co/storage/v1/object/public/content/case-studies/zero-downtime-delivery.mdx',
     'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?q=80&w=1600',
     '{"deployments_per_week":"28 automated releases","audit_findings":"0 repeat findings across 3 audits","mean_time_recovery":"<7 minutes"}'::jsonb,
-    'published'
+    'published',
+    'deployments_per_week'
   )
   on conflict (slug) do update set
     title = excluded.title,
@@ -88,6 +90,7 @@ values
     hero_url = excluded.hero_url,
     metrics = excluded.metrics,
     status = excluded.status,
+    featured_metric = excluded.featured_metric,
     updated_at = now();
 
 -- Articles --------------------------------------------------------------------
@@ -226,6 +229,11 @@ values (
   'Jeff Weber · Security Engineering Leader',
   'Security-first portfolio showcasing AI security, secure DevOps, and SOC leadership.',
   'Jeff Weber unites AI security, secure DevOps, and SOC automation to help engineering teams ship fast with confidence.',
+  'Security-first engineering leader.',
+  'Operationalizing AI security, secure delivery, and SOC automation.',
+  'Open to impactful security leadership roles',
+  'Remote-first',
+  'ai-security',
   'View portfolio',
   '/portfolio',
   'Contact',
@@ -255,6 +263,11 @@ on conflict (id) do update set
   site_title = excluded.site_title,
   site_tagline = excluded.site_tagline,
   meta_description = excluded.meta_description,
+  hero_heading = excluded.hero_heading,
+  hero_subheading = excluded.hero_subheading,
+  hiring_status = excluded.hiring_status,
+  location = excluded.location,
+  resume_preference = excluded.resume_preference,
   primary_cta_label = excluded.primary_cta_label,
   primary_cta_url = excluded.primary_cta_url,
   secondary_cta_label = excluded.secondary_cta_label,
@@ -282,7 +295,7 @@ on conflict (id) do update set
   updated_at = now();
 
 -- Site profile ---------------------------------------------------------------
-insert into public.site_profile (id, full_name, headline, subheadline, summary, avatar_url, location, hiring_status, resume_preference, highlights)
+insert into public.site_profile (id, full_name, headline, subheadline, summary, avatar_url, location, hiring_status, resume_preference, highlights, hobbies, interests)
 values (
   '22222222-2222-2222-2222-222222222222',
   'Jeff Weber',
@@ -293,7 +306,9 @@ values (
   'San Francisco Bay Area · Remote-friendly',
   'Open to Director/Principal security platform roles',
   'ai-security',
-  '[{"label":"7.3x reduction in AI risk remediation","value":"Fortune 100 fintech"},{"label":"0 critical audit findings","value":"After secure DevOps transformation"},{"label":"2.4x analyst throughput","value":"SOC automation program"}]'::jsonb
+  '[{"label":"7.3x reduction in AI risk remediation","value":"Fortune 100 fintech"},{"label":"0 critical audit findings","value":"After secure DevOps transformation"},{"label":"2.4x analyst throughput","value":"SOC automation program"}]'::jsonb,
+  '["Cycling","Climbing","Maker projects"]'::jsonb,
+  '["AI safety","Developer experience","Cloud governance"]'::jsonb
 )
 on conflict (id) do update set
   full_name = excluded.full_name,
@@ -305,6 +320,8 @@ on conflict (id) do update set
   hiring_status = excluded.hiring_status,
   resume_preference = excluded.resume_preference,
   highlights = excluded.highlights,
+  hobbies = excluded.hobbies,
+  interests = excluded.interests,
   updated_at = now();
 
 -- Contact links --------------------------------------------------------------
@@ -337,6 +354,28 @@ update public.case_studies set featured = true
 where id in (
   select id from public.case_studies where status = 'published' order by created_at desc limit 2
 );
+-- Ensure featured_metric set for featured examples
+update public.case_studies
+set featured_metric = coalesce(featured_metric, (
+  select (jsonb_object_keys(metrics)) from public.case_studies s where s.id = public.case_studies.id limit 1
+))
+where featured = true;
+
+-- Relationship seeds ---------------------------------------------------------
+insert into public.article_related_projects (article_id, project_id)
+select a.id, p.id from public.articles a, public.projects p
+where a.slug = 'ai-security-blueprint' and p.slug = 'ai-threat-monitoring'
+on conflict do nothing;
+
+insert into public.article_related_case_studies (article_id, case_study_id)
+select a.id, s.id from public.articles a, public.case_studies s
+where a.slug = 'defending-llms-from-prompt-injection' and s.slug = 'llm-supply-chain-hardening'
+on conflict do nothing;
+
+insert into public.project_related_case_studies (project_id, case_study_id)
+select p.id, s.id from public.projects p, public.case_studies s
+where p.slug = 'secure-pipeline-as-code' and s.slug = 'zero-downtime-delivery'
+on conflict do nothing;
 -- Articles: latest 3 published excluding legal-
 update public.articles set featured = true
 where id in (

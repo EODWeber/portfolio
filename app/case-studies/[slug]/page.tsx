@@ -6,8 +6,13 @@ import type { CaseStudyDoc } from "contentlayer/generated";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MDXServer } from "@/components/mdx/mdx-server";
 import { findCaseStudyDoc, getMdxSourceOrNull } from "@/lib/content/resolve";
-import { getCaseStudyBySlug, getPublishedProjects } from "@/lib/supabase/queries";
+import {
+  getCaseStudyBySlug,
+  getVerticalProjects,
+  getRelatedProjectsForCaseStudy,
+} from "@/lib/supabase/queries";
 import type { Vertical } from "@/lib/supabase/types";
+import { formatMetricKey } from "@/lib/utils";
 
 export default async function CaseStudyPage({ params }: { params: Promise<{ slug: string }> }) {
   const p = await params;
@@ -17,11 +22,11 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
     notFound();
   }
 
-  const allProjects = await getPublishedProjects();
-  const relatedProjects = allProjects
-    .filter((p) => p.vertical === (caseStudy.vertical as Vertical))
-    .filter((p) => p.tags.some((t) => caseStudy.tags.includes(t)))
-    .slice(0, 4);
+  const [explicitRelated, verticalRelated] = await Promise.all([
+    getRelatedProjectsForCaseStudy(caseStudy.id),
+    getVerticalProjects(caseStudy.vertical as Vertical),
+  ]);
+  const relatedProjects = explicitRelated.length > 0 ? explicitRelated : verticalRelated;
   const doc = findCaseStudyDoc(caseStudy.body_path ?? "");
   const supabaseMdx = doc ? null : await getMdxSourceOrNull(caseStudy.body_path ?? "");
 
@@ -51,7 +56,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
             {Object.entries(caseStudy.metrics).map(([metric, value]) => (
               <Card key={metric}>
                 <CardHeader>
-                  <CardTitle className="text-base">{metric}</CardTitle>
+                  <CardTitle className="text-base">{formatMetricKey(metric)}</CardTitle>
                   <CardDescription>{value}</CardDescription>
                 </CardHeader>
               </Card>

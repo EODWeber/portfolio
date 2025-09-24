@@ -34,6 +34,8 @@ export type CaseStudy = {
   body_path: string;
   hero_url: string | null;
   metrics: CaseStudyMetrics;
+  // When featured, identify which metric to surface in the home hero
+  featured_metric?: string | null;
   featured: boolean;
   status: "draft" | "published";
   created_at: string;
@@ -107,6 +109,11 @@ export type SiteProfile = {
   hiring_status: string | null;
   resume_preference: Vertical;
   highlights: Highlight[] | null;
+  hobbies?: string[] | null;
+  interests?: string[] | null;
+  speaking?: string[] | null;
+  certifications?: string[] | null;
+  awards?: string[] | null;
   created_at: string;
   updated_at: string;
 };
@@ -116,6 +123,11 @@ export type SiteSettings = {
   site_title: string;
   site_tagline: string | null;
   meta_description: string | null;
+  hero_heading?: string | null;
+  hero_subheading?: string | null;
+  hiring_status?: string | null;
+  location?: string | null;
+  resume_preference?: Vertical | null;
   primary_cta_label: string | null;
   primary_cta_url: string | null;
   secondary_cta_label: string | null;

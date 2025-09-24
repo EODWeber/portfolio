@@ -20,6 +20,7 @@ const caseStudySchema = z.object({
   body_path: z.string().optional(),
   hero_url: z.string().optional(),
   metrics: z.string().optional(),
+  featured_metric: z.string().optional(),
   status: z.enum(["draft", "published"]),
   featured: z.string().optional(),
 });
@@ -44,6 +45,7 @@ export async function upsertCaseStudy(formData: FormData) {
     body_path: formData.get("body_path")?.toString() || undefined,
     hero_url: formData.get("hero_url")?.toString() ?? "",
     metrics: formData.get("metrics")?.toString() ?? "",
+    featured_metric: formData.get("featured_metric")?.toString() ?? "",
     status: (formData.get("status")?.toString() ?? "draft") as "draft" | "published",
     featured: formData.get("featured")?.toString(),
   });
@@ -128,6 +130,8 @@ export async function upsertCaseStudy(formData: FormData) {
     }
   }
 
+  const wantsFeatured = payload.featured === "on" || payload.featured === "true";
+
   const metrics = parseKeyValueLines(payload.metrics).reduce<Record<string, string>>(
     (acc, { key, value }) => {
       acc[key] = value;
@@ -135,6 +139,12 @@ export async function upsertCaseStudy(formData: FormData) {
     },
     {},
   );
+
+  if (wantsFeatured) {
+    const fm = (payload.featured_metric || "").trim();
+    if (!fm) throw new Error("Featured metric is required when marking a case study as featured.");
+    if (!metrics[fm]) throw new Error("Featured metric key must match one of the metrics above.");
+  }
 
   // Upload cover image if provided
   if (heroFile && typeof heroFile.arrayBuffer === "function" && heroFile.size > 0) {
@@ -151,9 +161,10 @@ export async function upsertCaseStudy(formData: FormData) {
     hero_url = data.publicUrl;
   }
 
-  if ((payload.featured === "on" || payload.featured === "true") && !payload.id) {
+  if (wantsFeatured) {
     const { data: f } = await admin.from("case_studies").select("id").eq("featured", true);
-    if ((f?.length ?? 0) >= 6) throw new Error("Max 6 featured case studies. Unfeature one first.");
+    if ((f?.length ?? 0) >= 3 && !payload.id)
+      throw new Error("Max 3 featured case studies. Unfeature one first.");
   }
 
   const { error: upsertErr } = await admin.from("case_studies").upsert({
@@ -167,11 +178,47 @@ export async function upsertCaseStudy(formData: FormData) {
     hero_url: (hero_url ?? payload.hero_url) || null,
     metrics,
     status: payload.status,
-    featured: payload.featured === "on" || payload.featured === "true",
+    featured: wantsFeatured,
+    featured_metric: payload.featured_metric || null,
   });
 
   if (upsertErr) {
     throw new Error(upsertErr.message);
+  }
+
+  // Update related projects mapping
+  const relatedIds = formData.getAll("related_project_ids").map(String).filter(Boolean);
+  const relatedArticleIds = formData.getAll("related_article_ids").map(String).filter(Boolean);
+  if (relatedIds.length > 0 || relatedArticleIds.length > 0 || payload.id) {
+    // look up id by slug if necessary
+    let caseStudyId = payload.id;
+    if (!caseStudyId) {
+      const { data } = await admin
+        .from("case_studies")
+        .select("id")
+        .eq("slug", payload.slug)
+        .maybeSingle();
+      caseStudyId = (data as { id: string } | null)?.id;
+    }
+    if (caseStudyId) {
+      // clear existing
+      await admin.from("project_related_case_studies").delete().eq("case_study_id", caseStudyId);
+      if (relatedIds.length > 0) {
+        const rows = relatedIds.map((pid) => ({ project_id: pid, case_study_id: caseStudyId! }));
+        const { error: relErr } = await admin.from("project_related_case_studies").insert(rows);
+        if (relErr) throw new Error(relErr.message);
+      }
+      // Articles ←→ Case studies (link from case study to selected articles)
+      await admin.from("article_related_case_studies").delete().eq("case_study_id", caseStudyId);
+      if (relatedArticleIds.length > 0) {
+        const rowsA = relatedArticleIds.map((aid) => ({
+          article_id: aid,
+          case_study_id: caseStudyId!,
+        }));
+        const { error: relAErr } = await admin.from("article_related_case_studies").insert(rowsA);
+        if (relAErr) throw new Error(relAErr.message);
+      }
+    }
   }
 
   revalidatePath("/case-studies");

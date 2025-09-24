@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdminUser } from "@/lib/admin/auth";
-import { parseHighlights } from "@/lib/admin/utils";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin-client";
 import { z } from "zod";
 
@@ -18,7 +17,11 @@ const profileSchema = z.object({
   location: z.string().optional(),
   hiring_status: z.string().optional(),
   resume_preference: z.enum(["ai-security", "secure-devops", "soc"]),
-  highlights: z.string().optional(),
+  hobbies: z.string().optional(),
+  interests: z.string().optional(),
+  speaking: z.string().optional(),
+  certifications: z.string().optional(),
+  awards: z.string().optional(),
 });
 
 export async function upsertSiteProfile(formData: FormData) {
@@ -37,10 +40,20 @@ export async function upsertSiteProfile(formData: FormData) {
       | "ai-security"
       | "secure-devops"
       | "soc",
-    highlights: formData.get("highlights")?.toString() ?? "",
+    hobbies: formData.get("hobbies")?.toString() ?? "",
+    interests: formData.get("interests")?.toString() ?? "",
+    speaking: formData.get("speaking")?.toString() ?? "",
+    certifications: formData.get("certifications")?.toString() ?? "",
+    awards: formData.get("awards")?.toString() ?? "",
   });
 
   const admin = createSupabaseAdminClient();
+
+  const toLines = (s: string) =>
+    s
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter(Boolean);
 
   const { error } = await admin.from("site_profile").upsert({
     id: payload.id,
@@ -52,7 +65,11 @@ export async function upsertSiteProfile(formData: FormData) {
     location: payload.location,
     hiring_status: payload.hiring_status,
     resume_preference: payload.resume_preference,
-    highlights: parseHighlights(payload.highlights ?? ""),
+    hobbies: toLines(payload.hobbies ?? ""),
+    interests: toLines(payload.interests ?? ""),
+    speaking: toLines(payload.speaking ?? ""),
+    certifications: toLines(payload.certifications ?? ""),
+    awards: toLines(payload.awards ?? ""),
   });
 
   if (error) {

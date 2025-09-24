@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import type { Project } from "@/lib/supabase/types";
+import type { Project, CaseStudy } from "@/lib/supabase/types";
 import { Modal } from "@/components/admin/modal";
 
 import { deleteProject, importProjects, toggleProjectFeatured, upsertProject } from "./actions";
@@ -15,7 +15,17 @@ const FORM_GRID = "grid gap-3 md:grid-cols-2";
 type SortKey = "title" | "slug" | "vertical" | "status" | "featured" | "updated";
 type SortDirection = "asc" | "desc";
 
-export function ProjectManager({ projects, status }: { projects: Project[]; status?: string }) {
+export function ProjectManager({
+  projects,
+  caseStudies,
+  relatedCaseStudyIdsByProject,
+  status,
+}: {
+  projects: Project[];
+  caseStudies: CaseStudy[];
+  relatedCaseStudyIdsByProject: Record<string, string[]>;
+  status?: string;
+}) {
   const [selectedId, setSelectedId] = useState<string>("");
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -334,6 +344,22 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
               rows={4}
             />
           </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium">Related case studies</label>
+            <RelatedChecklist
+              name="related_case_study_ids"
+              items={caseStudies.map((s) => ({ id: s.id, label: `${s.title} (${s.slug})` }))}
+              selected={(selected?.id && relatedCaseStudyIdsByProject[selected.id]) || []}
+            />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium">Related articles</label>
+            <RelatedChecklist
+              name="related_article_ids"
+              items={articles.map((a) => ({ id: a.id, label: `${a.title} (${a.slug})` }))}
+              selected={[]}
+            />
+          </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="status">
               Status
@@ -359,33 +385,32 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
               Featured (max 6)
             </label>
           </div>
-          <div className="flex items-center justify-between gap-2 pt-2 md:col-span-2">
-            {selected ? (
-              <form
-                action={deleteProject}
-                onSubmit={(event) => {
-                  if (!confirm("Delete this project?")) event.preventDefault();
-                }}
-              >
-                <input type="hidden" name="id" value={selected.id} />
-                <input type="hidden" name="label" value={selected.title} />
-                <Button variant="destructive" type="submit">
-                  Delete project
-                </Button>
-              </form>
-            ) : (
-              <span />
-            )}
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={handleClose}>
-                Cancel
-              </Button>
-              <Button type="submit" form="project-form">
-                {selected ? "Save project" : "Create project"}
-              </Button>
-            </div>
+          <div className="flex items-center justify-end gap-2 pt-2 md:col-span-2">
+            <Button type="button" variant="outline" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button type="submit" form="project-form">
+              {selected ? "Save project" : "Create project"}
+            </Button>
           </div>
         </form>
+        {selected ? (
+          <div className="flex items-center justify-between pt-3">
+            <form
+              action={deleteProject}
+              onSubmit={(event) => {
+                if (!confirm("Delete this project?")) event.preventDefault();
+              }}
+            >
+              <input type="hidden" name="id" value={selected.id} />
+              <input type="hidden" name="label" value={selected.title} />
+              <Button variant="destructive" type="submit">
+                Delete project
+              </Button>
+            </form>
+            <span />
+          </div>
+        ) : null}
       </Modal>
 
       <Card>
@@ -417,4 +442,53 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
 function formatOutcomes(project: Project | null | undefined) {
   if (!project?.outcomes) return "";
   return project.outcomes.map((outcome) => `${outcome.metric}|${outcome.value}`).join("\n");
+}
+
+function RelatedChecklist({
+  name,
+  items,
+  selected,
+}: {
+  name: string;
+  items: Array<{ id: string; label: string }>;
+  selected: string[];
+}) {
+  const [query, setQuery] = useState("");
+  const [chosen, setChosen] = useState<string[]>(selected);
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return q ? items.filter((i) => i.label.toLowerCase().includes(q)) : items;
+  }, [items, query]);
+  const toggle = (id: string) =>
+    setChosen((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  return (
+    <div className="rounded-md border">
+      <div className="flex items-center gap-2 border-b p-2">
+        <Input placeholder="Search..." value={query} onChange={(e) => setQuery(e.target.value)} />
+        {chosen.map((id) => (
+          <input key={id} type="hidden" name={name} value={id} />
+        ))}
+      </div>
+      <div className="max-h-48 overflow-auto p-2 text-sm">
+        <table className="w-full">
+          <tbody>
+            {filtered.map((i) => (
+              <tr key={i.id}>
+                <td className="py-1">
+                  <label className="inline-flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={chosen.includes(i.id)}
+                      onChange={() => toggle(i.id)}
+                    />
+                    {i.label}
+                  </label>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }
