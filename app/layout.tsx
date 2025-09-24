@@ -8,6 +8,7 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { getSiteSettings } from "@/lib/supabase/queries";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Toaster } from "sonner";
 
 import "./globals.css";
 
@@ -51,6 +52,7 @@ export default async function RootLayout({
           />
           <main className="flex-1">{children}</main>
           <SiteFooter isAuthenticated={isAuthenticated} />
+          <Toaster richColors position="bottom-right" />
           {isProd ? (
             <>
               <Analytics />

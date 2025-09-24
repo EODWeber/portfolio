@@ -234,7 +234,12 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
       </Card>
 
       <Modal open={open} onClose={handleClose} title={selected ? "Edit project" : "Add project"}>
-        <form key={selected?.id ?? "create"} action={upsertProject} className={FORM_GRID}>
+        <form
+          id="project-form"
+          key={selected?.id ?? "create"}
+          action={upsertProject}
+          className={FORM_GRID}
+        >
           <input type="hidden" name="id" value={selected?.id ?? ""} />
           <div className="space-y-2 md:col-span-2">
             <label className="text-sm font-medium" htmlFor="title">
@@ -354,7 +359,7 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
               Featured (max 6)
             </label>
           </div>
-          <div className="flex items-center justify-between gap-2 md:col-span-2">
+          <div className="flex items-center justify-between gap-2 pt-2 md:col-span-2">
             {selected ? (
               <form
                 action={deleteProject}
@@ -363,6 +368,7 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
                 }}
               >
                 <input type="hidden" name="id" value={selected.id} />
+                <input type="hidden" name="label" value={selected.title} />
                 <Button variant="destructive" type="submit">
                   Delete project
                 </Button>
@@ -374,7 +380,9 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
               <Button type="button" variant="outline" onClick={handleClose}>
                 Cancel
               </Button>
-              <Button type="submit">{selected ? "Save project" : "Create project"}</Button>
+              <Button type="submit" form="project-form">
+                {selected ? "Save project" : "Create project"}
+              </Button>
             </div>
           </div>
         </form>

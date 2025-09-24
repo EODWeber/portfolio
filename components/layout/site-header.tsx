@@ -57,7 +57,8 @@ export function SiteHeader({
                       href="/admin"
                       className={cn(
                         "text-sm font-medium transition-colors",
-                        "text-muted-foreground hover:text-foreground",
+                        // Ensure visibility; avoid overly muted styling for Admin link
+                        "text-foreground hover:opacity-80",
                       )}
                     >
                       Admin

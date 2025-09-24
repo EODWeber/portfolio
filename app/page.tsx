@@ -27,14 +27,19 @@ export default async function HomePage() {
     getSocialPosts(3),
   ]);
 
-  const headline = profile?.headline ?? settings?.site_tagline ?? "Secure outcomes for AI & cloud";
+  const headline =
+    settings?.home_heading ??
+    profile?.headline ??
+    settings?.site_tagline ??
+    "Security-led engineering for AI & cloud";
   const summary =
+    settings?.home_subheading ??
     profile?.summary ??
-    "I help security and platform teams ship confidently—combining AI security, secure DevOps, and SOC automation to deliver measurable outcomes.";
-  const hiringStatus = profile?.hiring_status ?? "Open to impactful security leadership roles";
+    "Partnering with product, platform, and security teams to accelerate delivery while improving trust—AI security, secure DevOps, and SOC automation.";
+  const hiringStatus = profile?.hiring_status ?? "Open to high‑impact security leadership roles";
   const primaryCtaLabel = settings?.primary_cta_label ?? "View portfolio";
   const primaryCtaUrl = settings?.primary_cta_url ?? "/portfolio";
-  const secondaryCtaLabel = settings?.secondary_cta_label ?? "See case studies";
+  const secondaryCtaLabel = settings?.secondary_cta_label ?? "Explore case studies";
   const secondaryCtaUrl = settings?.secondary_cta_url ?? "/case-studies";
   const avatarUrl = profile?.avatar_url ?? "/profile-placeholder.svg";
   const location = profile?.location ?? "Remote-first";
@@ -84,24 +89,28 @@ export default async function HomePage() {
           <Card className="border-border/50 bg-background/80 w-full max-w-sm shadow-lg backdrop-blur">
             <CardHeader>
               <CardTitle>Recent highlights</CardTitle>
-              <CardDescription>Proof points surfaced from Supabase.</CardDescription>
+              <CardDescription>Measurable outcomes tied to case studies.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               {profile?.highlights && profile.highlights.length > 0 ? (
-                profile.highlights.map((highlight) => (
-                  <div
-                    key={highlight.label}
-                    className="border-border/40 bg-muted/30 rounded-md border px-3 py-2"
-                  >
-                    <p className="text-foreground font-medium">{highlight.label}</p>
-                    {highlight.value ? (
-                      <p className="text-muted-foreground text-xs">{highlight.value}</p>
-                    ) : null}
-                  </div>
-                ))
+                profile.highlights.map((highlight) => {
+                  const tag = encodeURIComponent(highlight.label);
+                  return (
+                    <Link
+                      key={highlight.label}
+                      href={`/case-studies?tag=${tag}`}
+                      className="border-border/40 bg-muted/30 hover:bg-muted/50 rounded-md border px-3 py-2"
+                    >
+                      <p className="text-foreground font-medium">{highlight.label}</p>
+                      {highlight.value ? (
+                        <p className="text-muted-foreground text-xs">{highlight.value}</p>
+                      ) : null}
+                    </Link>
+                  );
+                })
               ) : (
                 <p className="text-muted-foreground">
-                  Add highlights in the Site Profile admin page to showcase measurable outcomes.
+                  Add highlights in the Site Profile to showcase measurable outcomes.
                 </p>
               )}
             </CardContent>
@@ -112,9 +121,12 @@ export default async function HomePage() {
       <section className="space-y-6">
         <header className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold">Featured projects</h2>
+            <h2 className="text-2xl font-semibold">
+              {settings?.home_projects_heading ?? "Featured projects"}
+            </h2>
             <p className="text-muted-foreground">
-              Supabase-backed casework demonstrating measurable outcomes.
+              {settings?.home_projects_subheading ??
+                "Supabase-backed casework demonstrating measurable outcomes."}
             </p>
           </div>
           <Button asChild variant="ghost">
@@ -173,9 +185,12 @@ export default async function HomePage() {
       <section className="space-y-6">
         <header className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold">Recent case studies</h2>
+            <h2 className="text-2xl font-semibold">
+              {settings?.home_studies_heading ?? "Recent case studies"}
+            </h2>
             <p className="text-muted-foreground">
-              Deep dives into secure delivery, AI governance, and SOC automation.
+              {settings?.home_studies_subheading ??
+                "Deep dives into secure delivery, AI governance, and SOC automation."}
             </p>
           </div>
           <Button asChild variant="ghost">
@@ -220,10 +235,10 @@ export default async function HomePage() {
                   <ul className="text-muted-foreground mt-2 space-y-1">
                     {study.metrics
                       ? Object.entries(study.metrics).map(([metric, value]) => (
-                        <li key={metric}>
-                          <span className="text-foreground font-medium">{metric}:</span> {value}
-                        </li>
-                      ))
+                          <li key={metric}>
+                            <span className="text-foreground font-medium">{metric}:</span> {value}
+                          </li>
+                        ))
                       : null}
                   </ul>
                 </CardContent>
@@ -236,9 +251,12 @@ export default async function HomePage() {
       <section className="space-y-6">
         <header className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold">Articles</h2>
+            <h2 className="text-2xl font-semibold">
+              {settings?.home_articles_heading ?? "Articles"}
+            </h2>
             <p className="text-muted-foreground">
-              Research, playbooks, and frameworks for security-first delivery.
+              {settings?.home_articles_subheading ??
+                "Research, playbooks, and frameworks for security-first delivery."}
             </p>
           </div>
           <Button asChild variant="ghost">
@@ -290,8 +308,12 @@ export default async function HomePage() {
       <section className="space-y-6">
         <header className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold">Social feed</h2>
-            <p className="text-muted-foreground">Appearances, repos, and talks worth a follow.</p>
+            <h2 className="text-2xl font-semibold">
+              {settings?.home_social_heading ?? "Social feed"}
+            </h2>
+            <p className="text-muted-foreground">
+              {settings?.home_social_subheading ?? "Appearances, repos, and talks worth a follow."}
+            </p>
           </div>
           <Button asChild variant="ghost">
             <Link href="/social-feed">Open feed →</Link>

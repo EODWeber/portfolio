@@ -153,7 +153,12 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
       </Card>
 
       <Modal open={open} onClose={handleClose} title={selected ? "Edit post" : "Add post"}>
-        <form key={selected?.id ?? "create"} action={upsertSocialPost} className={FORM_GRID}>
+        <form
+          id="social-post-form"
+          key={selected?.id ?? "create"}
+          action={upsertSocialPost}
+          className={FORM_GRID}
+        >
           <input type="hidden" name="id" value={selected?.id ?? ""} />
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="platform">
@@ -218,7 +223,7 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
               Featured (max 6)
             </label>
           </div>
-          <div className="flex items-center justify-between gap-2 md:col-span-2">
+          <div className="flex items-center justify-between gap-2 pt-2 md:col-span-2">
             {selected ? (
               <form
                 action={deleteSocialPost}
@@ -227,6 +232,7 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
                 }}
               >
                 <input type="hidden" name="id" value={selected.id} />
+                <input type="hidden" name="label" value={selected.title} />
                 <Button variant="destructive" type="submit">
                   Delete post
                 </Button>
@@ -238,7 +244,9 @@ export function SocialPostsManager({ posts, status }: { posts: SocialPost[]; sta
               <Button type="button" variant="outline" onClick={handleClose}>
                 Cancel
               </Button>
-              <Button type="submit">{selected ? "Save post" : "Create post"}</Button>
+              <Button type="submit" form="social-post-form">
+                {selected ? "Save post" : "Create post"}
+              </Button>
             </div>
           </div>
         </form>

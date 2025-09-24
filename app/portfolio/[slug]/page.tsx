@@ -6,11 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getProjectBySlug, getVerticalCaseStudies } from "@/lib/supabase/queries";
 import type { Vertical } from "@/lib/supabase/types";
 
-export default async function ProjectPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const p = await params;
   const project = await getProjectBySlug(p.slug);
 

@@ -6,14 +6,10 @@ import type { CaseStudyDoc } from "contentlayer/generated";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MDXServer } from "@/components/mdx/mdx-server";
 import { findCaseStudyDoc, getMdxSourceOrNull } from "@/lib/content/resolve";
-import { getCaseStudyBySlug, getVerticalProjects } from "@/lib/supabase/queries";
+import { getCaseStudyBySlug, getPublishedProjects } from "@/lib/supabase/queries";
 import type { Vertical } from "@/lib/supabase/types";
 
-export default async function CaseStudyPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export default async function CaseStudyPage({ params }: { params: Promise<{ slug: string }> }) {
   const p = await params;
   const caseStudy = await getCaseStudyBySlug(p.slug);
 
@@ -21,7 +17,11 @@ export default async function CaseStudyPage({
     notFound();
   }
 
-  const relatedProjects = await getVerticalProjects(caseStudy.vertical as Vertical);
+  const allProjects = await getPublishedProjects();
+  const relatedProjects = allProjects
+    .filter((p) => p.vertical === (caseStudy.vertical as Vertical))
+    .filter((p) => p.tags.some((t) => caseStudy.tags.includes(t)))
+    .slice(0, 4);
   const doc = findCaseStudyDoc(caseStudy.body_path ?? "");
   const supabaseMdx = doc ? null : await getMdxSourceOrNull(caseStudy.body_path ?? "");
 

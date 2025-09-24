@@ -11,6 +11,9 @@ const ArticleDoc = defineDocumentType(() => ({
     summary: { type: "string", required: false },
     tags: { type: "list", of: { type: "string" }, required: false },
     publishedAt: { type: "date", required: false },
+    relatedArticles: { type: "list", of: { type: "string" }, required: false },
+    relatedCaseStudies: { type: "list", of: { type: "string" }, required: false },
+    relatedProjects: { type: "list", of: { type: "string" }, required: false },
   },
   computedFields: {
     slug: {

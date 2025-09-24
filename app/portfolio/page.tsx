@@ -6,12 +6,27 @@ import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getPublishedProjects, getResumes } from "@/lib/supabase/queries";
+import { getPublishedProjects, getSiteSettings } from "@/lib/supabase/queries";
 
-export default async function PortfolioPage() {
-  const [projects, resumes] = await Promise.all([getPublishedProjects(), getResumes()]);
+export default async function PortfolioPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = (await searchParams) || {};
+  const q = typeof sp.q === "string" ? sp.q.trim().toLowerCase() : "";
+  const [projects, settings] = await Promise.all([getPublishedProjects(), getSiteSettings()]);
 
-  const grouped = projects.reduce<Record<string, typeof projects>>((acc, project) => {
+  const filtered = q
+    ? projects.filter((p) =>
+        [p.title, p.summary, p.slug]
+          .concat(p.tags ?? [])
+          .concat(p.tech_stack ?? [])
+          .some((v) => v?.toLowerCase().includes(q)),
+      )
+    : projects;
+
+  const grouped = filtered.reduce<Record<string, typeof projects>>((acc, project) => {
     if (!acc[project.vertical]) acc[project.vertical] = [];
     acc[project.vertical].push(project);
     return acc;
@@ -22,61 +37,28 @@ export default async function PortfolioPage() {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 py-12 sm:px-6 sm:py-16">
       <header className="space-y-4">
-        <h1 className="text-4xl font-semibold tracking-tight">Portfolio</h1>
+        <h1 className="text-4xl font-semibold tracking-tight">
+          {settings?.portfolio_heading ?? "Portfolio"}
+        </h1>
         <p className="text-muted-foreground text-lg">
-          A selection of recent engineering initiatives across AI security, secure DevOps, and SOC
-          automation. Each item pulls directly from Supabase for fast updates.
+          {settings?.portfolio_subheading ??
+            "A selection of recent initiatives across AI security, secure DevOps, and SOC automation."}
         </p>
+        <form className="pt-2">
+          <input
+            type="search"
+            name="q"
+            defaultValue={q}
+            placeholder="Filter by title, tag, or stack..."
+            className="border-input bg-background focus:ring-ring w-full max-w-md rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+            aria-label="Filter projects"
+          />
+        </form>
       </header>
-
-      {/* Resumes first */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold">Downloadable resumes</h2>
-            <p className="text-muted-foreground text-sm">
-              Tailored resumes hosted in Supabase Storage for quick recruiter access.
-            </p>
-          </div>
-          <CardDescription className="hidden sm:block">
-            Also listed on the Contact page.
-          </CardDescription>
-        </div>
-        {resumes.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            Upload resume PDFs to the Supabase `resumes` bucket and manage entries in the admin
-            portal to display them here.
-          </p>
-        ) : (
-          <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-            {resumes.map((resume) => (
-              <Card key={resume.id} className="py-1">
-                <CardHeader className="py-2">
-                  <CardTitle className="text-sm">{resume.label}</CardTitle>
-                  <CardDescription className="text-xs">
-                    Optimized for {resume.vertical.replace("-", " ")} roles.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="-mt-3 pt-0">
-                  <Link
-                    href={`/resume/${resume.vertical}`}
-                    className="text-primary text-xs hover:underline"
-                  >
-                    Generate secure download →
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </section>
 
       {/* Projects by vertical */}
       {sortedKeys.length === 0 ? (
-        <p className="text-muted-foreground text-sm">
-          No portfolio entries are published. Run `.docs/SUPABASE_SEED.sql` or add content via
-          Supabase to populate the list.
-        </p>
+        <p className="text-muted-foreground text-sm">No portfolio entries match your filter.</p>
       ) : (
         sortedKeys.map((vertical) => (
           <section key={vertical} className="space-y-4">

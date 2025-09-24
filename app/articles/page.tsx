@@ -6,17 +6,20 @@ import Image from "next/image";
 
 import { Badge } from "@/components/ui/badge";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { getPublishedArticles } from "@/lib/supabase/queries";
+import { getPublishedArticles, getSiteSettings } from "@/lib/supabase/queries";
 
 export default async function ArticlesPage() {
-  const articles = await getPublishedArticles();
+  const [articles, settings] = await Promise.all([getPublishedArticles(), getSiteSettings()]);
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-4 py-12 sm:px-6 sm:py-16">
       <header className="space-y-4">
-        <h1 className="text-4xl font-semibold tracking-tight">Articles</h1>
+        <h1 className="text-4xl font-semibold tracking-tight">
+          {settings?.articles_heading ?? "Articles"}
+        </h1>
         <p className="text-muted-foreground text-lg">
-          Essays, research notes, and hands-on guides for building secure AI and cloud platforms.
+          {settings?.articles_subheading ??
+            "Essays, research notes, and hands-on guides for building secure AI and cloud platforms."}
         </p>
       </header>
 
