@@ -199,6 +199,11 @@ insert into public.site_settings (
   site_title,
   site_tagline,
   meta_description,
+  hero_heading,
+  hero_subheading,
+  hiring_status,
+  location,
+  resume_preference,
   primary_cta_label,
   primary_cta_url,
   secondary_cta_label,
@@ -229,35 +234,35 @@ values (
   'Jeff Weber · Security Engineering Leader',
   'Security-first portfolio showcasing AI security, secure DevOps, and SOC leadership.',
   'Jeff Weber unites AI security, secure DevOps, and SOC automation to help engineering teams ship fast with confidence.',
-  'Security-first engineering leader.',
-  'Operationalizing AI security, secure delivery, and SOC automation.',
-  'Open to impactful security leadership roles',
-  'Remote-first',
-  'ai-security',
-  'View portfolio',
-  '/portfolio',
-  'Contact',
-  '/contact',
-  'Security-led engineering for AI & cloud',
-  'Partnership between product, platform, and security.',
-  'Featured projects',
-  'Supabase-backed casework demonstrating measurable outcomes.',
-  'Recent case studies',
-  'Deep dives into secure delivery, AI governance, and SOC automation.',
-  'Articles',
-  'Research, playbooks, and frameworks for security-first delivery.',
-  'Social feed',
-  'Appearances, repos, and talks worth a follow.',
-  'Portfolio',
-  'Curated projects from AI security, secure DevOps, and SOC.',
-  'Case studies',
-  'Detailed outcomes and evidence from recent engagements.',
-  'Articles',
-  'Research, playbooks, and frameworks.',
-  'Social feed',
-  'Talks, repos, and posts worth a follow.',
-  'Contact',
-  'Connect and get tailored resumes.'
+  'Security-first engineering leader.', -- hero_heading
+  'Operationalizing AI security, secure delivery, and SOC automation.', -- hero_subheading
+  'Open to impactful security leadership roles', -- hiring_status
+  'Remote-first', -- location
+  'ai-security', -- resume_preference
+  'View portfolio', -- primary_cta_label
+  '/portfolio', -- primary_cta_url
+  'Contact', -- secondary_cta_label
+  '/contact', -- secondary_cta_url
+  'Security-led engineering for AI & cloud', -- home_heading
+  'Partnership between product, platform, and security.', -- home_subheading
+  'Featured projects', -- home_projects_heading
+  'Supabase-backed casework demonstrating measurable outcomes.', -- home_projects_subheading
+  'Recent case studies', -- home_studies_heading
+  'Deep dives into secure delivery, AI governance, and SOC automation.', -- home_studies_subheading
+  'Articles', -- home_articles_heading
+  'Research, playbooks, and frameworks for security-first delivery.', -- home_articles_subheading
+  'Social feed', -- home_social_heading
+  'Appearances, repos, and talks worth a follow.', -- home_social_subheading
+  'Portfolio', -- portfolio_heading
+  'Curated projects from AI security, secure DevOps, and SOC.', -- portfolio_subheading
+  'Case studies', -- studies_heading
+  'Detailed outcomes and evidence from recent engagements.', -- studies_subheading
+  'Articles', -- articles_heading
+  'Research, playbooks, and frameworks.', -- articles_subheading
+  'Social feed', -- social_heading
+  'Talks, repos, and posts worth a follow.', -- social_subheading
+  'Contact', -- contact_heading
+  'Connect and get tailored resumes.' -- contact_subheading
 )
 on conflict (id) do update set
   site_title = excluded.site_title,
