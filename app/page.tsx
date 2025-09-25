@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { siGithub, siX, siLinkedin, siYoutube, siRss } from "simple-icons";
 import {
@@ -17,7 +17,7 @@ import {
   getSocialPosts,
 } from "@/lib/supabase/queries";
 
-import { cn, formatMetricKey } from "@/lib/utils";
+import { formatMetricKey } from "@/lib/utils";
 
 export default async function HomePage() {
   const [settings, profile, projects, caseStudies, articles, posts] = await Promise.all([
@@ -145,18 +145,17 @@ export default async function HomePage() {
                   <Link
                     key={metric.id}
                     href={`/case-studies/${metric.slug}`}
-                    className={cn(
-                      buttonVariants({ variant: "outline", size: "lg" }),
-                      "group h-auto w-full flex-col items-start gap-1 justify-start text-left no-underline",
-                    )}
+                    className="group relative block w-full rounded-2xl border border-border/60 bg-background/90 p-4 text-left no-underline shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                   >
-                    <span className="w-full truncate text-[0.7rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                    <span className="w-full truncate text-[0.65rem] font-semibold uppercase tracking-[0.28em] text-muted-foreground/80">
                       {metric.title}
                     </span>
-                    <span className="text-foreground text-sm font-medium">
+                    <span className="text-foreground text-base font-semibold">
                       {formatMetricKey(metric.metricKey)}
                     </span>
-                    <span className="text-muted-foreground text-xs">{metric.metricValue}</span>
+                    <span className="text-muted-foreground text-sm leading-snug">
+                      {metric.metricValue}
+                    </span>
                   </Link>
                 ))
               )}
