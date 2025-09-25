@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { siGithub, siX, siLinkedin, siYoutube, siRss } from "simple-icons";
 import {
@@ -17,7 +17,7 @@ import {
   getSocialPosts,
 } from "@/lib/supabase/queries";
 
-import { formatMetricKey } from "@/lib/utils";
+import { cn, formatMetricKey } from "@/lib/utils";
 
 export default async function HomePage() {
   const [settings, profile, projects, caseStudies, articles, posts] = await Promise.all([
@@ -51,6 +51,42 @@ export default async function HomePage() {
   const avatarUrl = profile?.avatar_url ?? "/profile-placeholder.svg";
   const location =
     (settings?.location && settings.location.trim()) || profile?.location || "Remote-first";
+
+  const featuredMetrics = caseStudies.slice(0, 3).flatMap((study) => {
+    const metrics = study.metrics ?? {};
+    const fm = (study as unknown as { featured_metric?: string | null }).featured_metric;
+    const metricEntries = Object.entries(metrics).filter(
+      ([key, value]) => key && key.trim() && value && value.trim(),
+    );
+
+    const metricKey = fm && metrics[fm]?.trim() ? fm : metricEntries[0]?.[0];
+
+    if (!metricKey) {
+      return [];
+    }
+
+    const metricValue = metrics[metricKey];
+
+    if (!metricValue) {
+      return [];
+    }
+
+    const trimmedValue = metricValue.trim();
+
+    if (!trimmedValue) {
+      return [];
+    }
+
+    return [
+      {
+        id: study.id,
+        slug: study.slug,
+        title: study.title,
+        metricKey,
+        metricValue: trimmedValue,
+      },
+    ];
+  });
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-16 px-4 py-12 sm:px-6 sm:py-16">
@@ -99,28 +135,30 @@ export default async function HomePage() {
               <CardTitle>Featured metrics</CardTitle>
               <CardDescription>From featured case studies.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              {caseStudies.length === 0 ? (
-                <p className="text-muted-foreground">Feature three case studies to populate.</p>
+            <CardContent className="grid gap-3 pb-6">
+              {featuredMetrics.length === 0 ? (
+                <p className="text-muted-foreground text-sm">
+                  Feature case studies with metrics to populate.
+                </p>
               ) : (
-                caseStudies.slice(0, 3).map((study) => {
-                  const metrics = study.metrics ?? {};
-                  const fm = (study as unknown as { featured_metric?: string | null })
-                    .featured_metric;
-                  const entries = Object.entries(metrics);
-                  const [k, v] = fm && metrics[fm] ? [fm, metrics[fm]] : (entries[0] ?? ["", ""]);
-                  if (!k) return null;
-                  return (
-                    <Link
-                      key={study.id}
-                      href={`/case-studies/${study.slug}`}
-                      className="border-border/40 bg-muted/30 hover:bg-muted/40 rounded-md border px-3 py-2 no-underline"
-                    >
-                      <p className="text-foreground font-medium">{formatMetricKey(k)}</p>
-                      {v ? <p className="text-muted-foreground text-xs">{v}</p> : null}
-                    </Link>
-                  );
-                })
+                featuredMetrics.map((metric) => (
+                  <Link
+                    key={metric.id}
+                    href={`/case-studies/${metric.slug}`}
+                    className={cn(
+                      buttonVariants({ variant: "outline", size: "lg" }),
+                      "group h-auto w-full flex-col items-start gap-1 justify-start text-left no-underline",
+                    )}
+                  >
+                    <span className="w-full truncate text-[0.7rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                      {metric.title}
+                    </span>
+                    <span className="text-foreground text-sm font-medium">
+                      {formatMetricKey(metric.metricKey)}
+                    </span>
+                    <span className="text-muted-foreground text-xs">{metric.metricValue}</span>
+                  </Link>
+                ))
               )}
             </CardContent>
           </Card>
