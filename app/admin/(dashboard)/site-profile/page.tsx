@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { serializeHighlights } from "@/lib/admin/utils";
 import { getSiteProfile } from "@/lib/supabase/queries";
 
 import { upsertSiteProfile } from "./actions";
@@ -25,8 +24,7 @@ export default async function SiteProfileAdminPage({
       <header className="space-y-1">
         <h1 className="text-3xl font-semibold">Site Profile</h1>
         <p className="text-muted-foreground text-sm">
-          Control hero messaging, hiring status, and highlighted outcomes rendered on the landing
-          page.
+          Control public profile details like name, headline, summary, avatar, and availability.
         </p>
       </header>
 
@@ -38,6 +36,11 @@ export default async function SiteProfileAdminPage({
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <Badge variant="outline">{profile?.hiring_status ?? "Open to opportunities"}</Badge>
+            {profile?.pronouns ? (
+              <Badge variant="secondary" className="uppercase tracking-wide">
+                {profile.pronouns}
+              </Badge>
+            ) : null}
             <div>
               <p className="text-lg font-semibold">
                 {profile?.headline ?? "Security-first engineering leader."}
@@ -46,18 +49,10 @@ export default async function SiteProfileAdminPage({
                 {profile?.summary ?? "Add a summary to describe your focus."}
               </p>
             </div>
-            {profile?.highlights && profile.highlights.length > 0 ? (
-              <ul className="text-muted-foreground space-y-2">
-                {profile.highlights.map((item) => (
-                  <li key={item.label}>
-                    <strong>{item.label}</strong>
-                    {item.value ? ` — ${item.value}` : null}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-muted-foreground">Add highlights to showcase outcomes.</p>
-            )}
+            {profile?.phonetic_name ? (
+              <p className="text-muted-foreground text-xs">Pronounced: {profile.phonetic_name}</p>
+            ) : null}
+            {/* Highlights removed from profile; hero metrics now derive from featured case studies. */}
             {profile?.avatar_url ? (
               <div className="relative mt-4 h-32 w-32 overflow-hidden rounded-full border">
                 <Image
@@ -90,6 +85,30 @@ export default async function SiteProfileAdminPage({
                   defaultValue={profile?.full_name ?? ""}
                   required
                 />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="pronouns">
+                    Pronouns
+                  </label>
+                  <Input
+                    id="pronouns"
+                    name="pronouns"
+                    defaultValue={profile?.pronouns ?? ""}
+                    placeholder="they/them"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="phonetic_name">
+                    Name pronunciation
+                  </label>
+                  <Input
+                    id="phonetic_name"
+                    name="phonetic_name"
+                    defaultValue={profile?.phonetic_name ?? ""}
+                    placeholder="JEFF WEE-bur"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="headline">
@@ -166,19 +185,100 @@ export default async function SiteProfileAdminPage({
                   </select>
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="highlights">
-                  Highlights (one per line: Metric|Value)
-                </label>
-                <Textarea
-                  id="highlights"
-                  name="highlights"
-                  defaultValue={serializeHighlights(profile?.highlights)}
-                  rows={5}
-                />
-                <p className="text-muted-foreground text-xs">
-                  Example: <code>7.3x tooling ROI|Fortune 100 fintech</code>
-                </p>
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="speaking">
+                    Speaking (one per line)
+                  </label>
+                  <Textarea
+                    id="speaking"
+                    name="speaking"
+                    defaultValue={
+                      (profile as unknown as { speaking?: string[] })?.speaking?.join("\n") ?? ""
+                    }
+                    rows={5}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="certifications">
+                    Certifications (one per line)
+                  </label>
+                  <Textarea
+                    id="certifications"
+                    name="certifications"
+                    defaultValue={
+                      (profile as unknown as { certifications?: string[] })?.certifications?.join(
+                        "\n",
+                      ) ?? ""
+                    }
+                    rows={5}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="awards">
+                    Awards (one per line)
+                  </label>
+                  <Textarea
+                    id="awards"
+                    name="awards"
+                    defaultValue={
+                      (profile as unknown as { awards?: string[] })?.awards?.join("\n") ?? ""
+                    }
+                    rows={5}
+                  />
+                </div>
+              </div>
+              {/* Highlights removed; managed via featured case studies. */}
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="hobbies">
+                    Hobbies (one per line)
+                  </label>
+                  <Textarea
+                    id="hobbies"
+                    name="hobbies"
+                    defaultValue={(profile?.hobbies ?? []).join("\n")}
+                    rows={5}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="interests">
+                    Special interests (one per line)
+                  </label>
+                  <Textarea
+                    id="interests"
+                    name="interests"
+                    defaultValue={(profile?.interests ?? []).join("\n")}
+                    rows={5}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="languages">
+                    Languages (one per line)
+                  </label>
+                  <Textarea
+                    id="languages"
+                    name="languages"
+                    defaultValue={(profile?.languages ?? []).join("\n")}
+                    rows={4}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="access_notes">
+                    Collaboration & access notes
+                  </label>
+                  <Textarea
+                    id="access_notes"
+                    name="access_notes"
+                    defaultValue={profile?.access_notes ?? ""}
+                    rows={4}
+                  />
+                  <p className="text-muted-foreground text-xs">
+                    Optional: share accessibility preferences, scheduling needs, or accommodations.
+                  </p>
+                </div>
               </div>
               {saved ? <p className="text-sm text-emerald-600">Profile saved.</p> : null}
               <div className="flex justify-end gap-3">

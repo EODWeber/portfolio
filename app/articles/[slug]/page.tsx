@@ -1,8 +1,8 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 
-import { Badge } from "@/components/ui/badge";
-import Image from "next/image";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MDXServer } from "@/components/mdx/mdx-server";
 import type { ArticleDoc } from "contentlayer/generated";
@@ -12,6 +12,8 @@ import {
   getPublishedArticles,
   getPublishedCaseStudies,
   getPublishedProjects,
+  getRelatedCaseStudiesForArticle,
+  getRelatedProjectsForArticle,
 } from "@/lib/supabase/queries";
 
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
@@ -98,32 +100,49 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       ) : (
         <MDXServer source={supabaseMdx ?? ""} />
       )}
-      {/* Related content */}
-      <RelatedContent currentSlug={article.slug} currentTags={article.tags} />
+      <RelatedContent
+        articleId={article.id}
+        currentSlug={article.slug}
+        currentTags={article.tags}
+      />
     </div>
   );
 }
 
 async function RelatedContent({
+  articleId,
   currentSlug,
   currentTags,
 }: {
+  articleId: string;
   currentSlug: string;
   currentTags: string[];
 }) {
-  const [projects, studies, articles] = await Promise.all([
+  const [explicitProjects, explicitStudies, projects, studies, articles] = await Promise.all([
+    getRelatedProjectsForArticle(articleId),
+    getRelatedCaseStudiesForArticle(articleId),
     getPublishedProjects(),
     getPublishedCaseStudies(),
     getPublishedArticles(),
   ]);
-  const hasOverlap = (tags: string[]) => tags.some((t) => currentTags.includes(t));
-  const relatedProjects = projects.filter((p) => hasOverlap(p.tags)).slice(0, 3);
-  const relatedStudies = studies.filter((s) => hasOverlap(s.tags)).slice(0, 3);
+
+  const hasOverlap = (tags: string[]) => tags.some((tag) => currentTags.includes(tag));
+
+  const relatedProjects =
+    explicitProjects.length > 0
+      ? explicitProjects
+      : projects.filter((project) => hasOverlap(project.tags)).slice(0, 3);
+  const relatedStudies =
+    explicitStudies.length > 0
+      ? explicitStudies
+      : studies.filter((study) => hasOverlap(study.tags)).slice(0, 3);
   const relatedArticles = articles
-    .filter((a) => a.slug !== currentSlug && hasOverlap(a.tags))
+    .filter((article) => article.slug !== currentSlug && hasOverlap(article.tags))
     .slice(0, 3);
 
-  if (relatedProjects.length + relatedStudies.length + relatedArticles.length === 0) return null;
+  if (relatedProjects.length + relatedStudies.length + relatedArticles.length === 0) {
+    return null;
+  }
 
   return (
     <section className="space-y-6">
@@ -177,16 +196,18 @@ async function RelatedContent({
           <div>
             <h3 className="text-muted-foreground mb-2 text-sm font-medium uppercase">Articles</h3>
             <div className="grid gap-4 md:grid-cols-2">
-              {relatedArticles.map((a) => (
-                <Card key={a.id} className="group relative">
+              {relatedArticles.map((article) => (
+                <Card key={article.id} className="group relative">
                   <a
-                    href={`/articles/${a.slug}`}
+                    href={`/articles/${article.slug}`}
                     className="absolute inset-0"
-                    aria-label={a.title}
+                    aria-label={article.title}
                   />
                   <CardHeader>
-                    <CardTitle className="text-base group-hover:underline">{a.title}</CardTitle>
-                    {a.summary ? <CardDescription>{a.summary}</CardDescription> : null}
+                    <CardTitle className="text-base group-hover:underline">
+                      {article.title}
+                    </CardTitle>
+                    {article.summary ? <CardDescription>{article.summary}</CardDescription> : null}
                   </CardHeader>
                 </Card>
               ))}

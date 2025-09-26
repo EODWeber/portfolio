@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { caseStudyMetricsEntries } from "@/lib/case-studies/metrics";
 import {
   getVerticalArticles,
   getVerticalCaseStudies,
@@ -12,6 +13,7 @@ import {
 } from "@/lib/supabase/queries";
 import type { Vertical } from "@/lib/supabase/types";
 import { getVerticalMeta } from "@/lib/verticals";
+import { formatMetricKey } from "@/lib/utils";
 
 export default async function VerticalDetailPage({
   params,
@@ -74,7 +76,9 @@ export default async function VerticalDetailPage({
                   <ul className="text-muted-foreground mt-2 space-y-1">
                     {project.outcomes?.map((outcome) => (
                       <li key={outcome.metric}>
-                        <span className="text-foreground font-medium">{outcome.metric}:</span>{" "}
+                        <span className="text-foreground font-medium">
+                          {formatMetricKey(outcome.metric)}:
+                        </span>{" "}
                         {outcome.value}
                       </li>
                     ))}
@@ -117,13 +121,12 @@ export default async function VerticalDetailPage({
                 <CardContent className="text-sm">
                   <p className="text-foreground font-medium">Metrics</p>
                   <ul className="text-muted-foreground mt-2 space-y-1">
-                    {study.metrics
-                      ? Object.entries(study.metrics).map(([metric, value]) => (
-                          <li key={metric}>
-                            <span className="text-foreground font-medium">{metric}:</span> {value}
-                          </li>
-                        ))
-                      : null}
+                    {caseStudyMetricsEntries(study.metrics).map((metric) => (
+                      <li key={metric.key}>
+                        <span className="text-foreground font-medium">{metric.title}:</span>{" "}
+                        {metric.description}
+                      </li>
+                    ))}
                   </ul>
                 </CardContent>
               </Card>

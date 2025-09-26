@@ -156,6 +156,39 @@ export async function upsertArticle(formData: FormData) {
     throw new Error(upsertErr.message);
   }
 
+  // Update related mappings
+  const relatedProjectIds = formData.getAll("related_project_ids").map(String).filter(Boolean);
+  const relatedCaseStudyIds = formData.getAll("related_case_study_ids").map(String).filter(Boolean);
+  if (relatedProjectIds.length > 0 || relatedCaseStudyIds.length > 0 || payload.id) {
+    let articleId = payload.id;
+    if (!articleId) {
+      const { data } = await admin
+        .from("articles")
+        .select("id")
+        .eq("slug", payload.slug)
+        .maybeSingle();
+      articleId = (data as { id: string } | null)?.id;
+    }
+    if (articleId) {
+      // Clear and insert new relations
+      await admin.from("article_related_projects").delete().eq("article_id", articleId);
+      await admin.from("article_related_case_studies").delete().eq("article_id", articleId);
+      if (relatedProjectIds.length > 0) {
+        const rows = relatedProjectIds.map((pid) => ({ article_id: articleId!, project_id: pid }));
+        const { error: arpErr } = await admin.from("article_related_projects").insert(rows);
+        if (arpErr) throw new Error(arpErr.message);
+      }
+      if (relatedCaseStudyIds.length > 0) {
+        const rows = relatedCaseStudyIds.map((sid) => ({
+          article_id: articleId!,
+          case_study_id: sid,
+        }));
+        const { error: arcErr } = await admin.from("article_related_case_studies").insert(rows);
+        if (arcErr) throw new Error(arcErr.message);
+      }
+    }
+  }
+
   revalidatePath("/articles");
   revalidatePath("/admin/articles");
   redirect("/admin/articles?status=success");

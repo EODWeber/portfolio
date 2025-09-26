@@ -161,33 +161,33 @@ export function ContactLinksManager({ links, status }: { links: ContactLink[]; s
               defaultValue={selected?.order_index ?? links.length}
             />
           </div>
-          <div className="flex items-center justify-between gap-2 pt-2 md:col-span-2">
-            {selected ? (
-              <form
-                action={deleteContactLink}
-                onSubmit={(event) => {
-                  if (!confirm("Delete this contact method?")) event.preventDefault();
-                }}
-              >
-                <input type="hidden" name="id" value={selected.id} />
-                <input type="hidden" name="label" value={selected.label} />
-                <Button variant="destructive" type="submit">
-                  Delete
-                </Button>
-              </form>
-            ) : (
-              <span />
-            )}
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={handleClose}>
-                Cancel
-              </Button>
-              <Button type="submit" form="contact-link-form">
-                {selected ? "Save" : "Create"}
-              </Button>
-            </div>
-          </div>
         </form>
+        <div className="flex items-center justify-between gap-2 pt-3">
+          {selected ? (
+            <form
+              action={deleteContactLink}
+              onSubmit={(event) => {
+                if (!confirm("Delete this contact method?")) event.preventDefault();
+              }}
+            >
+              <input type="hidden" name="id" value={selected.id} />
+              <input type="hidden" name="label" value={selected.label} />
+              <Button variant="destructive" type="submit">
+                Delete
+              </Button>
+            </form>
+          ) : (
+            <span />
+          )}
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button type="submit" form="contact-link-form">
+              {selected ? "Save" : "Create"}
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

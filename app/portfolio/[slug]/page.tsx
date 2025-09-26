@@ -3,8 +3,13 @@ import { notFound } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getProjectBySlug, getVerticalCaseStudies } from "@/lib/supabase/queries";
+import {
+  getProjectBySlug,
+  getVerticalCaseStudies,
+  getRelatedCaseStudiesForProject,
+} from "@/lib/supabase/queries";
 import type { Vertical } from "@/lib/supabase/types";
+import { formatMetricKey } from "@/lib/utils";
 
 export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const p = await params;
@@ -14,7 +19,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
     notFound();
   }
 
-  const relatedCaseStudies = await getVerticalCaseStudies(project.vertical as Vertical);
+  const [explicitRelated, verticalRelated] = await Promise.all([
+    getRelatedCaseStudiesForProject(project.id),
+    getVerticalCaseStudies(project.vertical as Vertical),
+  ]);
+  const relatedCaseStudies = explicitRelated.length > 0 ? explicitRelated : verticalRelated;
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-10 px-4 py-12 sm:px-6 sm:py-16">
@@ -41,7 +50,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           <ul className="text-muted-foreground list-disc space-y-2 pl-6">
             {project.outcomes.map((outcome) => (
               <li key={outcome.metric}>
-                <span className="text-foreground font-medium">{outcome.metric}:</span>{" "}
+                <span className="text-foreground font-medium">
+                  {formatMetricKey(outcome.metric)}:
+                </span>{" "}
                 {outcome.value}
               </li>
             ))}

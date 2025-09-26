@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { getResumes } from "@/lib/supabase/queries";
 import { getSignedResumeForVertical } from "@/lib/supabase/storage";
 
+import { DownloadAllButton } from "./download-all-button";
+
 export default async function PrimaryResumesPage() {
   const resumes = (await getResumes()).filter((r) => r.featured).slice(0, 3);
 
@@ -39,14 +41,7 @@ export default async function PrimaryResumesPage() {
               </Button>
             ))}
           </div>
-          <Button
-            type="button"
-            onClick={() => {
-              signed.forEach((r) => window.open(r.url, "_blank", "noopener,noreferrer"));
-            }}
-          >
-            Download all
-          </Button>
+          <DownloadAllButton resumes={signed} />
         </CardContent>
       </Card>
     </div>

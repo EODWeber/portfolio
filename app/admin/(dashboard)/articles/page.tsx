@@ -1,4 +1,10 @@
-import { fetchAllArticles, fetchAllCaseStudies, fetchAllMdxDocuments } from "@/lib/admin/queries";
+import {
+  fetchAllArticles,
+  fetchAllProjects,
+  fetchAllCaseStudies,
+  fetchAllMdxDocuments,
+  fetchRelationsForArticles,
+} from "@/lib/admin/queries";
 import { toContentKey } from "@/lib/content/resolve";
 
 import { ArticleManager } from "./article-manager";
@@ -9,10 +15,12 @@ export default async function ArticlesAdminPage({
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = await searchParams;
-  const [articles, caseStudies, availableDocs] = await Promise.all([
+  const [articles, projects, caseStudies, availableDocs, rel] = await Promise.all([
     fetchAllArticles(),
+    fetchAllProjects(),
     fetchAllCaseStudies(),
     fetchAllMdxDocuments(),
+    fetchRelationsForArticles(),
   ]);
   const used = new Set<string>([
     ...articles.map((a) => toContentKey(a.body_path ?? "")),
@@ -25,6 +33,9 @@ export default async function ArticlesAdminPage({
     <ArticleManager
       articles={articles}
       availableDocs={availableDocs}
+      projects={projects}
+      caseStudies={caseStudies}
+      relationsByArticle={rel}
       usedKeys={[...used]}
       status={status}
       errorMessage={message}

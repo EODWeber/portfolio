@@ -1,0 +1,42 @@
+name: CI (main)
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: Lint, Types, and Build check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Checks
+        run: pnpm check
+
+      - name: Install Doppler CLI
+        run: |
+          curl -sLf --retry 3 --retry-delay 2 https://cli.doppler.com/install.sh | sh
+
+      - name: Build (with Doppler)
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+          NEXT_TELEMETRY_DISABLED: 1
+        run: |
+          pnpm run build
+

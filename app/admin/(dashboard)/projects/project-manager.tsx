@@ -2,12 +2,13 @@
 
 import { useMemo, useState } from "react";
 
+import { RelatedChecklist } from "@/app/admin/_components/related-checklist";
+import { Modal } from "@/components/admin/modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import type { Project } from "@/lib/supabase/types";
-import { Modal } from "@/components/admin/modal";
+import type { Article, CaseStudy, Project } from "@/lib/supabase/types";
 
 import { deleteProject, importProjects, toggleProjectFeatured, upsertProject } from "./actions";
 
@@ -15,7 +16,21 @@ const FORM_GRID = "grid gap-3 md:grid-cols-2";
 type SortKey = "title" | "slug" | "vertical" | "status" | "featured" | "updated";
 type SortDirection = "asc" | "desc";
 
-export function ProjectManager({ projects, status }: { projects: Project[]; status?: string }) {
+export function ProjectManager({
+  projects,
+  caseStudies,
+  articles,
+  relatedCaseStudyIdsByProject,
+  relatedArticleIdsByProject,
+  status,
+}: {
+  projects: Project[];
+  caseStudies: CaseStudy[];
+  articles: Article[];
+  relatedCaseStudyIdsByProject: Record<string, string[]>;
+  relatedArticleIdsByProject: Record<string, string[]>;
+  status?: string;
+}) {
   const [selectedId, setSelectedId] = useState<string>("");
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -96,6 +111,11 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
     setOpen(false);
     setSelectedId("");
   };
+
+  const selectedCaseStudyIds = selected?.id
+    ? (relatedCaseStudyIdsByProject[selected.id] ?? [])
+    : [];
+  const selectedArticleIds = selected?.id ? (relatedArticleIdsByProject[selected.id] ?? []) : [];
 
   return (
     <div className="space-y-6">
@@ -334,6 +354,28 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
               rows={4}
             />
           </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium">Related case studies</label>
+            <RelatedChecklist
+              name="related_case_study_ids"
+              items={caseStudies.map((study) => ({
+                id: study.id,
+                label: `${study.title} (${study.slug})`,
+              }))}
+              selected={selectedCaseStudyIds}
+            />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium">Related articles</label>
+            <RelatedChecklist
+              name="related_article_ids"
+              items={articles.map((article) => ({
+                id: article.id,
+                label: `${article.title} (${article.slug})`,
+              }))}
+              selected={selectedArticleIds}
+            />
+          </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="status">
               Status
@@ -359,33 +401,33 @@ export function ProjectManager({ projects, status }: { projects: Project[]; stat
               Featured (max 6)
             </label>
           </div>
-          <div className="flex items-center justify-between gap-2 pt-2 md:col-span-2">
-            {selected ? (
-              <form
-                action={deleteProject}
-                onSubmit={(event) => {
-                  if (!confirm("Delete this project?")) event.preventDefault();
-                }}
-              >
-                <input type="hidden" name="id" value={selected.id} />
-                <input type="hidden" name="label" value={selected.title} />
-                <Button variant="destructive" type="submit">
-                  Delete project
-                </Button>
-              </form>
-            ) : (
-              <span />
-            )}
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={handleClose}>
-                Cancel
-              </Button>
-              <Button type="submit" form="project-form">
-                {selected ? "Save project" : "Create project"}
-              </Button>
-            </div>
-          </div>
         </form>
+        <div className="flex items-center justify-between gap-2 pt-3">
+          {selected ? (
+            <form
+              action={deleteProject}
+              onSubmit={(event) => {
+                if (!confirm("Delete this project?")) event.preventDefault();
+              }}
+            >
+              <input type="hidden" name="id" value={selected.id} />
+              <input type="hidden" name="label" value={selected.title} />
+              <Button variant="destructive" type="submit">
+                Delete project
+              </Button>
+            </form>
+          ) : (
+            <span />
+          )}
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button type="submit" form="project-form">
+              {selected ? "Save project" : "Create project"}
+            </Button>
+          </div>
+        </div>
       </Modal>
 
       <Card>

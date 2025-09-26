@@ -21,7 +21,7 @@ export default async function SiteSettingsAdminPage({
       <header className="space-y-1">
         <h1 className="text-3xl font-semibold">Site Settings</h1>
         <p className="text-muted-foreground text-sm">
-          Update global metadata, CTAs, and brand copy reflected across the public site.
+          Update global metadata, hero, CTAs, and section headings.
         </p>
       </header>
       <Card className="max-w-4xl">
@@ -76,6 +76,70 @@ export default async function SiteSettingsAdminPage({
                     rows={3}
                   />
                 </div>
+                {saved ? <p className="text-sm text-emerald-600">Settings saved.</p> : null}
+                <div className="flex justify-end">
+                  <Button type="submit">Save changes</Button>
+                </div>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="home">
+              <form action={upsertSiteSettings} className="space-y-4">
+                <input type="hidden" name="id" defaultValue={settings?.id ?? ""} />
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="hero_heading">
+                    Hero heading
+                  </label>
+                  <Input
+                    id="hero_heading"
+                    name="hero_heading"
+                    defaultValue={settings?.hero_heading ?? ""}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="hero_subheading">
+                    Hero subheading
+                  </label>
+                  <Textarea
+                    id="hero_subheading"
+                    name="hero_subheading"
+                    defaultValue={settings?.hero_subheading ?? ""}
+                    rows={3}
+                  />
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium" htmlFor="hiring_status">
+                      Hiring status
+                    </label>
+                    <Input
+                      id="hiring_status"
+                      name="hiring_status"
+                      defaultValue={settings?.hiring_status ?? ""}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium" htmlFor="location">
+                      Location / availability
+                    </label>
+                    <Input id="location" name="location" defaultValue={settings?.location ?? ""} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="resume_preference">
+                    Default resume vertical
+                  </label>
+                  <select
+                    id="resume_preference"
+                    name="resume_preference"
+                    defaultValue={(settings?.resume_preference as string) ?? "ai-security"}
+                    className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+                  >
+                    <option value="ai-security">AI Security</option>
+                    <option value="secure-devops">Secure DevOps</option>
+                    <option value="soc">SOC</option>
+                  </select>
+                </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-sm font-medium" htmlFor="primary_cta_label">
@@ -115,38 +179,6 @@ export default async function SiteSettingsAdminPage({
                       id="secondary_cta_url"
                       name="secondary_cta_url"
                       defaultValue={settings?.secondary_cta_url ?? ""}
-                    />
-                  </div>
-                </div>
-                {saved ? <p className="text-sm text-emerald-600">Settings saved.</p> : null}
-                <div className="flex justify-end">
-                  <Button type="submit">Save changes</Button>
-                </div>
-              </form>
-            </TabsContent>
-
-            <TabsContent value="home">
-              <form action={upsertSiteSettings} className="space-y-4">
-                <input type="hidden" name="id" defaultValue={settings?.id ?? ""} />
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="home_heading">
-                      Hero heading
-                    </label>
-                    <Input
-                      id="home_heading"
-                      name="home_heading"
-                      defaultValue={settings?.home_heading ?? ""}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="home_subheading">
-                      Hero subheading
-                    </label>
-                    <Input
-                      id="home_subheading"
-                      name="home_subheading"
-                      defaultValue={settings?.home_subheading ?? ""}
                     />
                   </div>
                 </div>

@@ -12,6 +12,11 @@ const siteSettingsSchema = z.object({
   site_title: z.string().optional(),
   site_tagline: z.string().optional(),
   meta_description: z.string().optional(),
+  hero_heading: z.string().optional(),
+  hero_subheading: z.string().optional(),
+  hiring_status: z.string().optional(),
+  location: z.string().optional(),
+  resume_preference: z.enum(["ai-security", "secure-devops", "soc"]).optional(),
   primary_cta_label: z.string().optional(),
   primary_cta_url: z.string().optional(),
   secondary_cta_label: z.string().optional(),
@@ -43,13 +48,24 @@ export async function upsertSiteSettings(formData: FormData) {
 
   const payload = siteSettingsSchema.parse({
     id: formData.get("id")?.toString() || undefined,
-    site_title: formData.get("site_title")?.toString() || undefined,
-    site_tagline: formData.get("site_tagline")?.toString() || undefined,
-    meta_description: formData.get("meta_description")?.toString() || undefined,
-    primary_cta_label: formData.get("primary_cta_label")?.toString() || undefined,
-    primary_cta_url: formData.get("primary_cta_url")?.toString() || undefined,
-    secondary_cta_label: formData.get("secondary_cta_label")?.toString() || undefined,
-    secondary_cta_url: formData.get("secondary_cta_url")?.toString() || undefined,
+    site_title: formData.get("site_title")?.toString() ?? "",
+    site_tagline: formData.get("site_tagline")?.toString() ?? "",
+    meta_description: formData.get("meta_description")?.toString() ?? "",
+    // Home hero & availability + CTAs (Home tab)
+    hero_heading: formData.get("hero_heading")?.toString() ?? "",
+    hero_subheading: formData.get("hero_subheading")?.toString() ?? "",
+    hiring_status: formData.get("hiring_status")?.toString() ?? "",
+    location: formData.get("location")?.toString() ?? "",
+    resume_preference: (formData.get("resume_preference")?.toString() ?? undefined) as
+      | "ai-security"
+      | "secure-devops"
+      | "soc"
+      | undefined,
+    primary_cta_label: formData.get("primary_cta_label")?.toString() ?? "",
+    primary_cta_url: formData.get("primary_cta_url")?.toString() ?? "",
+    secondary_cta_label: formData.get("secondary_cta_label")?.toString() ?? "",
+    secondary_cta_url: formData.get("secondary_cta_url")?.toString() ?? "",
+    // Headings/subheadings across sections
     home_heading: formData.get("home_heading")?.toString() ?? undefined,
     home_subheading: formData.get("home_subheading")?.toString() ?? undefined,
     home_projects_heading: formData.get("home_projects_heading")?.toString() ?? undefined,
@@ -86,6 +102,14 @@ export async function upsertSiteSettings(formData: FormData) {
     site_title: payload.site_title || existing?.site_title || "",
     site_tagline: payload.site_tagline ?? existing?.site_tagline ?? null,
     meta_description: payload.meta_description ?? existing?.meta_description ?? null,
+    hero_heading: payload.hero_heading ?? existing?.hero_heading ?? null,
+    hero_subheading: payload.hero_subheading ?? existing?.hero_subheading ?? null,
+    hiring_status: payload.hiring_status ?? existing?.hiring_status ?? null,
+    location: payload.location ?? existing?.location ?? null,
+    resume_preference:
+      payload.resume_preference ??
+      (existing?.resume_preference as unknown as typeof payload.resume_preference) ??
+      null,
     primary_cta_label: payload.primary_cta_label ?? existing?.primary_cta_label ?? null,
     primary_cta_url: payload.primary_cta_url ?? existing?.primary_cta_url ?? null,
     secondary_cta_label: payload.secondary_cta_label ?? existing?.secondary_cta_label ?? null,
@@ -115,7 +139,6 @@ export async function upsertSiteSettings(formData: FormData) {
     contact_heading: payload.contact_heading ?? existing?.contact_heading ?? null,
     contact_subheading: payload.contact_subheading ?? existing?.contact_subheading ?? null,
   };
-
   const { error } = await admin.from("site_settings").upsert(merged);
 
   if (error) {

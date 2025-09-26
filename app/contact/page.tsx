@@ -8,8 +8,15 @@ import {
   getSiteProfile,
   getSiteSettings,
 } from "@/lib/supabase/queries";
+import type { Vertical } from "@/lib/supabase/types";
 
 import { ContactForm } from "./contact-form";
+
+const verticalLabels: Record<Vertical, string> = {
+  "ai-security": "AI Security",
+  "secure-devops": "Secure DevOps",
+  soc: "SOC",
+};
 
 export default async function ContactPage() {
   const [profile, contacts, resumes, settings] = await Promise.all([
@@ -19,6 +26,7 @@ export default async function ContactPage() {
     getSiteSettings(),
   ]);
   const siteKey = process.env.TURNSTILE_SITE_KEY || process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  const primaryResumes = resumes.filter((resume) => resume.featured && !resume.archived);
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-4 py-12 sm:px-6 sm:py-16">
@@ -66,19 +74,32 @@ export default async function ContactPage() {
       <section className="space-y-4">
         <h2 className="text-2xl font-semibold">Resumes</h2>
         <p className="text-muted-foreground text-sm">
-          Download tailored resumes or grab the three primaries in one go.{" "}
-          <Link href="/resume/primary" className="text-primary hover:underline">
-            Batch download →
-          </Link>
+          Download tailored resumes or grab all primary variants in a single batch.
         </p>
-        {resumes.length === 0 ? (
+        {primaryResumes.length === 0 ? (
           <p className="text-muted-foreground text-sm">
-            Upload resume PDFs to Supabase Storage and manage entries in the admin portal to expose
-            download links here.
+            Upload resume PDFs to Supabase Storage and mark them as primary in the admin portal to
+            expose download links here.
           </p>
         ) : (
           <div className="grid gap-2 md:grid-cols-2">
-            {resumes.map((resume) => (
+            <Card className="border-primary/40 bg-primary/10 relative py-1">
+              <Link
+                href="/resume/primary"
+                className="absolute inset-0"
+                aria-label="Batch download primary resumes"
+              />
+              <CardHeader className="py-2">
+                <CardTitle className="text-sm">Batch download</CardTitle>
+                <CardDescription className="text-xs">
+                  Opens each primary resume in a new tab for quick access.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-primary -mt-3 pt-0 text-xs">
+                Download all primary resumes →
+              </CardContent>
+            </Card>
+            {primaryResumes.map((resume) => (
               <Card key={resume.id} className="border-primary/30 bg-primary/5 relative py-1">
                 <Link
                   href={`/resume/${resume.vertical}`}
@@ -88,13 +109,17 @@ export default async function ContactPage() {
                 <CardHeader className="py-2">
                   <CardTitle className="text-sm">{resume.label}</CardTitle>
                   <CardDescription className="text-xs">
-                    Updated {new Date(resume.updated_at).toLocaleDateString()} ·{" "}
-                    {resume.vertical.replace("-", " ")}
-                    focus.
+                    Updated {new Date(resume.updated_at).toLocaleDateString()}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="text-primary -mt-3 pt-0 text-xs">
-                  Generate secure download →
+                <CardContent className="-mt-2 space-y-2 pt-0 text-xs">
+                  <div className="text-muted-foreground flex items-center justify-between gap-2">
+                    {profile?.location ? <span>{profile.location}</span> : <span />}
+                    <Badge variant="secondary" className="uppercase tracking-wide">
+                      {verticalLabels[resume.vertical] ?? resume.vertical}
+                    </Badge>
+                  </div>
+                  <span className="text-primary block">Generate secure download →</span>
                 </CardContent>
               </Card>
             ))}
