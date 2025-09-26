@@ -6,7 +6,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdminUser } from "@/lib/admin/auth";
-import { parseCsv, parseKeyValueLines } from "@/lib/admin/utils";
+import { parseCsv } from "@/lib/admin/utils";
+import { coerceCaseStudyMetrics } from "@/lib/case-studies/metrics";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin-client";
 import { z } from "zod";
 
@@ -19,7 +20,7 @@ const caseStudySchema = z.object({
   tags: z.string().optional(),
   body_path: z.string().optional(),
   hero_url: z.string().optional(),
-  metrics: z.string().optional(),
+  metrics: z.union([z.string(), z.record(z.any())]).optional(),
   featured_metric: z.string().optional(),
   status: z.enum(["draft", "published"]),
   featured: z.string().optional(),
@@ -132,13 +133,7 @@ export async function upsertCaseStudy(formData: FormData) {
 
   const wantsFeatured = payload.featured === "on" || payload.featured === "true";
 
-  const metrics = parseKeyValueLines(payload.metrics).reduce<Record<string, string>>(
-    (acc, { key, value }) => {
-      acc[key] = value;
-      return acc;
-    },
-    {},
-  );
+  const metrics = coerceCaseStudyMetrics(payload.metrics, { strict: true });
 
   if (wantsFeatured) {
     const fm = (payload.featured_metric || "").trim();
@@ -287,13 +282,7 @@ export async function importCaseStudies(formData: FormData): Promise<void> {
       status: (r as { status?: string }).status ?? "draft",
     });
 
-    const metrics = parseKeyValueLines(candidate.metrics ?? "").reduce<Record<string, string>>(
-      (acc, { key, value }) => {
-        acc[key] = value;
-        return acc;
-      },
-      {},
-    );
+    const metrics = coerceCaseStudyMetrics(candidate.metrics, { strict: false });
 
     return {
       id: candidate.id,

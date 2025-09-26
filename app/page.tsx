@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { siGithub, siX, siLinkedin, siYoutube, siRss } from "simple-icons";
+import { caseStudyMetricsEntries, normalizeCaseStudyMetrics } from "@/lib/case-studies/metrics";
 import {
   getFeaturedProjects,
   getFeaturedArticles,
@@ -16,8 +17,6 @@ import {
   getSiteSettings,
   getSocialPosts,
 } from "@/lib/supabase/queries";
-
-import { formatMetricKey } from "@/lib/utils";
 
 export default async function HomePage() {
   const [settings, profile, projects, caseStudies, articles, posts] = await Promise.all([
@@ -53,27 +52,19 @@ export default async function HomePage() {
     (settings?.location && settings.location.trim()) || profile?.location || "Remote-first";
 
   const featuredMetrics = caseStudies.slice(0, 3).flatMap((study) => {
-    const metrics = study.metrics ?? {};
+    const metrics = normalizeCaseStudyMetrics(study.metrics);
     const fm = (study as unknown as { featured_metric?: string | null }).featured_metric;
-    const metricEntries = Object.entries(metrics).filter(
-      ([key, value]) => key && key.trim() && value && value.trim(),
-    );
+    const metricEntries = Object.entries(metrics);
 
-    const metricKey = fm && metrics[fm]?.trim() ? fm : metricEntries[0]?.[0];
+    const metricKey = fm && metrics[fm] ? fm : metricEntries[0]?.[0];
 
     if (!metricKey) {
       return [];
     }
 
-    const metricValue = metrics[metricKey];
+    const metric = metrics[metricKey];
 
-    if (!metricValue) {
-      return [];
-    }
-
-    const trimmedValue = metricValue.trim();
-
-    if (!trimmedValue) {
+    if (!metric || !metric.description) {
       return [];
     }
 
@@ -83,7 +74,8 @@ export default async function HomePage() {
         slug: study.slug,
         title: study.title,
         metricKey,
-        metricValue: trimmedValue,
+        metricTitle: metric.title,
+        metricDescription: metric.description,
       },
     ];
   });
@@ -151,10 +143,10 @@ export default async function HomePage() {
                       {metric.title}
                     </span>
                     <span className="text-foreground text-base font-semibold">
-                      {formatMetricKey(metric.metricKey)}
+                      {metric.metricTitle}
                     </span>
                     <span className="text-muted-foreground text-sm leading-snug">
-                      {metric.metricValue}
+                      {metric.metricDescription}
                     </span>
                   </Link>
                 ))
@@ -279,16 +271,12 @@ export default async function HomePage() {
                 <CardContent className="text-sm">
                   <p className="text-foreground font-medium">Key metrics</p>
                   <ul className="text-muted-foreground mt-2 space-y-1">
-                    {study.metrics
-                      ? Object.entries(study.metrics).map(([metric, value]) => (
-                          <li key={metric}>
-                            <span className="text-foreground font-medium">
-                              {formatMetricKey(metric)}:
-                            </span>{" "}
-                            {value}
-                          </li>
-                        ))
-                      : null}
+                    {caseStudyMetricsEntries(study.metrics).map((metric) => (
+                      <li key={metric.key}>
+                        <span className="text-foreground font-medium">{metric.title}:</span>{" "}
+                        {metric.description}
+                      </li>
+                    ))}
                   </ul>
                 </CardContent>
               </Card>
