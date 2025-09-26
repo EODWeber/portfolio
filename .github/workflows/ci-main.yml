@@ -7,7 +7,8 @@ on:
     branches:
       - main
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
 
 jobs:
   ci:
@@ -23,8 +24,14 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'pnpm'
+          node-version: 24
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Contentlayer types
+        run: pnpm exec contentlayer build
 
       - name: Checks
         run: pnpm check
@@ -40,3 +47,9 @@ jobs:
         run: |
           pnpm run build
 
+      - name: Enable auto-merge
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          merge-method: merge
+          pull-request-number: ${{ github.event.pull_request.number }}
