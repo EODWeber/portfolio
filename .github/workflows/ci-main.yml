@@ -42,6 +42,7 @@ jobs:
       - name: Build (with Doppler)
         env:
           NEXT_TELEMETRY_DISABLED: 1
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
         run: |
           pnpm run build
 
