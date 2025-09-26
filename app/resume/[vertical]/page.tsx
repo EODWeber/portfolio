@@ -26,8 +26,7 @@ export default async function ResumeDownloadPage({
         <CardHeader>
           <CardTitle>{resume.label}</CardTitle>
           <CardDescription>
-            The link below uses a short-lived Supabase signed URL (valid for 120 seconds) to protect
-            private resume copies.
+            Access a private download link that stays active for 120 seconds.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -36,10 +35,6 @@ export default async function ResumeDownloadPage({
               Download resume
             </a>
           </Button>
-          <p className="text-muted-foreground text-sm">
-            Signed URLs are generated on demand using the service role key (see `.docs/DOPPLER.md`)
-            keeping files private while enabling frictionless recruiter access.
-          </p>
         </CardContent>
       </Card>
     </div>

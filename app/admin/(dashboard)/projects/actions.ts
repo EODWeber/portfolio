@@ -95,6 +95,37 @@ export async function upsertProject(formData: FormData) {
     throw new Error(upsertErr.message);
   }
 
+  // Update related case studies mapping
+  const relatedIds = formData.getAll("related_case_study_ids").map(String).filter(Boolean);
+  if (relatedIds.length > 0 || payload.id) {
+    // resolve id by slug if necessary
+    let projectId = payload.id;
+    if (!projectId) {
+      const { data } = await admin
+        .from("projects")
+        .select("id")
+        .eq("slug", payload.slug)
+        .maybeSingle();
+      projectId = (data as { id: string } | null)?.id;
+    }
+    if (projectId) {
+      await admin.from("project_related_case_studies").delete().eq("project_id", projectId);
+      if (relatedIds.length > 0) {
+        const rows = relatedIds.map((sid) => ({ project_id: projectId!, case_study_id: sid }));
+        const { error: relErr } = await admin.from("project_related_case_studies").insert(rows);
+        if (relErr) throw new Error(relErr.message);
+      }
+      // Update related articles
+      const relatedArticleIds = formData.getAll("related_article_ids").map(String).filter(Boolean);
+      await admin.from("article_related_projects").delete().eq("project_id", projectId);
+      if (relatedArticleIds.length > 0) {
+        const rowsA = relatedArticleIds.map((aid) => ({ article_id: aid, project_id: projectId! }));
+        const { error: relAErr } = await admin.from("article_related_projects").insert(rowsA);
+        if (relAErr) throw new Error(relAErr.message);
+      }
+    }
+  }
+
   revalidatePath("/");
   revalidatePath("/portfolio");
   revalidatePath("/admin/projects");

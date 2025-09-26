@@ -6,7 +6,12 @@ import type { CaseStudyDoc } from "contentlayer/generated";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MDXServer } from "@/components/mdx/mdx-server";
 import { findCaseStudyDoc, getMdxSourceOrNull } from "@/lib/content/resolve";
-import { getCaseStudyBySlug, getPublishedProjects } from "@/lib/supabase/queries";
+import { caseStudyMetricsEntries } from "@/lib/case-studies/metrics";
+import {
+  getCaseStudyBySlug,
+  getVerticalProjects,
+  getRelatedProjectsForCaseStudy,
+} from "@/lib/supabase/queries";
 import type { Vertical } from "@/lib/supabase/types";
 
 export default async function CaseStudyPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -17,13 +22,14 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
     notFound();
   }
 
-  const allProjects = await getPublishedProjects();
-  const relatedProjects = allProjects
-    .filter((p) => p.vertical === (caseStudy.vertical as Vertical))
-    .filter((p) => p.tags.some((t) => caseStudy.tags.includes(t)))
-    .slice(0, 4);
+  const [explicitRelated, verticalRelated] = await Promise.all([
+    getRelatedProjectsForCaseStudy(caseStudy.id),
+    getVerticalProjects(caseStudy.vertical as Vertical),
+  ]);
+  const relatedProjects = explicitRelated.length > 0 ? explicitRelated : verticalRelated;
   const doc = findCaseStudyDoc(caseStudy.body_path ?? "");
   const supabaseMdx = doc ? null : await getMdxSourceOrNull(caseStudy.body_path ?? "");
+  const metrics = caseStudyMetricsEntries(caseStudy.metrics);
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-10 px-4 py-12 sm:px-6 sm:py-16">
@@ -46,13 +52,13 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
 
       <section className="space-y-3">
         <h2 className="text-2xl font-semibold">Results</h2>
-        {caseStudy.metrics ? (
+        {metrics.length ? (
           <div className="grid gap-4 sm:grid-cols-2">
-            {Object.entries(caseStudy.metrics).map(([metric, value]) => (
-              <Card key={metric}>
+            {metrics.map((metric) => (
+              <Card key={metric.key}>
                 <CardHeader>
-                  <CardTitle className="text-base">{metric}</CardTitle>
-                  <CardDescription>{value}</CardDescription>
+                  <CardTitle className="text-base">{metric.title}</CardTitle>
+                  <CardDescription>{metric.description}</CardDescription>
                 </CardHeader>
               </Card>
             ))}

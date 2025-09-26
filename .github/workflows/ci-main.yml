@@ -1,0 +1,54 @@
+name: CI (main)
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  ci:
+    name: Lint, Types, and Build check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.17.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Contentlayer types
+        run: pnpm exec contentlayer build
+
+      - name: Checks
+        run: pnpm check
+
+      - name: Install Doppler CLI
+        uses: dopplerhq/cli-action@v3
+
+      - name: Build (with Doppler)
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+        run: |
+          pnpm run build
+
+      - name: Enable auto-merge
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          merge-method: merge
+          pull-request-number: ${{ github.event.pull_request.number }}

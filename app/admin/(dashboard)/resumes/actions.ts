@@ -38,7 +38,9 @@ export async function upsertResume(formData: FormData) {
   let file_path: string | undefined = undefined;
   if (file && typeof file.arrayBuffer === "function" && file.size > 0) {
     const ext = file.name.split(".").pop() || "pdf";
-    const key = `resumes/${vertical}-${Date.now()}.${ext}`;
+    const timestamp = Date.now();
+    const uploadDate = new Date(timestamp).toISOString().slice(0, 10);
+    const key = `resumes/${vertical}-${uploadDate}-${timestamp}.${ext}`;
     const { error: uploadError } = await admin.storage
       .from("resumes")
       .upload(key, await file.arrayBuffer(), {
