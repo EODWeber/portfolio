@@ -22,6 +22,37 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
+            const title = 'Promote dev to main';
+
+            const { data: comparison } = await github.rest.repos.compareCommitsWithBasehead({
+              owner,
+              repo,
+              basehead: 'main...dev',
+            });
+
+            const changeLines = comparison.commits
+              .map((commit) => {
+                const firstLine = commit.commit.message.split('\n')[0];
+                const shortSha = commit.sha.slice(0, 7);
+                return `- ${firstLine} (${shortSha})`;
+              })
+              .join('\n');
+
+            const body = [
+              '## Summary',
+              '',
+              'This automated PR promotes the latest changes from `dev` to `main` once validation passes.',
+              '',
+              '## Included changes',
+              '',
+              changeLines || '- No new commits to promote.',
+              '',
+              '## Deployment checklist',
+              '',
+              '- [ ] Release notes drafted',
+              '- [ ] Production smoke tests complete',
+            ].join('\n');
+
             const { data: existing } = await github.rest.pulls.list({
               owner,
               repo,
@@ -32,18 +63,17 @@ jobs:
             });
 
             if (existing.length > 0) {
-              core.info(`Found existing PR #${existing[0].number}; no action needed.`);
+              const prNumber = existing[0].number;
+              await github.rest.pulls.update({
+                owner,
+                repo,
+                pull_number: prNumber,
+                title,
+                body,
+              });
+              core.info(`Updated existing PR #${prNumber} with latest summary.`);
               return;
             }
-
-            const title = 'Promote dev to main';
-            const body = [
-              '## Summary',
-              '',
-              'Automatic promotion PR generated on push to `dev`.',
-              '',
-              'This PR keeps `main` up to date once `dev` changes pass checks.',
-            ].join('\n');
 
             const { data: pr } = await github.rest.pulls.create({
               owner,

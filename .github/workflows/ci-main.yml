@@ -24,7 +24,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 22
           cache: "pnpm"
 
       - name: Install dependencies
@@ -50,5 +50,5 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: peter-evans/enable-pull-request-automerge@v3
         with:
-          merge-method: merge
+          merge-method: squash
           pull-request-number: ${{ github.event.pull_request.number }}
