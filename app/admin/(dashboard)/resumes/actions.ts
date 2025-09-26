@@ -38,7 +38,9 @@ export async function upsertResume(formData: FormData) {
   let file_path: string | undefined = undefined;
   if (file && typeof file.arrayBuffer === "function" && file.size > 0) {
     const ext = file.name.split(".").pop() || "pdf";
-    const key = `resumes/${vertical}-${Date.now()}.${ext}`;
+    const timestamp = Date.now();
+    const uploadDate = new Date(timestamp).toISOString().slice(0, 10);
+    const key = `resumes/${vertical}-${uploadDate}-${timestamp}.${ext}`;
     const { error: uploadError } = await admin.storage
       .from("resumes")
       .upload(key, await file.arrayBuffer(), {
@@ -69,12 +71,12 @@ export async function upsertResume(formData: FormData) {
 
   const published_at = parsed.published_at
     ? (() => {
-        const date = new Date(parsed.published_at);
-        if (Number.isNaN(date.getTime())) {
-          throw new Error("Invalid published date");
-        }
-        return date.toISOString();
-      })()
+      const date = new Date(parsed.published_at);
+      if (Number.isNaN(date.getTime())) {
+        throw new Error("Invalid published date");
+      }
+      return date.toISOString();
+    })()
     : null;
 
   const payload: Record<string, unknown> = {
@@ -164,12 +166,12 @@ export async function importResumes(formData: FormData): Promise<void> {
 
     const iso = candidate.published_at
       ? (() => {
-          const date = new Date(candidate.published_at as string);
-          if (Number.isNaN(date.getTime())) {
-            throw new Error("Invalid published_at in import payload");
-          }
-          return date.toISOString();
-        })()
+        const date = new Date(candidate.published_at as string);
+        if (Number.isNaN(date.getTime())) {
+          throw new Error("Invalid published_at in import payload");
+        }
+        return date.toISOString();
+      })()
       : null;
 
     return {

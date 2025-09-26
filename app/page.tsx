@@ -144,7 +144,7 @@ export default async function HomePage() {
                     </span>
                     <br />
                     <span className="text-muted-foreground text-med leading-snug">
-                      {metric.metricValue}
+                      {metric.metricDescription}
                     </span>
                   </Link>
                 ))
@@ -246,43 +246,44 @@ export default async function HomePage() {
               ))}
             </>
           ) : (
-            caseStudies.slice(0, 2).map((study) => (
-              <Card key={study.id} className="group relative overflow-hidden">
-                <Link
-                  href={`/case-studies/${study.slug}`}
-                  className="absolute inset-0"
-                  aria-label={study.title}
-                />
-                <div className="relative h-36 w-full">
-                  <Image
-                    src={study.hero_url || "/default-card.svg"}
-                    alt=""
-                    fill
-                    sizes="(min-width: 1024px) 50vw, 100vw"
-                    className="object-cover"
+            caseStudies.slice(0, 2).map((study) => {
+              const entries = caseStudyMetricsEntries(study.metrics);
+              return (
+                <Card key={study.id} className="group relative overflow-hidden">
+                  <Link
+                    href={`/case-studies/${study.slug}`}
+                    className="absolute inset-0"
+                    aria-label={study.title}
                   />
-                </div>
-                <CardHeader>
-                  <CardTitle className="text-xl group-hover:underline">{study.title}</CardTitle>
-                  <CardDescription>{study.summary}</CardDescription>
-                </CardHeader>
-                <CardContent className="text-sm">
-                  <p className="text-foreground font-medium">Key metrics</p>
-                  <ul className="text-muted-foreground mt-2 space-y-1">
-                    {study.metrics
-                      ? Object.entries(study.metrics).map(([metric, value]) => (
-                        <li key={metric}>
+                  <div className="relative h-36 w-full">
+                    <Image
+                      src={study.hero_url || "/default-card.svg"}
+                      alt=""
+                      fill
+                      sizes="(min-width: 1024px) 50vw, 100vw"
+                      className="object-cover"
+                    />
+                  </div>
+                  <CardHeader>
+                    <CardTitle className="text-xl group-hover:underline">{study.title}</CardTitle>
+                    <CardDescription>{study.summary}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="text-sm">
+                    <p className="text-foreground font-medium">Key metrics</p>
+                    <ul className="text-muted-foreground mt-2 space-y-1">
+                      {entries.map((metric) => (
+                        <li key={metric.key}>
                           <span className="text-foreground font-medium">
-                            {formatMetricKey(metric)}:
+                            {metric.title}:
                           </span>{" "}
-                          {value}
+                          {metric.description}
                         </li>
-                      ))
-                      : null}
-                  </ul>
-                </CardContent>
-              </Card>
-            ))
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              );
+            })
           )}
         </div>
       </section>

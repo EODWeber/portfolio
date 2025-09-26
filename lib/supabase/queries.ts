@@ -153,6 +153,8 @@ export const getResumes = cache(async (): Promise<Resume[]> => {
   const { data, error } = await supabase
     .from("resumes")
     .select("*")
+    .eq("archived", false)
+    .order("featured", { ascending: false })
     .order("updated_at", { ascending: false });
 
   return unwrap<Resume[]>(data, error, "Unable to load resumes");
@@ -164,13 +166,16 @@ export const getResumeByVertical = cache(async (vertical: Vertical): Promise<Res
     .from("resumes")
     .select("*")
     .eq("vertical", vertical)
-    .maybeSingle();
+    .eq("archived", false)
+    .order("featured", { ascending: false })
+    .order("updated_at", { ascending: false })
+    .limit(1);
 
   if (error) {
     throw new Error(error.message || "Unable to load resume");
   }
 
-  return data as Resume | null;
+  return (data?.[0] as Resume | undefined) ?? null;
 });
 
 export const getSocialPosts = cache(async (limit?: number): Promise<SocialPost[]> => {
