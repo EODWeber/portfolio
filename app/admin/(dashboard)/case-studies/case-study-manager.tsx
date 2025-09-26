@@ -9,11 +9,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { Article, CaseStudy, MdxDocument, Project } from "@/lib/supabase/types";
+import { caseStudyMetricsEntries, metricsToTextareaValue } from "@/lib/case-studies/metrics";
 
 import { deleteCaseStudy, importCaseStudies, upsertCaseStudy } from "./actions";
 
 const FORM_GRID = "grid gap-3 md:grid-cols-2";
 const VERTICAL_OPTIONS = ["ai-security", "secure-devops", "soc"] as const;
+const METRICS_PLACEHOLDER = `{
+  "1": {
+    "title": "Deployment Frequency",
+    "description": "Shipped weekly across 12 squads"
+  },
+  "2": {
+    "title": "Remediation Coverage",
+    "description": "Automated 87% of repeatable controls"
+  },
+  "3": {
+    "title": "Customer Satisfaction",
+    "description": "NPS increased to 68 post-launch"
+  }
+}`;
 
 type CaseStudyManagerProps = {
   caseStudies: CaseStudy[];
@@ -49,6 +64,10 @@ export function CaseStudyManager({
     [caseStudies, selectedId],
   );
   const usedSet = useMemo(() => new Set(usedKeys), [usedKeys]);
+  const selectedMetricEntries = useMemo(
+    () => caseStudyMetricsEntries(selected?.metrics),
+    [selected?.metrics],
+  );
 
   const fetchPreview = useCallback(async (source: string) => {
     if (!source) {
@@ -414,27 +433,44 @@ export function CaseStudyManager({
           </div>
           <div className="space-y-2 md:col-span-2">
             <label className="text-sm font-medium" htmlFor="metrics">
-              Metrics (one per line: Metric|Value)
+              Metrics (JSON object with title and description per key)
             </label>
             <Textarea
               id="metrics"
               name="metrics"
               defaultValue={formatMetrics(selected ?? undefined)}
-              rows={4}
+              rows={6}
+              placeholder={METRICS_PLACEHOLDER}
             />
+            <p className="text-muted-foreground text-xs">
+              Provide stable keys (e.g., <code>1</code>, <code>deployment_frequency</code>) and supply a title and
+              description for each metric.
+            </p>
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="featured_metric">
-              Featured metric key (required when featured)
+              Featured metric (required when featured)
             </label>
-            <Input
+            <select
               id="featured_metric"
               name="featured_metric"
               defaultValue={
                 (selected as unknown as { featured_metric?: string | null })?.featured_metric ?? ""
               }
-              placeholder="e.g., roi"
-            />
+              className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+            >
+              <option value="">— Select featured metric —</option>
+              {selectedMetricEntries.map((metric) => (
+                <option key={metric.key} value={metric.key}>
+                  {metric.title}
+                </option>
+              ))}
+            </select>
+            {selectedMetricEntries.length === 0 ? (
+              <p className="text-muted-foreground text-xs">
+                Add metrics above to enable selecting a featured metric.
+              </p>
+            ) : null}
           </div>
           <div className="space-y-2 md:col-span-2">
             <label className="text-sm font-medium">Related projects</label>
@@ -545,8 +581,5 @@ function toContentKey(path?: string | null) {
 }
 
 function formatMetrics(study: CaseStudy | null | undefined) {
-  if (!study?.metrics) return "";
-  return Object.entries(study.metrics)
-    .map(([metric, value]) => `${metric}|${value}`)
-    .join("\n");
+  return metricsToTextareaValue(study?.metrics);
 }

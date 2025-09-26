@@ -7,6 +7,7 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { caseStudyMetricsEntries } from "@/lib/case-studies/metrics";
 import {
   getPublishedCaseStudies,
   getPublishedProjects,
@@ -45,13 +46,15 @@ export default async function CaseStudiesPage({
         <p className="text-muted-foreground text-sm">No case studies found.</p>
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
-          {filtered.map((study) => (
-            <Card key={study.id} className="group relative flex flex-col overflow-hidden">
-              <Link
-                href={`/case-studies/${study.slug}`}
-                className="absolute inset-0"
-                aria-label={study.title}
-              />
+          {filtered.map((study) => {
+            const metrics = caseStudyMetricsEntries(study.metrics).slice(0, 3);
+            return (
+              <Card key={study.id} className="group relative flex flex-col overflow-hidden">
+                <Link
+                  href={`/case-studies/${study.slug}`}
+                  className="absolute inset-0"
+                  aria-label={study.title}
+                />
               <AspectRatio ratio={16 / 9}>
                 <Image
                   src={study.hero_url || "/default-card.svg"}
@@ -68,15 +71,13 @@ export default async function CaseStudiesPage({
                 <CardDescription>{study.summary}</CardDescription>
               </CardHeader>
               <CardContent className="mt-auto space-y-3 text-sm">
-                {study.metrics ? (
+                {metrics.length ? (
                   <ul className="text-muted-foreground list-disc space-y-1 pl-5">
-                    {Object.entries(study.metrics)
-                      .slice(0, 3)
-                      .map(([metric, value]) => (
-                        <li key={metric}>
-                          <span className="text-foreground font-medium">{metric}:</span> {value}
-                        </li>
-                      ))}
+                    {metrics.map((metric) => (
+                      <li key={metric.key}>
+                        <span className="text-foreground font-medium">{metric.title}:</span> {metric.description}
+                      </li>
+                    ))}
                   </ul>
                 ) : null}
                 <div className="flex flex-wrap gap-2">
@@ -113,8 +114,9 @@ export default async function CaseStudiesPage({
                 </div>
                 <span className="text-primary">Read case study →</span>
               </CardContent>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

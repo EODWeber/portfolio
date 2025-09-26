@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { siGithub, siX, siLinkedin, siYoutube, siRss } from "simple-icons";
+import { caseStudyMetricsEntries, normalizeCaseStudyMetrics } from "@/lib/case-studies/metrics";
 import {
   getFeaturedProjects,
   getFeaturedArticles,
@@ -16,8 +17,6 @@ import {
   getSiteSettings,
   getSocialPosts,
 } from "@/lib/supabase/queries";
-
-import { formatMetricKey } from "@/lib/utils";
 
 export default async function HomePage() {
   const [settings, profile, projects, caseStudies, articles, posts] = await Promise.all([
@@ -53,27 +52,19 @@ export default async function HomePage() {
     (settings?.location && settings.location.trim()) || profile?.location || "Remote-first";
 
   const featuredMetrics = caseStudies.slice(0, 3).flatMap((study) => {
-    const metrics = study.metrics ?? {};
+    const metrics = normalizeCaseStudyMetrics(study.metrics);
     const fm = (study as unknown as { featured_metric?: string | null }).featured_metric;
-    const metricEntries = Object.entries(metrics).filter(
-      ([key, value]) => key && key.trim() && value && value.trim(),
-    );
+    const metricEntries = Object.entries(metrics);
 
-    const metricKey = fm && metrics[fm]?.trim() ? fm : metricEntries[0]?.[0];
+    const metricKey = fm && metrics[fm] ? fm : metricEntries[0]?.[0];
 
     if (!metricKey) {
       return [];
     }
 
-    const metricValue = metrics[metricKey];
+    const metric = metrics[metricKey];
 
-    if (!metricValue) {
-      return [];
-    }
-
-    const trimmedValue = metricValue.trim();
-
-    if (!trimmedValue) {
+    if (!metric || !metric.description) {
       return [];
     }
 
@@ -83,7 +74,8 @@ export default async function HomePage() {
         slug: study.slug,
         title: study.title,
         metricKey,
-        metricValue: trimmedValue,
+        metricTitle: metric.title,
+        metricDescription: metric.description,
       },
     ];
   });
@@ -148,7 +140,7 @@ export default async function HomePage() {
                     className="group relative block w-full rounded-2xl border border-border/60 bg-background/90 bg-secondary p-4 text-left no-underline shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                   >
                     <span className="text-foreground text-base font-semibold">
-                      {formatMetricKey(metric.metricKey)}
+                      {metric.metricTitle}
                     </span>
                     <br />
                     <span className="text-muted-foreground text-med leading-snug">

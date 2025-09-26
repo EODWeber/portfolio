@@ -22,7 +22,17 @@ export type Project = {
   updated_at: string;
 };
 
-export type CaseStudyMetrics = Record<string, string> | null;
+export type CaseStudyMetricValue =
+  | string
+  | {
+      title?: string;
+      Title?: string;
+      description?: string;
+      Description?: string;
+      [key: string]: unknown;
+    };
+
+export type CaseStudyMetrics = Record<string, CaseStudyMetricValue> | null;
 
 export type CaseStudy = {
   id: string;
