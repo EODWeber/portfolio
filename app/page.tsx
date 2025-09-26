@@ -124,8 +124,8 @@ export default async function HomePage() {
           </div>
           <Card className="border-border/50 bg-background/80 w-full max-w-sm shadow-lg backdrop-blur">
             <CardHeader>
-              <CardTitle>Featured metrics</CardTitle>
-              <CardDescription>From featured case studies.</CardDescription>
+              <CardTitle>Recent Highlights</CardTitle>
+              <CardDescription>Measurable outcomes tied to case studies.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3 pb-6">
               {featuredMetrics.length === 0 ? (
@@ -137,16 +137,14 @@ export default async function HomePage() {
                   <Link
                     key={metric.id}
                     href={`/case-studies/${metric.slug}`}
-                    className="group relative block w-full rounded-2xl border border-border/60 bg-background/90 p-4 text-left no-underline shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                    className="group relative block w-full rounded-2xl border border-border/60 bg-background/90 bg-secondary p-4 text-left no-underline shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                   >
-                    <span className="w-full truncate text-[0.65rem] font-semibold uppercase tracking-[0.28em] text-muted-foreground/80">
-                      {metric.title}
-                    </span>
                     <span className="text-foreground text-base font-semibold">
                       {metric.metricTitle}
                     </span>
-                    <span className="text-muted-foreground text-sm leading-snug">
-                      {metric.metricDescription}
+                    <br />
+                    <span className="text-muted-foreground text-med leading-snug">
+                      {metric.metricValue}
                     </span>
                   </Link>
                 ))
@@ -271,12 +269,16 @@ export default async function HomePage() {
                 <CardContent className="text-sm">
                   <p className="text-foreground font-medium">Key metrics</p>
                   <ul className="text-muted-foreground mt-2 space-y-1">
-                    {caseStudyMetricsEntries(study.metrics).map((metric) => (
-                      <li key={metric.key}>
-                        <span className="text-foreground font-medium">{metric.title}:</span>{" "}
-                        {metric.description}
-                      </li>
-                    ))}
+                    {study.metrics
+                      ? Object.entries(study.metrics).map(([metric, value]) => (
+                        <li key={metric}>
+                          <span className="text-foreground font-medium">
+                            {formatMetricKey(metric)}:
+                          </span>{" "}
+                          {value}
+                        </li>
+                      ))
+                      : null}
                   </ul>
                 </CardContent>
               </Card>
