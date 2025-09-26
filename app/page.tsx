@@ -137,7 +137,7 @@ export default async function HomePage() {
                   <Link
                     key={metric.id}
                     href={`/case-studies/${metric.slug}`}
-                    className="group relative block w-full rounded-2xl border border-border/60 bg-background/90 bg-secondary p-4 text-left no-underline shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                    className="border-border/60 bg-background/90 bg-secondary hover:border-primary/40 focus-visible:ring-primary/40 group relative block w-full rounded-2xl border p-4 text-left no-underline shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2"
                   >
                     <span className="text-foreground text-base font-semibold">
                       {metric.metricTitle}
@@ -273,9 +273,7 @@ export default async function HomePage() {
                     <ul className="text-muted-foreground mt-2 space-y-1">
                       {entries.map((metric) => (
                         <li key={metric.key}>
-                          <span className="text-foreground font-medium">
-                            {metric.title}:
-                          </span>{" "}
+                          <span className="text-foreground font-medium">{metric.title}:</span>{" "}
                           {metric.description}
                         </li>
                       ))}

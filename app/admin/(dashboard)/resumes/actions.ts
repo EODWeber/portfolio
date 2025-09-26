@@ -71,12 +71,12 @@ export async function upsertResume(formData: FormData) {
 
   const published_at = parsed.published_at
     ? (() => {
-      const date = new Date(parsed.published_at);
-      if (Number.isNaN(date.getTime())) {
-        throw new Error("Invalid published date");
-      }
-      return date.toISOString();
-    })()
+        const date = new Date(parsed.published_at);
+        if (Number.isNaN(date.getTime())) {
+          throw new Error("Invalid published date");
+        }
+        return date.toISOString();
+      })()
     : null;
 
   const payload: Record<string, unknown> = {
@@ -166,12 +166,12 @@ export async function importResumes(formData: FormData): Promise<void> {
 
     const iso = candidate.published_at
       ? (() => {
-        const date = new Date(candidate.published_at as string);
-        if (Number.isNaN(date.getTime())) {
-          throw new Error("Invalid published_at in import payload");
-        }
-        return date.toISOString();
-      })()
+          const date = new Date(candidate.published_at as string);
+          if (Number.isNaN(date.getTime())) {
+            throw new Error("Invalid published_at in import payload");
+          }
+          return date.toISOString();
+        })()
       : null;
 
     return {

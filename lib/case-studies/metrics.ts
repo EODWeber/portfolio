@@ -66,9 +66,7 @@ function sanitizeCaseStudyMetricsRecord(
 
     if (typeof rawValue === "string") {
       if (options.strict) {
-        throw new Error(
-          `Metric "${key}" must be an object with title and description fields.`,
-        );
+        throw new Error(`Metric "${key}" must be an object with title and description fields.`);
       }
       const description = rawValue.trim();
       if (!description) continue;
@@ -81,9 +79,7 @@ function sanitizeCaseStudyMetricsRecord(
 
     if (typeof rawValue !== "object" || Array.isArray(rawValue)) {
       if (options.strict) {
-        throw new Error(
-          `Metric "${key}" must be an object with title and description fields.`,
-        );
+        throw new Error(`Metric "${key}" must be an object with title and description fields.`);
       }
       continue;
     }
@@ -175,9 +171,7 @@ export function coerceCaseStudyMetrics(
   return {};
 }
 
-export function metricsToTextareaValue(
-  metrics: CaseStudyMetrics | null | undefined,
-): string {
+export function metricsToTextareaValue(metrics: CaseStudyMetrics | null | undefined): string {
   const normalized = normalizeCaseStudyMetrics(metrics);
   const keys = Object.keys(normalized);
   if (keys.length === 0) return "";

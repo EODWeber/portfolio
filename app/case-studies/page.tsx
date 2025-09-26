@@ -55,65 +55,66 @@ export default async function CaseStudiesPage({
                   className="absolute inset-0"
                   aria-label={study.title}
                 />
-              <AspectRatio ratio={16 / 9}>
-                <Image
-                  src={study.hero_url || "/default-card.svg"}
-                  alt=""
-                  fill
-                  sizes="(min-width:768px) 50vw, 100vw"
-                  className="object-cover"
-                />
-              </AspectRatio>
-              <CardHeader>
-                <CardTitle className="text-xl">
-                  <span className="group-hover:underline">{study.title}</span>
-                </CardTitle>
-                <CardDescription>{study.summary}</CardDescription>
-              </CardHeader>
-              <CardContent className="mt-auto space-y-3 text-sm">
-                {metrics.length ? (
-                  <ul className="text-muted-foreground list-disc space-y-1 pl-5">
-                    {metrics.map((metric) => (
-                      <li key={metric.key}>
-                        <span className="text-foreground font-medium">{metric.title}:</span> {metric.description}
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-                <div className="flex flex-wrap gap-2">
-                  {study.featured ? (
-                    <Badge variant="secondary" className="font-medium uppercase">
-                      Featured
-                    </Badge>
-                  ) : null}
-                  {study.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-                {projects.length ? (
-                  <div className="text-xs">
-                    <span className="text-muted-foreground mr-2">Related:</span>
-                    {projects
-                      .filter((p) => p.tags.some((t) => study.tags.includes(t)))
-                      .slice(0, 2)
-                      .map((p) => (
-                        <Link
-                          key={p.id}
-                          href={`/portfolio/${p.slug}`}
-                          className="text-primary mr-2 hover:underline"
-                        >
-                          {p.title}
-                        </Link>
+                <AspectRatio ratio={16 / 9}>
+                  <Image
+                    src={study.hero_url || "/default-card.svg"}
+                    alt=""
+                    fill
+                    sizes="(min-width:768px) 50vw, 100vw"
+                    className="object-cover"
+                  />
+                </AspectRatio>
+                <CardHeader>
+                  <CardTitle className="text-xl">
+                    <span className="group-hover:underline">{study.title}</span>
+                  </CardTitle>
+                  <CardDescription>{study.summary}</CardDescription>
+                </CardHeader>
+                <CardContent className="mt-auto space-y-3 text-sm">
+                  {metrics.length ? (
+                    <ul className="text-muted-foreground list-disc space-y-1 pl-5">
+                      {metrics.map((metric) => (
+                        <li key={metric.key}>
+                          <span className="text-foreground font-medium">{metric.title}:</span>{" "}
+                          {metric.description}
+                        </li>
                       ))}
+                    </ul>
+                  ) : null}
+                  <div className="flex flex-wrap gap-2">
+                    {study.featured ? (
+                      <Badge variant="secondary" className="font-medium uppercase">
+                        Featured
+                      </Badge>
+                    ) : null}
+                    {study.tags.map((tag) => (
+                      <Badge key={tag} variant="secondary">
+                        {tag}
+                      </Badge>
+                    ))}
                   </div>
-                ) : null}
-                <div className="text-muted-foreground text-xs">
-                  {study.vertical.replace("-", " ")}
-                </div>
-                <span className="text-primary">Read case study →</span>
-              </CardContent>
+                  {projects.length ? (
+                    <div className="text-xs">
+                      <span className="text-muted-foreground mr-2">Related:</span>
+                      {projects
+                        .filter((p) => p.tags.some((t) => study.tags.includes(t)))
+                        .slice(0, 2)
+                        .map((p) => (
+                          <Link
+                            key={p.id}
+                            href={`/portfolio/${p.slug}`}
+                            className="text-primary mr-2 hover:underline"
+                          >
+                            {p.title}
+                          </Link>
+                        ))}
+                    </div>
+                  ) : null}
+                  <div className="text-muted-foreground text-xs">
+                    {study.vertical.replace("-", " ")}
+                  </div>
+                  <span className="text-primary">Read case study →</span>
+                </CardContent>
               </Card>
             );
           })}

@@ -443,8 +443,8 @@ export function CaseStudyManager({
               placeholder={METRICS_PLACEHOLDER}
             />
             <p className="text-muted-foreground text-xs">
-              Provide stable keys (e.g., <code>1</code>, <code>deployment_frequency</code>) and supply a title and
-              description for each metric.
+              Provide stable keys (e.g., <code>1</code>, <code>deployment_frequency</code>) and
+              supply a title and description for each metric.
             </p>
           </div>
           <div className="space-y-2">

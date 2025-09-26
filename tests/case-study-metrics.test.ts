@@ -26,9 +26,7 @@ describe("parseCaseStudyMetricsInput", () => {
   it("throws when a metric is missing required fields", () => {
     const input = `{"1": { "title": "ROI" }}`;
 
-    expect(() => parseCaseStudyMetricsInput(input)).toThrow(
-      /must include title and description/i,
-    );
+    expect(() => parseCaseStudyMetricsInput(input)).toThrow(/must include title and description/i);
   });
 });
 
