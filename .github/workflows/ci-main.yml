@@ -8,6 +8,7 @@ on:
       - main
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   ci:
@@ -23,8 +24,11 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Checks
         run: pnpm check
@@ -39,4 +43,10 @@ jobs:
           NEXT_TELEMETRY_DISABLED: 1
         run: |
           pnpm run build
+
+      - name: Enable auto-merge
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          merge-method: merge
 
