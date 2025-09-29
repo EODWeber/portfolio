@@ -6,7 +6,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { ThemeProvider } from "@/components/theme/theme-provider";
-import { getSiteSettings } from "@/lib/supabase/queries";
+import { getSiteProfile, getSiteSettings } from "@/lib/supabase/queries";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Toaster } from "sonner";
 
@@ -32,7 +32,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const settings = await getSiteSettings();
+  const settingsPromise = getSiteSettings();
+  const profilePromise = getSiteProfile();
+  const [settings, profile] = await Promise.all([settingsPromise, profilePromise]);
   const isProd = process.env.NODE_ENV === "production";
   const supabase = await createSupabaseServerClient();
   const {
@@ -51,7 +53,7 @@ export default async function RootLayout({
             isAuthenticated={isAuthenticated}
           />
           <main className="flex-1">{children}</main>
-          <SiteFooter isAuthenticated={isAuthenticated} />
+          <SiteFooter isAuthenticated={isAuthenticated} ownerName={profile?.full_name ?? ""} />
           <Toaster richColors position="bottom-right" />
           {isProd ? (
             <>
