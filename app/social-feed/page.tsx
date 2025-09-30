@@ -34,13 +34,13 @@ export default async function SocialFeedPage() {
             const postedAt = new Date(post.posted_at).toLocaleDateString();
             return (
               <Card key={post.id}>
-                <CardHeader className="gap-3">
+                <CardHeader>
                   <CardTitle className="text-lg">{post.title}</CardTitle>
-                  <div className="text-muted-foreground flex flex-wrap items-center gap-3 text-xs">
-                    <div className="text-foreground flex items-center gap-2">
-                      <IconCircle icon={icon} fallback="globe" />
-                      <span className="font-semibold uppercase tracking-wide">{post.platform}</span>
-                    </div>
+                  <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-3 text-sm">
+                    <IconCircle icon={icon} fallback="globe" />
+                    <span className="text-foreground font-semibold uppercase tracking-wide">
+                      {post.platform}
+                    </span>
                     <span>{postedAt}</span>
                     {post.featured ? (
                       <Badge variant="secondary" className="font-medium uppercase">

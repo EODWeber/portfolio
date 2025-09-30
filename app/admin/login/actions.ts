@@ -18,8 +18,8 @@ export async function signInAction(
   const supabase = await createSupabaseServerClient();
 
   const parsed = loginSchema.safeParse({
-    email: formData.get("email")?.toString() ?? "",
-    password: formData.get("password")?.toString() ?? "",
+    email: formData.get("email"),
+    password: formData.get("password"),
   });
 
   if (!parsed.success) {
