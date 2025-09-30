@@ -5,7 +5,7 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { IconCircle } from "@/components/ui/icon-circle";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSocialPosts, getSiteSettings } from "@/lib/supabase/queries";
 import { getSimpleIconBySlug, guessSimpleIconSlug } from "@/lib/simple-icons";
 
@@ -36,8 +36,8 @@ export default async function SocialFeedPage() {
               <Card key={post.id}>
                 <CardHeader className="gap-3">
                   <CardTitle className="text-lg">{post.title}</CardTitle>
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-2 text-foreground">
+                  <div className="text-muted-foreground flex flex-wrap items-center gap-3 text-xs">
+                    <div className="text-foreground flex items-center gap-2">
                       <IconCircle icon={icon} fallback="globe" />
                       <span className="font-semibold uppercase tracking-wide">{post.platform}</span>
                     </div>

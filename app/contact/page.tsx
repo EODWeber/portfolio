@@ -201,9 +201,9 @@ export default async function ContactPage() {
               const { icon, fallback } = resolveContactIcon(link);
               const categoryLabel = resolveCategory(link, icon, fallback);
               const card = (
-                <Card className="h-full py-0 transition-all duration-200 hover:-translate-y-1 hover:border-primary/40 hover:bg-primary/5">
+                <Card className="hover:border-primary/40 hover:bg-primary/5 h-full py-0 transition-all duration-200 hover:-translate-y-1">
                   <CardHeader className="gap-2 px-4 py-3">
-                    <CardTitle className="text-sm font-semibold leading-tight text-foreground">
+                    <CardTitle className="text-foreground text-sm font-semibold leading-tight">
                       <div className="text-muted-foreground flex items-center justify-between gap-2">
                         {link.label}
                         <IconCircle icon={icon} fallback={fallback} />

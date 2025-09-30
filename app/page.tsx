@@ -383,7 +383,7 @@ export default async function HomePage() {
                     <CardTitle className="text-base group-hover:underline">{post.title}</CardTitle>
                     <div className="text-muted-foreground mt-2 flex items-center gap-3 text-xs">
                       <IconCircle icon={icon} fallback="globe" />
-                      <span className="font-semibold uppercase tracking-wide text-foreground">
+                      <span className="text-foreground font-semibold uppercase tracking-wide">
                         {post.platform}
                       </span>
                       <span>{postedAt}</span>
