@@ -153,9 +153,6 @@ export const getResumes = cache(async (): Promise<Resume[]> => {
   const { data, error } = await supabase
     .from("resumes")
     .select("*")
-    .eq("archived", false)
-    .eq("featured", true)
-    .order("featured", { ascending: false })
     .order("updated_at", { ascending: false });
 
   return unwrap<Resume[]>(data, error, "Unable to load resumes");
@@ -167,17 +164,13 @@ export const getResumeByVertical = cache(async (vertical: Vertical): Promise<Res
     .from("resumes")
     .select("*")
     .eq("vertical", vertical)
-    .eq("archived", false)
-    .eq("featured", true)
-    .order("featured", { ascending: false })
-    .order("updated_at", { ascending: false })
-    .limit(1);
+    .maybeSingle();
 
   if (error) {
     throw new Error(error.message || "Unable to load resume");
   }
 
-  return (data?.[0] as Resume | undefined) ?? null;
+  return data as Resume | null;
 });
 
 export const getSocialPosts = cache(async (limit?: number): Promise<SocialPost[]> => {
@@ -199,81 +192,6 @@ export const getVerticalProjects = cache(async (vertical: Vertical): Promise<Pro
 
   return unwrap<Project[]>(data, error, "Unable to load vertical projects");
 });
-
-// Explicit relations ------------------------------------------------
-export const getRelatedProjectsForCaseStudy = cache(
-  async (caseStudyId: string): Promise<Project[]> => {
-    const supabase = await getClient();
-    const { data: links, error: linkErr } = await supabase
-      .from("project_related_case_studies")
-      .select("project_id")
-      .eq("case_study_id", caseStudyId);
-    if (linkErr) throw new Error(linkErr.message || "Unable to load related projects");
-    const ids = (links ?? []).map((l) => l.project_id);
-    if (ids.length === 0) return [];
-    const { data, error } = await supabase
-      .from("projects")
-      .select("*")
-      .in("id", ids)
-      .order("created_at", { ascending: false });
-    return unwrap<Project[]>(data, error, "Unable to load related projects");
-  },
-);
-
-export const getRelatedCaseStudiesForProject = cache(
-  async (projectId: string): Promise<CaseStudy[]> => {
-    const supabase = await getClient();
-    const { data: links, error: linkErr } = await supabase
-      .from("project_related_case_studies")
-      .select("case_study_id")
-      .eq("project_id", projectId);
-    if (linkErr) throw new Error(linkErr.message || "Unable to load related case studies");
-    const ids = (links ?? []).map((l) => l.case_study_id);
-    if (ids.length === 0) return [];
-    const { data, error } = await supabase
-      .from("case_studies")
-      .select("*")
-      .in("id", ids)
-      .order("created_at", { ascending: false });
-    return unwrap<CaseStudy[]>(data, error, "Unable to load related case studies");
-  },
-);
-
-export const getRelatedProjectsForArticle = cache(async (articleId: string): Promise<Project[]> => {
-  const supabase = await getClient();
-  const { data: links, error: linkErr } = await supabase
-    .from("article_related_projects")
-    .select("project_id")
-    .eq("article_id", articleId);
-  if (linkErr) throw new Error(linkErr.message || "Unable to load related projects");
-  const ids = (links ?? []).map((l) => l.project_id);
-  if (ids.length === 0) return [];
-  const { data, error } = await supabase
-    .from("projects")
-    .select("*")
-    .in("id", ids)
-    .order("created_at", { ascending: false });
-  return unwrap<Project[]>(data, error, "Unable to load related projects");
-});
-
-export const getRelatedCaseStudiesForArticle = cache(
-  async (articleId: string): Promise<CaseStudy[]> => {
-    const supabase = await getClient();
-    const { data: links, error: linkErr } = await supabase
-      .from("article_related_case_studies")
-      .select("case_study_id")
-      .eq("article_id", articleId);
-    if (linkErr) throw new Error(linkErr.message || "Unable to load related case studies");
-    const ids = (links ?? []).map((l) => l.case_study_id);
-    if (ids.length === 0) return [];
-    const { data, error } = await supabase
-      .from("case_studies")
-      .select("*")
-      .in("id", ids)
-      .order("created_at", { ascending: false });
-    return unwrap<CaseStudy[]>(data, error, "Unable to load related case studies");
-  },
-);
 
 export const getVerticalCaseStudies = cache(async (vertical: Vertical): Promise<CaseStudy[]> => {
   const supabase = await getClient();
