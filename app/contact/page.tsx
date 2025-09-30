@@ -76,7 +76,6 @@ function resolveContactIcon(link: ContactLink): {
   const icon = slug ? getSimpleIconBySlug(slug) : null;
   return { icon, fallback: "globe" };
 }
-
 export default async function ContactPage() {
   const [profile, contacts, resumes, settings] = await Promise.all([
     getSiteProfile(),
@@ -85,7 +84,9 @@ export default async function ContactPage() {
     getSiteSettings(),
   ]);
   const siteKey = process.env.TURNSTILE_SITE_KEY || process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-  const primaryResumes = resumes.filter((resume) => resume.featured && !resume.archived);
+
+  const primaryResumes = resumes.filter((resume) => resume.featured);
+  const resumesToDisplay = primaryResumes.length > 0 ? primaryResumes : resumes;
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-4 py-12 sm:px-6 sm:py-16">
@@ -133,32 +134,37 @@ export default async function ContactPage() {
       <section className="space-y-4">
         <h2 className="text-2xl font-semibold">Resumes</h2>
         <p className="text-muted-foreground text-sm">
-          Download tailored resumes or grab all primary variants in a single batch.
+          Download tailored resumes or grab the three primaries in one go.{" "}
+          <Link href="/resume/primary" className="text-primary hover:underline">
+            Batch download →
+          </Link>
         </p>
-        {primaryResumes.length === 0 ? (
+        {resumes.length === 0 ? (
           <p className="text-muted-foreground text-sm">
-            Upload resume PDFs to Supabase Storage and mark them as primary in the admin portal to
-            expose download links here.
+            Upload resume PDFs to Supabase Storage and manage entries in the admin portal to expose
+            download links here.
           </p>
         ) : (
           <div className="grid gap-2 md:grid-cols-2">
-            <Card className="border-primary/40 bg-primary/10 relative py-1">
-              <Link
-                href="/resume/primary"
-                className="absolute inset-0"
-                aria-label="Batch download primary resumes"
-              />
-              <CardHeader className="py-2">
-                <CardTitle className="text-sm">Batch download</CardTitle>
-                <CardDescription className="text-xs">
-                  Opens each resume in a new tab for quick access.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-primary -mt-2 pt-0 text-xs">
-                Download all primary resumes →
-              </CardContent>
-            </Card>
-            {primaryResumes.map((resume) => (
+            {primaryResumes.length > 0 ? (
+              <Card className="border-primary/40 bg-primary/10 relative py-1">
+                <Link
+                  href="/resume/primary"
+                  className="absolute inset-0"
+                  aria-label="Batch download primary resumes"
+                />
+                <CardHeader className="py-2">
+                  <CardTitle className="text-sm">Batch download</CardTitle>
+                  <CardDescription className="text-xs">
+                    Opens each resume in a new tab for quick access.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="text-primary -mt-2 pt-0 text-xs">
+                  Download all primary resumes →
+                </CardContent>
+              </Card>
+            ) : null}
+            {resumesToDisplay.map((resume) => (
               <Card key={resume.id} className="border-primary/30 bg-primary/5 relative py-1">
                 <Link
                   href={`/resume/${resume.vertical}`}
@@ -175,7 +181,9 @@ export default async function ContactPage() {
                     </div>
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    Updated {new Date(resume.updated_at).toLocaleDateString()}
+                    Updated {new Date(resume.updated_at).toLocaleDateString()} ·{" "}
+                    {resume.vertical.replace("-", " ")}
+                    focus.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="-mt-2 mb-2 space-y-2 pt-0 text-xs">
