@@ -154,6 +154,7 @@ export const getResumes = cache(async (): Promise<Resume[]> => {
     .from("resumes")
     .select("*")
     .eq("archived", false)
+    .eq("featured", true)
     .order("featured", { ascending: false })
     .order("updated_at", { ascending: false });
 
@@ -167,6 +168,7 @@ export const getResumeByVertical = cache(async (vertical: Vertical): Promise<Res
     .select("*")
     .eq("vertical", vertical)
     .eq("archived", false)
+    .eq("featured", true)
     .order("featured", { ascending: false })
     .order("updated_at", { ascending: false })
     .limit(1);

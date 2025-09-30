@@ -406,13 +406,21 @@ begin
     end if;
   end loop;
 
-  -- Resumes: restrict to authenticated (no public access)
+  -- Resumes: authenticated get full access; public sees only featured rows
   if not exists (
     select 1 from pg_policies
     where schemaname='public' and tablename='resumes' and policyname='resumes_admin_read'
   ) then
     execute 'create policy "resumes_admin_read" on public.resumes
              for select to authenticated using (true);';
+  end if;
+
+  if not exists (
+    select 1 from pg_policies
+    where schemaname='public' and tablename='resumes' and policyname='resumes_public_featured_read'
+  ) then
+    execute 'create policy "resumes_public_featured_read" on public.resumes
+             for select to public using (featured = true and archived = false);';
   end if;
 end
 $plpgsql$;
@@ -509,7 +517,7 @@ $plpgsql$;
 insert into storage.buckets (id, name, public)
 values
   ('images',  'images',  true),
-  ('resumes', 'resumes', false),
+  ('resumes', 'resumes', true),
   ('content', 'content', true)
 on conflict (id) do update
   set name = excluded.name,
@@ -532,6 +540,17 @@ begin
   if not exists (
     select 1
     from pg_policies
+    where schemaname = 'storage' and tablename = 'objects' and policyname = 'storage_resumes_public_read'
+  ) then
+    execute 'create policy "storage_resumes_public_read"
+               on storage.objects
+               for select to public
+               using (bucket_id = ''resumes'');';
+  end if;
+
+  if not exists (
+    select 1
+    from pg_policies
     where schemaname = 'storage' and tablename = 'objects' and policyname = 'storage_content_public_read'
   ) then
     execute 'create policy "storage_content_public_read"
@@ -542,4 +561,4 @@ begin
 end
 $plpgsql$;
 
--- (No public access for 'resumes' bucket; use signed URLs.)
+-- ('resumes' bucket is public for read access; signed URLs still used for gated downloads.)

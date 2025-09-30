@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import type { ZodIssue } from "zod";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin-client";
 import { logEvent } from "@/lib/analytics/log-event";
@@ -35,7 +34,7 @@ export async function submitContact(
   if (!parsed.success) {
     return {
       success: false,
-      error: parsed.error.issues.map((issue: ZodIssue) => issue.message).join("\n"),
+      error: parsed.error.issues.map((issue) => issue.message).join("\n"),
       values: raw,
     };
   }
@@ -61,7 +60,7 @@ export async function submitContact(
         headers: { "content-type": "application/x-www-form-urlencoded" },
         body,
       });
-      const result = (await res.json()) as { success: boolean; [k: string]: unknown };
+      const result = (await res.json()) as { success: boolean;[k: string]: unknown };
       if (!result.success) {
         console.error("Turnstile verification failed", { result });
         return { success: false, error: "Captcha verification failed", values: raw };

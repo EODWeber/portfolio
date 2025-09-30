@@ -4,9 +4,10 @@ export const revalidate = 0;
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
-import { siGithub, siX, siLinkedin, siYoutube, siRss } from "simple-icons";
+import { IconCircle } from "@/components/ui/icon-circle";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSocialPosts, getSiteSettings } from "@/lib/supabase/queries";
+import { getSimpleIconBySlug, guessSimpleIconSlug } from "@/lib/simple-icons";
 
 export default async function SocialFeedPage() {
   const [posts, settings] = await Promise.all([getSocialPosts(), getSiteSettings()]);
@@ -28,48 +29,24 @@ export default async function SocialFeedPage() {
       ) : (
         <div className="grid gap-4">
           {posts.map((post) => {
-            const p = post.platform.toLowerCase();
-            const icon = p.includes("github")
-              ? siGithub
-              : p.includes("x") || p.includes("twitter")
-                ? siX
-                : p.includes("linkedin")
-                  ? siLinkedin
-                  : p.includes("youtube")
-                    ? siYoutube
-                    : siRss;
+            const slug = guessSimpleIconSlug({ platform: post.platform, url: post.url });
+            const icon = slug ? getSimpleIconBySlug(slug) : null;
+            const postedAt = new Date(post.posted_at).toLocaleDateString();
             return (
               <Card key={post.id}>
-                <CardHeader>
+                <CardHeader className="gap-3">
                   <CardTitle className="text-lg">{post.title}</CardTitle>
-                  <CardDescription className="text-sm">{post.platform}</CardDescription>
-                  <div className="text-muted-foreground flex items-center gap-3 text-sm">
-                    <div className="flex items-center gap-2">
-                      <span>{new Date(post.posted_at).toLocaleDateString()}</span>
-                      {post.featured ? (
-                        <Badge variant="secondary" className="font-medium uppercase">
-                          Featured
-                        </Badge>
-                      ) : null}
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2 text-foreground">
+                      <IconCircle icon={icon} fallback="globe" />
+                      <span className="font-semibold uppercase tracking-wide">{post.platform}</span>
                     </div>
-                    <span
-                      aria-hidden
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-full"
-                      style={{ backgroundColor: `#${icon.hex}` }}
-                      title={post.platform}
-                    >
-                      <svg
-                        viewBox="0 0 24 24"
-                        width="18"
-                        height="18"
-                        fill="white"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path d={icon.path} />
-                      </svg>
-                    </span>
-                    &nbsp;
-                    {post.platform}
+                    <span>{postedAt}</span>
+                    {post.featured ? (
+                      <Badge variant="secondary" className="font-medium uppercase">
+                        Featured
+                      </Badge>
+                    ) : null}
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">

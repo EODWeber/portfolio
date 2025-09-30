@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
+import { IconCircle } from "@/components/ui/icon-circle";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   getContactLinks,
@@ -8,7 +9,9 @@ import {
   getSiteProfile,
   getSiteSettings,
 } from "@/lib/supabase/queries";
-import type { Vertical } from "@/lib/supabase/types";
+import { getHostFromUrl, getSimpleIconBySlug, guessSimpleIconSlug } from "@/lib/simple-icons";
+import type { ContactLink, Vertical } from "@/lib/supabase/types";
+import type { SimpleIcon } from "simple-icons";
 
 import { ContactForm } from "./contact-form";
 
@@ -17,6 +20,62 @@ const verticalLabels: Record<Vertical, string> = {
   "secure-devops": "Secure DevOps",
   soc: "SOC",
 };
+
+type IconFallback = "globe" | "mail";
+
+function formatCategory(value: string): string {
+  const sanitized = value
+    .replace(/[._-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!sanitized) return "Contact";
+  return sanitized
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function resolveCategory(
+  link: ContactLink,
+  icon: SimpleIcon | null,
+  fallback: IconFallback,
+): string {
+  if (link.category && link.category.trim()) {
+    return formatCategory(link.category);
+  }
+  if (fallback === "mail") {
+    return "Email";
+  }
+  if (icon?.title) {
+    return icon.title;
+  }
+  const host = getHostFromUrl(link.url);
+  if (host) {
+    return formatCategory(host);
+  }
+  return "Contact";
+}
+
+function resolveContactIcon(link: ContactLink): {
+  icon: SimpleIcon | null;
+  fallback: IconFallback;
+} {
+  const url = link.url.trim();
+  if (url.toLowerCase().startsWith("mailto:")) {
+    return { icon: null, fallback: "mail" };
+  }
+
+  const slug = guessSimpleIconSlug({
+    slug: link.icon,
+    label: link.label,
+    category: link.category,
+    url: link.url,
+  });
+
+  const icon = slug ? getSimpleIconBySlug(slug) : null;
+  return { icon, fallback: "globe" };
+}
 
 export default async function ContactPage() {
   const [profile, contacts, resumes, settings] = await Promise.all([
@@ -47,8 +106,8 @@ export default async function ContactPage() {
           <CardHeader>
             <CardTitle>Contact form</CardTitle>
             <CardDescription>
-              This message routes directly to Jeff. All submissions are stored securely in Supabase
-              for follow-up.
+              Send me a message using the form below, or reach out via any of the channels listed
+              further down.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -92,10 +151,10 @@ export default async function ContactPage() {
               <CardHeader className="py-2">
                 <CardTitle className="text-sm">Batch download</CardTitle>
                 <CardDescription className="text-xs">
-                  Opens each primary resume in a new tab for quick access.
+                  Opens each resume in a new tab for quick access.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="text-primary -mt-3 pt-0 text-xs">
+              <CardContent className="text-primary -mt-2 pt-0 text-xs">
                 Download all primary resumes →
               </CardContent>
             </Card>
@@ -107,18 +166,19 @@ export default async function ContactPage() {
                   aria-label={resume.label}
                 />
                 <CardHeader className="py-2">
-                  <CardTitle className="text-sm">{resume.label}</CardTitle>
+                  <CardTitle className="text-sm">
+                    <div className="text-muted-foreground flex items-center justify-between gap-2">
+                      {resume.label}
+                      <Badge variant="secondary" className="uppercase tracking-wide">
+                        {verticalLabels[resume.vertical] ?? resume.vertical}
+                      </Badge>
+                    </div>
+                  </CardTitle>
                   <CardDescription className="text-xs">
                     Updated {new Date(resume.updated_at).toLocaleDateString()}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="-mt-2 space-y-2 pt-0 text-xs">
-                  <div className="text-muted-foreground flex items-center justify-between gap-2">
-                    {profile?.location ? <span>{profile.location}</span> : <span />}
-                    <Badge variant="secondary" className="uppercase tracking-wide">
-                      {verticalLabels[resume.vertical] ?? resume.vertical}
-                    </Badge>
-                  </div>
+                <CardContent className="-mt-2 mb-2 space-y-2 pt-0 text-xs">
                   <span className="text-primary block">Generate secure download →</span>
                 </CardContent>
               </Card>
@@ -133,29 +193,62 @@ export default async function ContactPage() {
         <h2 className="text-2xl font-semibold">Channels</h2>
         {contacts.length === 0 ? (
           <p className="text-muted-foreground text-sm">
-            Add contact links in Supabase (or via the admin Contact Links page) to populate this
-            section.
+            Add contact links via the admin Contact Links page to populate this section.
           </p>
         ) : (
-          <div className="grid gap-4">
-            {contacts.map((link) => (
-              <Card key={link.id}>
-                <CardHeader>
-                  <CardTitle className="text-lg">{link.label}</CardTitle>
-                  {link.category ? <CardDescription>{link.category}</CardDescription> : null}
-                </CardHeader>
-                <CardContent>
+          <div className="grid auto-rows-fr gap-3 [grid-template-columns:repeat(auto-fit,minmax(13rem,1fr))]">
+            {contacts.map((link) => {
+              const { icon, fallback } = resolveContactIcon(link);
+              const categoryLabel = resolveCategory(link, icon, fallback);
+              const card = (
+                <Card className="h-full py-0 transition-all duration-200 hover:-translate-y-1 hover:border-primary/40 hover:bg-primary/5">
+                  <CardHeader className="gap-2 px-4 py-3">
+                    <CardTitle className="text-sm font-semibold leading-tight text-foreground">
+                      <div className="text-muted-foreground flex items-center justify-between gap-2">
+                        {link.label}
+                        <IconCircle icon={icon} fallback={fallback} />
+                      </div>
+                    </CardTitle>
+                    <div className="flex items-center gap-3">
+                      <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+                        {categoryLabel}
+                      </span>
+                    </div>
+                  </CardHeader>
+                </Card>
+              );
+
+              const commonClasses =
+                "group block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+
+              if (link.url.startsWith("/")) {
+                return (
                   <Link
+                    key={link.id}
                     href={link.url}
-                    target={link.url.startsWith("http") ? "_blank" : undefined}
-                    rel="noreferrer"
-                    className="text-primary text-sm hover:underline"
+                    className={commonClasses}
+                    prefetch={false}
+                    aria-label={link.label}
                   >
-                    {link.url}
+                    {card}
                   </Link>
-                </CardContent>
-              </Card>
-            ))}
+                );
+              }
+
+              const isHttp = link.url.startsWith("http");
+              return (
+                <a
+                  key={link.id}
+                  href={link.url}
+                  className={commonClasses}
+                  target={isHttp ? "_blank" : undefined}
+                  rel={isHttp ? "noreferrer noopener" : undefined}
+                  aria-label={link.label}
+                >
+                  {card}
+                </a>
+              );
+            })}
           </div>
         )}
       </section>
