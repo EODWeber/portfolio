@@ -20,7 +20,7 @@ const caseStudySchema = z.object({
   tags: z.string().optional(),
   body_path: z.string().optional(),
   hero_url: z.string().optional(),
-  metrics: z.union([z.string(), z.record(z.any())]).optional(),
+  metrics: z.union([z.string(), z.record(z.string(), z.any())]).optional(),
   featured_metric: z.string().optional(),
   status: z.enum(["draft", "published"]),
   featured: z.string().optional(),

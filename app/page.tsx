@@ -6,8 +6,9 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { IconCircle } from "@/components/ui/icon-circle";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { siGithub, siX, siLinkedin, siYoutube, siRss } from "simple-icons";
+import { getSimpleIconBySlug, guessSimpleIconSlug } from "@/lib/simple-icons";
 import { caseStudyMetricsEntries, normalizeCaseStudyMetrics } from "@/lib/case-studies/metrics";
 import {
   getFeaturedProjects,
@@ -366,16 +367,9 @@ export default async function HomePage() {
             </Card>
           ) : (
             posts.map((post) => {
-              const p = post.platform.toLowerCase();
-              const icon = p.includes("github")
-                ? siGithub
-                : p.includes("x") || p.includes("twitter")
-                  ? siX
-                  : p.includes("linkedin")
-                    ? siLinkedin
-                    : p.includes("youtube")
-                      ? siYoutube
-                      : siRss;
+              const slug = guessSimpleIconSlug({ platform: post.platform, url: post.url });
+              const icon = slug ? getSimpleIconBySlug(slug) : null;
+              const postedAt = new Date(post.posted_at).toLocaleDateString();
               return (
                 <Card key={post.id} className="group relative">
                   <Link
@@ -387,24 +381,12 @@ export default async function HomePage() {
                   />
                   <CardHeader>
                     <CardTitle className="text-base group-hover:underline">{post.title}</CardTitle>
-                    <div className="text-muted-foreground mt-2 flex items-center gap-2 text-xs">
-                      <span>{new Date(post.posted_at).toLocaleDateString()}</span>
-                      <span
-                        aria-hidden
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full"
-                        style={{ backgroundColor: `#${icon.hex}` }}
-                        title={post.platform}
-                      >
-                        <svg
-                          viewBox="0 0 24 24"
-                          width="18"
-                          height="18"
-                          fill="white"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path d={icon.path} />
-                        </svg>
+                    <div className="text-muted-foreground mt-2 flex items-center gap-3 text-xs">
+                      <IconCircle icon={icon} fallback="globe" />
+                      <span className="text-foreground font-semibold uppercase tracking-wide">
+                        {post.platform}
                       </span>
+                      <span>{postedAt}</span>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3 text-sm">
