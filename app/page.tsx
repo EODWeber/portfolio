@@ -6,17 +6,14 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { IconCircle } from "@/components/ui/icon-circle";
-import { IconCircle } from "@/components/ui/icon-circle";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { caseStudyMetricsEntries } from "@/lib/case-studies/metrics";
-import { getSimpleIconBySlug, guessSimpleIconSlug } from "@/lib/simple-icons";
+import { IconCircle } from "@/components/ui/icon-circle";
 import { caseStudyMetricsEntries } from "@/lib/case-studies/metrics";
 import { getSimpleIconBySlug, guessSimpleIconSlug } from "@/lib/simple-icons";
 import {
-  getFeaturedProjects,
   getFeaturedArticles,
   getFeaturedCaseStudies,
+  getFeaturedProjects,
   getSiteProfile,
   getSiteSettings,
   getSocialPosts,
@@ -27,7 +24,6 @@ export default async function HomePage() {
     getSiteSettings(),
     getSiteProfile(),
     getFeaturedProjects(3),
-    getFeaturedCaseStudies(2),
     getFeaturedCaseStudies(2),
     getFeaturedArticles(3),
     getSocialPosts(3),
@@ -97,7 +93,6 @@ export default async function HomePage() {
           </div>
           <Card className="border-border/50 bg-background/80 w-full max-w-sm shadow-lg backdrop-blur">
             <CardHeader>
-              <CardTitle>Recent highlights</CardTitle>
               <CardTitle>Recent highlights</CardTitle>
               <CardDescription>Measurable outcomes tied to case studies.</CardDescription>
             </CardHeader>
@@ -222,7 +217,6 @@ export default async function HomePage() {
           ) : (
             caseStudies.slice(0, 2).map((study) => {
               const metrics = caseStudyMetricsEntries(study.metrics);
-              const metrics = caseStudyMetricsEntries(study.metrics);
               return (
                 <Card key={study.id} className="group relative overflow-hidden">
                   <Link
@@ -245,20 +239,6 @@ export default async function HomePage() {
                   </CardHeader>
                   <CardContent className="text-sm">
                     <p className="text-foreground font-medium">Key metrics</p>
-                    {metrics.length === 0 ? (
-                      <p className="text-muted-foreground mt-2">
-                        Add metric details to highlight outcomes.
-                      </p>
-                    ) : (
-                      <ul className="text-muted-foreground mt-2 space-y-1">
-                        {metrics.map(({ key, title, description }) => (
-                          <li key={key}>
-                            <span className="text-foreground font-medium">{title}:</span>{" "}
-                            {description}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
                     {metrics.length === 0 ? (
                       <p className="text-muted-foreground mt-2">
                         Add metric details to highlight outcomes.
@@ -364,9 +344,6 @@ export default async function HomePage() {
               const slug = guessSimpleIconSlug({ platform: post.platform, url: post.url });
               const icon = slug ? getSimpleIconBySlug(slug) : null;
               const postedAt = new Date(post.posted_at).toLocaleDateString();
-              const slug = guessSimpleIconSlug({ platform: post.platform, url: post.url });
-              const icon = slug ? getSimpleIconBySlug(slug) : null;
-              const postedAt = new Date(post.posted_at).toLocaleDateString();
               return (
                 <Card key={post.id} className="group relative">
                   <Link
@@ -382,35 +359,25 @@ export default async function HomePage() {
                       <IconCircle icon={icon} fallback="globe" />
                       <span className="text-foreground font-semibold uppercase tracking-wide">
                         {post.platform}
-                        <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-3 text-xs">
-                          <IconCircle icon={icon} fallback="globe" />
-                          <span className="text-foreground font-semibold uppercase tracking-wide">
-                            {post.platform}
-                          </span>
-                          <span>{postedAt}</span>
-                          {post.featured ? (
-                            <Badge variant="secondary" className="font-medium uppercase">
-                              Featured
-                            </Badge>
-                          ) : null}
-                          <span>{postedAt}</span>
-                          {post.featured ? (
-                            <Badge variant="secondary" className="font-medium uppercase">
-                              Featured
-                            </Badge>
-                          ) : null}
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-3 text-sm">
-                        {post.summary ? <p className="text-muted-foreground">{post.summary}</p> : null}
-                        <span className="text-primary">View post →</span>
-                      </CardContent>
-                    </Card>
-                    );
+                      </span>
+                      <span>{postedAt}</span>
+                      {post.featured ? (
+                        <Badge variant="secondary" className="font-medium uppercase">
+                          Featured
+                        </Badge>
+                      ) : null}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3 text-sm">
+                    {post.summary ? <p className="text-muted-foreground">{post.summary}</p> : null}
+                    <span className="text-primary">View post →</span>
+                  </CardContent>
+                </Card>
+              );
             })
           )}
-                  </div>
-                </section>
+        </div>
+      </section>
     </div>
-        );
+  );
 }
