@@ -46,46 +46,67 @@ const siteSettingsSchema = z.object({
 export async function upsertSiteSettings(formData: FormData) {
   await requireAdminUser();
 
+  const getOptionalString = (key: string): string | undefined => {
+    if (!formData.has(key)) {
+      return undefined;
+    }
+
+    const value = formData.get(key);
+
+    if (value == null) {
+      return undefined;
+    }
+
+    if (typeof value === "string") {
+      return value;
+    }
+
+    return value.toString();
+  };
+
+  const formId = getOptionalString("id");
+  const resumePreference = getOptionalString("resume_preference");
+
   const payload = siteSettingsSchema.parse({
-    id: formData.get("id")?.toString() || undefined,
-    site_title: formData.get("site_title")?.toString() ?? "",
-    site_tagline: formData.get("site_tagline")?.toString() ?? "",
-    meta_description: formData.get("meta_description")?.toString() ?? "",
+    id: formId && formId.trim() !== "" ? formId : undefined,
+    site_title: getOptionalString("site_title"),
+    site_tagline: getOptionalString("site_tagline"),
+    meta_description: getOptionalString("meta_description"),
     // Home hero & availability + CTAs (Home tab)
-    hero_heading: formData.get("hero_heading")?.toString() ?? "",
-    hero_subheading: formData.get("hero_subheading")?.toString() ?? "",
-    hiring_status: formData.get("hiring_status")?.toString() ?? "",
-    location: formData.get("location")?.toString() ?? "",
-    resume_preference: (formData.get("resume_preference")?.toString() ?? undefined) as
+    hero_heading: getOptionalString("hero_heading"),
+    hero_subheading: getOptionalString("hero_subheading"),
+    hiring_status: getOptionalString("hiring_status"),
+    location: getOptionalString("location"),
+    resume_preference: resumePreference as
       | "ai-security"
       | "secure-devops"
       | "soc"
       | undefined,
-    primary_cta_label: formData.get("primary_cta_label")?.toString() ?? "",
-    primary_cta_url: formData.get("primary_cta_url")?.toString() ?? "",
-    secondary_cta_label: formData.get("secondary_cta_label")?.toString() ?? "",
-    secondary_cta_url: formData.get("secondary_cta_url")?.toString() ?? "",
+    primary_cta_label: getOptionalString("primary_cta_label"),
+    primary_cta_url: getOptionalString("primary_cta_url"),
+    secondary_cta_label: getOptionalString("secondary_cta_label"),
+    secondary_cta_url: getOptionalString("secondary_cta_url"),
     // Headings/subheadings across sections
-    home_heading: formData.get("home_heading")?.toString() ?? undefined,
-    home_subheading: formData.get("home_subheading")?.toString() ?? undefined,
-    home_projects_heading: formData.get("home_projects_heading")?.toString() ?? undefined,
-    home_projects_subheading: formData.get("home_projects_subheading")?.toString() ?? undefined,
-    home_studies_heading: formData.get("home_studies_heading")?.toString() ?? undefined,
-    home_studies_subheading: formData.get("home_studies_subheading")?.toString() ?? undefined,
-    home_articles_heading: formData.get("home_articles_heading")?.toString() ?? undefined,
-    home_articles_subheading: formData.get("home_articles_subheading")?.toString() ?? undefined,
-    home_social_heading: formData.get("home_social_heading")?.toString() ?? undefined,
-    home_social_subheading: formData.get("home_social_subheading")?.toString() ?? undefined,
-    portfolio_heading: formData.get("portfolio_heading")?.toString() ?? undefined,
-    portfolio_subheading: formData.get("portfolio_subheading")?.toString() ?? undefined,
-    studies_heading: formData.get("studies_heading")?.toString() ?? undefined,
-    studies_subheading: formData.get("studies_subheading")?.toString() ?? undefined,
-    articles_heading: formData.get("articles_heading")?.toString() ?? undefined,
-    articles_subheading: formData.get("articles_subheading")?.toString() ?? undefined,
-    social_heading: formData.get("social_heading")?.toString() ?? undefined,
-    social_subheading: formData.get("social_subheading")?.toString() ?? undefined,
-    contact_heading: formData.get("contact_heading")?.toString() ?? undefined,
-    contact_subheading: formData.get("contact_subheading")?.toString() ?? undefined,
+    home_heading: getOptionalString("home_heading"),
+    home_subheading: getOptionalString("home_subheading"),
+    home_projects_heading: getOptionalString("home_projects_heading"),
+    home_projects_subheading: getOptionalString("home_projects_subheading"),
+    home_studies_heading: getOptionalString("home_studies_heading"),
+    home_studies_subheading: getOptionalString("home_studies_subheading"),
+    home_articles_heading: getOptionalString("home_articles_heading"),
+    home_articles_subheading: getOptionalString("home_articles_subheading"),
+    home_social_heading: getOptionalString("home_social_heading"),
+    home_social_subheading: getOptionalString("home_social_subheading"),
+    portfolio_heading: getOptionalString("portfolio_heading"),
+    portfolio_subheading: getOptionalString("portfolio_subheading"),
+    studies_heading: getOptionalString("studies_heading"),
+    studies_subheading: getOptionalString("studies_subheading"),
+    articles_heading: getOptionalString("articles_heading"),
+    articles_subheading: getOptionalString("articles_subheading"),
+    social_heading: getOptionalString("social_heading"),
+    social_subheading: getOptionalString("social_subheading"),
+    contact_heading: getOptionalString("contact_heading"),
+    contact_subheading: getOptionalString("contact_subheading"),
   });
 
   const admin = createSupabaseAdminClient();
