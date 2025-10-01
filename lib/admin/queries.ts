@@ -2,6 +2,12 @@ import type {
   Article,
   CaseStudy,
   ContactRequest,
+  ProfileCareerHighlight,
+  ProfilePersonalEntry,
+  ProfilePillar,
+  ProfileRecognition,
+  ProfileSpeakingEngagement,
+  ProfileTestimonial,
   Project,
   Resume,
   SiteProfile,
@@ -177,6 +183,72 @@ export async function fetchSiteProfile(): Promise<SiteProfile | null> {
     .maybeSingle();
   if (error) throw new Error(error.message);
   return (data as SiteProfile | null) ?? null;
+}
+
+export async function fetchProfilePillars(): Promise<ProfilePillar[]> {
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .from("profile_pillars")
+    .select("*")
+    .order("order_index", { ascending: true })
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data as ProfilePillar[]) ?? [];
+}
+
+export async function fetchProfileCareerHighlights(): Promise<ProfileCareerHighlight[]> {
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .from("profile_career_highlights")
+    .select("*")
+    .order("order_index", { ascending: true })
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data as ProfileCareerHighlight[]) ?? [];
+}
+
+export async function fetchProfileSpeaking(): Promise<ProfileSpeakingEngagement[]> {
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .from("profile_speaking_engagements")
+    .select("*")
+    .order("order_index", { ascending: true })
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data as ProfileSpeakingEngagement[]) ?? [];
+}
+
+export async function fetchProfileRecognitions(): Promise<ProfileRecognition[]> {
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .from("profile_recognitions")
+    .select("*")
+    .order("order_index", { ascending: true })
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data as ProfileRecognition[]) ?? [];
+}
+
+export async function fetchProfileTestimonials(): Promise<ProfileTestimonial[]> {
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .from("profile_testimonials")
+    .select("*")
+    .order("order_index", { ascending: true })
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data as ProfileTestimonial[]) ?? [];
+}
+
+export async function fetchProfilePersonalEntries(): Promise<ProfilePersonalEntry[]> {
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .from("profile_personal_entries")
+    .select("*")
+    .order("order_index", { ascending: true })
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data as ProfilePersonalEntry[]) ?? [];
 }
 
 export async function fetchEventSummary(): Promise<Array<{ type: string; count: number }>> {

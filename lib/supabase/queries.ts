@@ -6,13 +6,19 @@ import type {
   Article,
   CaseStudy,
   ContactLink,
+  MdxDocument,
+  ProfileCareerHighlight,
+  ProfilePersonalEntry,
+  ProfilePillar,
+  ProfileRecognition,
+  ProfileSpeakingEngagement,
+  ProfileTestimonial,
   Project,
   Resume,
   SiteProfile,
   SiteSettings,
   SocialPost,
   Vertical,
-  MdxDocument,
 } from "./types";
 import { readStorageText } from "./storage";
 
@@ -361,6 +367,66 @@ export const getSiteProfile = cache(async (): Promise<SiteProfile | null> => {
   }
 
   return data as SiteProfile | null;
+});
+
+export const getProfilePillars = cache(async (): Promise<ProfilePillar[]> => {
+  const supabase = await getClient();
+  const { data, error } = await supabase
+    .from("profile_pillars")
+    .select("*")
+    .order("order_index", { ascending: true })
+    .order("created_at", { ascending: true });
+  return unwrap<ProfilePillar[]>(data, error, "Unable to load profile pillars");
+});
+
+export const getProfileCareerHighlights = cache(async (): Promise<ProfileCareerHighlight[]> => {
+  const supabase = await getClient();
+  const { data, error } = await supabase
+    .from("profile_career_highlights")
+    .select("*")
+    .order("order_index", { ascending: true })
+    .order("created_at", { ascending: true });
+  return unwrap<ProfileCareerHighlight[]>(data, error, "Unable to load career highlights");
+});
+
+export const getProfileSpeaking = cache(async (): Promise<ProfileSpeakingEngagement[]> => {
+  const supabase = await getClient();
+  const { data, error } = await supabase
+    .from("profile_speaking_engagements")
+    .select("*")
+    .order("order_index", { ascending: true })
+    .order("created_at", { ascending: true });
+  return unwrap<ProfileSpeakingEngagement[]>(data, error, "Unable to load speaking engagements");
+});
+
+export const getProfileRecognitions = cache(async (): Promise<ProfileRecognition[]> => {
+  const supabase = await getClient();
+  const { data, error } = await supabase
+    .from("profile_recognitions")
+    .select("*")
+    .order("order_index", { ascending: true })
+    .order("created_at", { ascending: true });
+  return unwrap<ProfileRecognition[]>(data, error, "Unable to load recognitions");
+});
+
+export const getProfileTestimonials = cache(async (): Promise<ProfileTestimonial[]> => {
+  const supabase = await getClient();
+  const { data, error } = await supabase
+    .from("profile_testimonials")
+    .select("*")
+    .order("order_index", { ascending: true })
+    .order("created_at", { ascending: true });
+  return unwrap<ProfileTestimonial[]>(data, error, "Unable to load testimonials");
+});
+
+export const getProfilePersonalEntries = cache(async (): Promise<ProfilePersonalEntry[]> => {
+  const supabase = await getClient();
+  const { data, error } = await supabase
+    .from("profile_personal_entries")
+    .select("*")
+    .order("order_index", { ascending: true })
+    .order("created_at", { ascending: true });
+  return unwrap<ProfilePersonalEntry[]>(data, error, "Unable to load personal entries");
 });
 
 export const getContactLinks = cache(async (): Promise<ContactLink[]> => {
