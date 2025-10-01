@@ -77,11 +77,7 @@ export async function upsertSiteSettings(formData: FormData) {
     hero_subheading: getOptionalString("hero_subheading"),
     hiring_status: getOptionalString("hiring_status"),
     location: getOptionalString("location"),
-    resume_preference: resumePreference as
-      | "ai-security"
-      | "secure-devops"
-      | "soc"
-      | undefined,
+    resume_preference: resumePreference as "ai-security" | "secure-devops" | "soc" | undefined,
     primary_cta_label: getOptionalString("primary_cta_label"),
     primary_cta_url: getOptionalString("primary_cta_url"),
     secondary_cta_label: getOptionalString("secondary_cta_label"),
