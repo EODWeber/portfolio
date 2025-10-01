@@ -33,22 +33,25 @@ export default async function HomePage() {
     getSocialPosts(3),
   ]);
 
-  const headline =
-    settings?.home_heading ??
+  const heroHeading =
+    settings?.hero_heading ??
     profile?.headline ??
     settings?.site_tagline ??
     "Security-led engineering for AI & cloud";
-  const summary =
-    settings?.home_subheading ??
+  const heroSubheading =
+    settings?.hero_subheading ??
     profile?.summary ??
     "Partnering with product, platform, and security teams to accelerate delivery while improving trust—AI security, secure DevOps, and SOC automation.";
-  const hiringStatus = profile?.hiring_status ?? "Open to high‑impact security leadership roles";
+  const hiringStatus =
+    settings?.hiring_status ??
+    profile?.hiring_status ??
+    "Open to high‑impact security leadership roles";
   const primaryCtaLabel = settings?.primary_cta_label ?? "View portfolio";
   const primaryCtaUrl = settings?.primary_cta_url ?? "/portfolio";
   const secondaryCtaLabel = settings?.secondary_cta_label ?? "Explore case studies";
   const secondaryCtaUrl = settings?.secondary_cta_url ?? "/case-studies";
   const avatarUrl = profile?.avatar_url ?? "/profile-placeholder.svg";
-  const location = profile?.location ?? "Remote-first";
+  const location = settings?.location ?? profile?.location ?? "Remote-first";
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-16 px-4 py-12 sm:px-6 sm:py-16">
@@ -106,7 +109,7 @@ export default async function HomePage() {
                     <Link
                       key={highlight.label}
                       href={`/case-studies?tag=${tag}`}
-                      className="border-border/40 bg-muted/30 hover:bg-muted/50 rounded-md border px-3 py-2"
+                      className="border-border/40 bg-muted/30 hover:bg-muted/50 focus-visible:ring-ring block rounded-md border px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                     >
                       <p className="text-foreground font-medium">{highlight.label}</p>
                       {highlight.value ? (
