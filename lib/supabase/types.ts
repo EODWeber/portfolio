@@ -108,12 +108,79 @@ export type Highlight = {
   value: string;
 };
 
+export type ProfilePillar = {
+  id: string;
+  title: string;
+  description: string;
+  icon_slug: string | null;
+  link_label: string | null;
+  link_url: string | null;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProfileCareerHighlight = {
+  id: string;
+  title: string;
+  description: string;
+  link_label: string | null;
+  link_url: string | null;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProfileSpeakingEngagement = {
+  id: string;
+  event: string;
+  title: string | null;
+  year: string | null;
+  link_url: string | null;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProfileRecognition = {
+  id: string;
+  title: string;
+  issuer: string | null;
+  year: string | null;
+  link_url: string | null;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProfileTestimonial = {
+  id: string;
+  quote: string;
+  attribution: string;
+  role: string | null;
+  link_url: string | null;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProfilePersonalEntry = {
+  id: string;
+  title: string;
+  description: string;
+  icon_slug: string | null;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type SiteProfile = {
   id: string;
   full_name: string;
   headline: string;
   subheadline: string | null;
   summary: string | null;
+  philosophy: string | null;
   avatar_url: string | null;
   location: string | null;
   hiring_status: string | null;
@@ -128,6 +195,12 @@ export type SiteProfile = {
   phonetic_name?: string | null;
   languages?: string[] | null;
   access_notes?: string | null;
+  cta_primary_label?: string | null;
+  cta_primary_url?: string | null;
+  cta_secondary_label?: string | null;
+  cta_secondary_url?: string | null;
+  career_cta_label?: string | null;
+  career_cta_url?: string | null;
   created_at: string;
   updated_at: string;
 };

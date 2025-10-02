@@ -193,6 +193,88 @@ create table if not exists public.site_profile (
   updated_at timestamptz not null default now()
 );
 
+alter table public.site_profile add column if not exists pronouns text;
+alter table public.site_profile add column if not exists phonetic_name text;
+alter table public.site_profile add column if not exists philosophy text;
+alter table public.site_profile add column if not exists cta_primary_label text;
+alter table public.site_profile add column if not exists cta_primary_url text;
+alter table public.site_profile add column if not exists cta_secondary_label text;
+alter table public.site_profile add column if not exists cta_secondary_url text;
+alter table public.site_profile add column if not exists career_cta_label text;
+alter table public.site_profile add column if not exists career_cta_url text;
+
+create table if not exists public.profile_pillars (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  description text not null,
+  icon_slug text,
+  link_label text,
+  link_url text,
+  order_index integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists profile_pillars_order_idx on public.profile_pillars (order_index, created_at);
+
+create table if not exists public.profile_career_highlights (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  description text not null,
+  link_label text,
+  link_url text,
+  order_index integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists profile_career_highlights_order_idx on public.profile_career_highlights (order_index, created_at);
+
+create table if not exists public.profile_speaking_engagements (
+  id uuid primary key default gen_random_uuid(),
+  event text not null,
+  title text,
+  year text,
+  link_url text,
+  order_index integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists profile_speaking_engagements_order_idx on public.profile_speaking_engagements (order_index, created_at);
+
+create table if not exists public.profile_recognitions (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  issuer text,
+  year text,
+  link_url text,
+  order_index integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists profile_recognitions_order_idx on public.profile_recognitions (order_index, created_at);
+
+create table if not exists public.profile_testimonials (
+  id uuid primary key default gen_random_uuid(),
+  quote text not null,
+  attribution text not null,
+  role text,
+  link_url text,
+  order_index integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists profile_testimonials_order_idx on public.profile_testimonials (order_index, created_at);
+
+create table if not exists public.profile_personal_entries (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  description text not null,
+  icon_slug text,
+  order_index integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists profile_personal_entries_order_idx on public.profile_personal_entries (order_index, created_at);
+
 create table if not exists public.contact_links (
   id uuid primary key default gen_random_uuid(),
   label text not null,
@@ -247,6 +329,12 @@ alter table public.site_settings enable row level security;
 alter table public.site_profile  enable row level security;
 alter table public.contact_links enable row level security;
 alter table public.contact_requests enable row level security;
+alter table public.profile_pillars enable row level security;
+alter table public.profile_career_highlights enable row level security;
+alter table public.profile_speaking_engagements enable row level security;
+alter table public.profile_recognitions enable row level security;
+alter table public.profile_testimonials enable row level security;
+alter table public.profile_personal_entries enable row level security;
 
 -- Notifications ------------------------------------------------------
 -- Ensure settings table exists (add template columns if missing)
@@ -375,6 +463,42 @@ begin
     select 1 from pg_policies where schemaname='public' and tablename='site_profile' and policyname='site_profile_public_read'
   ) then
     execute 'create policy "site_profile_public_read" on public.site_profile for select to public using (true);';
+  end if;
+
+  if not exists (
+    select 1 from pg_policies where schemaname='public' and tablename='profile_pillars' and policyname='profile_pillars_public_read'
+  ) then
+    execute 'create policy "profile_pillars_public_read" on public.profile_pillars for select to public using (true);';
+  end if;
+
+  if not exists (
+    select 1 from pg_policies where schemaname='public' and tablename='profile_career_highlights' and policyname='profile_career_highlights_public_read'
+  ) then
+    execute 'create policy "profile_career_highlights_public_read" on public.profile_career_highlights for select to public using (true);';
+  end if;
+
+  if not exists (
+    select 1 from pg_policies where schemaname='public' and tablename='profile_speaking_engagements' and policyname='profile_speaking_engagements_public_read'
+  ) then
+    execute 'create policy "profile_speaking_engagements_public_read" on public.profile_speaking_engagements for select to public using (true);';
+  end if;
+
+  if not exists (
+    select 1 from pg_policies where schemaname='public' and tablename='profile_recognitions' and policyname='profile_recognitions_public_read'
+  ) then
+    execute 'create policy "profile_recognitions_public_read" on public.profile_recognitions for select to public using (true);';
+  end if;
+
+  if not exists (
+    select 1 from pg_policies where schemaname='public' and tablename='profile_testimonials' and policyname='profile_testimonials_public_read'
+  ) then
+    execute 'create policy "profile_testimonials_public_read" on public.profile_testimonials for select to public using (true);';
+  end if;
+
+  if not exists (
+    select 1 from pg_policies where schemaname='public' and tablename='profile_personal_entries' and policyname='profile_personal_entries_public_read'
+  ) then
+    execute 'create policy "profile_personal_entries_public_read" on public.profile_personal_entries for select to public using (true);';
   end if;
 
   if not exists (

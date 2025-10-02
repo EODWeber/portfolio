@@ -306,6 +306,7 @@ insert into public.site_profile (
   headline,
   subheadline,
   summary,
+  philosophy,
   avatar_url,
   location,
   hiring_status,
@@ -319,7 +320,13 @@ insert into public.site_profile (
   pronouns,
   phonetic_name,
   languages,
-  access_notes
+  access_notes,
+  cta_primary_label,
+  cta_primary_url,
+  cta_secondary_label,
+  cta_secondary_url,
+  career_cta_label,
+  career_cta_url
 )
 values (
   '22222222-2222-2222-2222-222222222222',
@@ -327,6 +334,7 @@ values (
   'Security-first engineering leader for AI-driven platforms.',
   'Operationalizing AI security, secure delivery, and SOC automation.',
   'Trusted advisor helping CTO/CISO teams ship boldly without compromising trust.',
+  'I believe security is a growth lever. I design guardrails that make experimentation safer, faster, and more accountable.',
   'https://jkonghamlxbaoeytefvs.supabase.co/storage/v1/object/public/images/profile_photo.jpg',
   'San Francisco Bay Area · Remote-friendly',
   'Open to Director/Principal security platform roles',
@@ -340,13 +348,20 @@ values (
   'he/him',
   'JEFF WEE-bur',
   '["English (native)","Spanish (conversational)"]'::jsonb,
-  'Happy to accommodate ASL interpreters and flexible meeting hours across time zones.'
+  'Happy to accommodate ASL interpreters and flexible meeting hours across time zones.',
+  'Explore my work',
+  '/portfolio',
+  'Contact me',
+  'mailto:jeff@example.com',
+  'Read full case studies →',
+  '/case-studies'
 )
 on conflict (id) do update set
   full_name = excluded.full_name,
   headline = excluded.headline,
   subheadline = excluded.subheadline,
   summary = excluded.summary,
+  philosophy = excluded.philosophy,
   avatar_url = excluded.avatar_url,
   location = excluded.location,
   hiring_status = excluded.hiring_status,
@@ -361,6 +376,246 @@ on conflict (id) do update set
   phonetic_name = excluded.phonetic_name,
   languages = excluded.languages,
   access_notes = excluded.access_notes,
+  cta_primary_label = excluded.cta_primary_label,
+  cta_primary_url = excluded.cta_primary_url,
+  cta_secondary_label = excluded.cta_secondary_label,
+  cta_secondary_url = excluded.cta_secondary_url,
+  career_cta_label = excluded.career_cta_label,
+  career_cta_url = excluded.career_cta_url,
+  updated_at = now();
+
+-- Profile pillars -------------------------------------------------------------
+insert into public.profile_pillars (id, title, description, icon_slug, link_label, link_url, order_index)
+values
+  (
+    '33333333-3333-4333-8333-333333333331',
+    'AI Security',
+    'Emerging risks, access governance, and securing self-hosted models for enterprises.',
+    'openai',
+    'View AI security work',
+    '/portfolio?tag=ai-security',
+    0
+  ),
+  (
+    '33333333-3333-4333-8333-333333333332',
+    'DevSecOps & Supply Chain',
+    'SLSA-aligned pipelines, SBOM automation, CodeQL/GHAS adoption, and developer enablement.',
+    'githubactions',
+    'See secure delivery wins',
+    '/portfolio?tag=secure-devops',
+    1
+  ),
+  (
+    '33333333-3333-4333-8333-333333333333',
+    'SOC Automation & Detection',
+    'Python/Splunk automation, enrichment pipelines, and MTTR cuts without extra headcount.',
+    'splunk',
+    'Explore SOC outcomes',
+    '/portfolio?tag=soc',
+    2
+  ),
+  (
+    '33333333-3333-4333-8333-333333333334',
+    'Zero Trust & IAM',
+    'Privileged access, BeyondCorp patterns, and removing shared accounts at scale.',
+    'okta',
+    'Dive into IAM transformations',
+    '/case-studies',
+    3
+  )
+on conflict (id) do update set
+  title = excluded.title,
+  description = excluded.description,
+  icon_slug = excluded.icon_slug,
+  link_label = excluded.link_label,
+  link_url = excluded.link_url,
+  order_index = excluded.order_index,
+  updated_at = now();
+
+-- Career highlights -----------------------------------------------------------
+insert into public.profile_career_highlights (id, title, description, link_label, link_url, order_index)
+values
+  (
+    '44444444-4444-4444-8444-444444444441',
+    'SAIC',
+    'SOC automation program cut MTTR and returned 20 analyst hours weekly.',
+    null,
+    null,
+    0
+  ),
+  (
+    '44444444-4444-4444-8444-444444444442',
+    'Atmosera',
+    'Global IAM re-architecture introducing PAM, RBAC, and audit-ready controls.',
+    null,
+    null,
+    1
+  ),
+  (
+    '44444444-4444-4444-8444-444444444443',
+    'SheppTech',
+    'Founded consulting practice leading cloud security and client delivery.',
+    null,
+    null,
+    2
+  ),
+  (
+    '44444444-4444-4444-8444-444444444444',
+    'Mastery',
+    'SOC 2 remediation, Sentinel automations, and resilient IR playbooks.',
+    null,
+    null,
+    3
+  ),
+  (
+    '44444444-4444-4444-8444-444444444445',
+    'Army',
+    'High-stakes security discipline across presidential mission support.',
+    null,
+    null,
+    4
+  )
+on conflict (id) do update set
+  title = excluded.title,
+  description = excluded.description,
+  link_label = excluded.link_label,
+  link_url = excluded.link_url,
+  order_index = excluded.order_index,
+  updated_at = now();
+
+-- Speaking -------------------------------------------------------------------
+insert into public.profile_speaking_engagements (id, event, title, year, link_url, order_index)
+values
+  (
+    '55555555-5555-4555-8555-555555555551',
+    'DEF CON Workshop',
+    'SOC automation strategies for hybrid cloud',
+    '2024',
+    'https://defcon.org/workshops/soc-automation',
+    0
+  ),
+  (
+    '55555555-5555-4555-8555-555555555552',
+    'BSides Seattle',
+    'Zero Trust adoption lessons from regulated teams',
+    '2023',
+    'https://bsidesseattle.com/talks/zero-trust-lessons',
+    1
+  )
+on conflict (id) do update set
+  event = excluded.event,
+  title = excluded.title,
+  year = excluded.year,
+  link_url = excluded.link_url,
+  order_index = excluded.order_index,
+  updated_at = now();
+
+-- Recognition ----------------------------------------------------------------
+insert into public.profile_recognitions (id, title, issuer, year, link_url, order_index)
+values
+  (
+    '66666666-6666-4666-8666-666666666661',
+    'CISSP',
+    'ISC²',
+    '2015',
+    'https://www.isc2.org/certifications/cissp',
+    0
+  ),
+  (
+    '66666666-6666-4666-8666-666666666662',
+    'OSCP',
+    'OffSec',
+    '2017',
+    'https://www.offsec.com/courses/pen-200/',
+    1
+  ),
+  (
+    '66666666-6666-4666-8666-666666666663',
+    'Featured in Supabase Launch Week',
+    'Supabase',
+    '2024',
+    'https://supabase.com/blog',
+    2
+  )
+on conflict (id) do update set
+  title = excluded.title,
+  issuer = excluded.issuer,
+  year = excluded.year,
+  link_url = excluded.link_url,
+  order_index = excluded.order_index,
+  updated_at = now();
+
+-- Testimonials ---------------------------------------------------------------
+insert into public.profile_testimonials (id, quote, attribution, role, link_url, order_index)
+values
+  (
+    '77777777-7777-4777-8777-777777777771',
+    '“Jeff’s automation work fundamentally changed our SOC efficiency.”',
+    'Manager, SAIC',
+    'Security Operations Leader',
+    null,
+    0
+  ),
+  (
+    '77777777-7777-4777-8777-777777777772',
+    '“He led PAM re-architecture that exceeded audit requirements across a global enterprise.”',
+    'Senior Consultant, Atmosera',
+    'PAM Program Lead',
+    null,
+    1
+  ),
+  (
+    '77777777-7777-4777-8777-777777777773',
+    '“Hands-down the most pragmatic partner we’ve had for AI security.”',
+    'Head of Platform, Mastery',
+    null,
+    null,
+    2
+  )
+on conflict (id) do update set
+  quote = excluded.quote,
+  attribution = excluded.attribution,
+  role = excluded.role,
+  link_url = excluded.link_url,
+  order_index = excluded.order_index,
+  updated_at = now();
+
+-- Beyond security ------------------------------------------------------------
+insert into public.profile_personal_entries (id, title, description, icon_slug, order_index)
+values
+  (
+    '88888888-8888-4888-8888-888888888881',
+    'Interests',
+    'AI safety, homelab engineering, security research.',
+    'homeassistant',
+    0
+  ),
+  (
+    '88888888-8888-4888-8888-888888888882',
+    'Languages',
+    'English (native), Spanish (conversational).',
+    'googletranslate',
+    1
+  ),
+  (
+    '88888888-8888-4888-8888-888888888883',
+    'Hobbies',
+    'Fitness, gourmet mushroom cultivation, woodworking.',
+    'strava',
+    2
+  ),
+  (
+    '88888888-8888-4888-8888-888888888884',
+    'Collaboration Style',
+    'Direct, pragmatic, outcome-driven partner with crisp communication.',
+    'slack',
+    3
+  )
+on conflict (id) do update set
+  title = excluded.title,
+  description = excluded.description,
+  icon_slug = excluded.icon_slug,
+  order_index = excluded.order_index,
   updated_at = now();
 
 -- Contact links --------------------------------------------------------------

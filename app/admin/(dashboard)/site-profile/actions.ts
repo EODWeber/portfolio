@@ -13,90 +13,326 @@ const profileSchema = z.object({
   headline: z.string().min(1),
   subheadline: z.string().optional(),
   summary: z.string().optional(),
+  philosophy: z.string().optional(),
   avatar_url: z.string().optional(),
   location: z.string().optional(),
   hiring_status: z.string().optional(),
   resume_preference: z.enum(["ai-security", "secure-devops", "soc"]),
-  hobbies: z.string().optional(),
-  interests: z.string().optional(),
-  speaking: z.string().optional(),
-  certifications: z.string().optional(),
-  awards: z.string().optional(),
   pronouns: z.string().optional(),
   phonetic_name: z.string().optional(),
-  languages: z.string().optional(),
-  access_notes: z.string().optional(),
+  cta_primary_label: z.string().optional(),
+  cta_primary_url: z.string().optional(),
+  cta_secondary_label: z.string().optional(),
+  cta_secondary_url: z.string().optional(),
+  career_cta_label: z.string().optional(),
+  career_cta_url: z.string().optional(),
 });
+
+const orderField = z.coerce.number().int().min(0).optional();
+
+const pillarSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().min(1),
+  description: z.string().min(1),
+  icon_slug: z.string().optional(),
+  link_label: z.string().optional(),
+  link_url: z.string().optional(),
+  order_index: orderField,
+});
+
+const careerSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().min(1),
+  description: z.string().min(1),
+  link_label: z.string().optional(),
+  link_url: z.string().optional(),
+  order_index: orderField,
+});
+
+const speakingSchema = z.object({
+  id: z.string().optional(),
+  event: z.string().min(1),
+  title: z.string().optional(),
+  year: z.string().optional(),
+  link_url: z.string().optional(),
+  order_index: orderField,
+});
+
+const recognitionSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().min(1),
+  issuer: z.string().optional(),
+  year: z.string().optional(),
+  link_url: z.string().optional(),
+  order_index: orderField,
+});
+
+const testimonialSchema = z.object({
+  id: z.string().optional(),
+  quote: z.string().min(1),
+  attribution: z.string().min(1),
+  role: z.string().optional(),
+  link_url: z.string().optional(),
+  order_index: orderField,
+});
+
+const personalSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().min(1),
+  description: z.string().min(1),
+  icon_slug: z.string().optional(),
+  order_index: orderField,
+});
+
+function getString(formData: FormData, key: string) {
+  const value = formData.get(key);
+  return typeof value === "string" ? value : undefined;
+}
+
+function cleanText(value: string | undefined) {
+  const trimmed = (value ?? "").trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function orderValue(value: number | undefined, fallback = 0) {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function revalidateProfile() {
+  revalidatePath("/");
+  revalidatePath("/profile");
+  revalidatePath("/admin/site-profile");
+}
 
 export async function upsertSiteProfile(formData: FormData) {
   await requireAdminUser();
 
   const payload = profileSchema.parse({
-    id: formData.get("id")?.toString() || undefined,
-    full_name: formData.get("full_name")?.toString() ?? "",
-    headline: formData.get("headline")?.toString() ?? "",
-    subheadline: formData.get("subheadline")?.toString() ?? "",
-    summary: formData.get("summary")?.toString() ?? "",
-    avatar_url: formData.get("avatar_url")?.toString() ?? "",
-    location: formData.get("location")?.toString() ?? "",
-    hiring_status: formData.get("hiring_status")?.toString() ?? "",
-    resume_preference: (formData.get("resume_preference")?.toString() ?? "ai-security") as
+    id: getString(formData, "id"),
+    full_name: getString(formData, "full_name") ?? "",
+    headline: getString(formData, "headline") ?? "",
+    subheadline: getString(formData, "subheadline"),
+    summary: getString(formData, "summary"),
+    philosophy: getString(formData, "philosophy"),
+    avatar_url: getString(formData, "avatar_url"),
+    location: getString(formData, "location"),
+    hiring_status: getString(formData, "hiring_status"),
+    resume_preference: (getString(formData, "resume_preference") ?? "ai-security") as
       | "ai-security"
       | "secure-devops"
       | "soc",
-    hobbies: formData.get("hobbies")?.toString() ?? "",
-    interests: formData.get("interests")?.toString() ?? "",
-    speaking: formData.get("speaking")?.toString() ?? "",
-    certifications: formData.get("certifications")?.toString() ?? "",
-    awards: formData.get("awards")?.toString() ?? "",
-    pronouns: formData.get("pronouns")?.toString() ?? "",
-    phonetic_name: formData.get("phonetic_name")?.toString() ?? "",
-    languages: formData.get("languages")?.toString() ?? "",
-    access_notes: formData.get("access_notes")?.toString() ?? "",
+    pronouns: getString(formData, "pronouns"),
+    phonetic_name: getString(formData, "phonetic_name"),
+    cta_primary_label: getString(formData, "cta_primary_label"),
+    cta_primary_url: getString(formData, "cta_primary_url"),
+    cta_secondary_label: getString(formData, "cta_secondary_label"),
+    cta_secondary_url: getString(formData, "cta_secondary_url"),
+    career_cta_label: getString(formData, "career_cta_label"),
+    career_cta_url: getString(formData, "career_cta_url"),
   });
 
   const admin = createSupabaseAdminClient();
-
-  const toLines = (s: string) =>
-    s
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter(Boolean);
-
-  const cleanText = (value: string | undefined) => {
-    const trimmed = (value ?? "").trim();
-    return trimmed.length > 0 ? trimmed : null;
-  };
-
   const { error } = await admin.from("site_profile").upsert({
     id: payload.id,
     full_name: payload.full_name,
     headline: payload.headline,
-    subheadline: payload.subheadline,
-    summary: payload.summary,
-    avatar_url: payload.avatar_url,
-    location: payload.location,
-    hiring_status: payload.hiring_status,
+    subheadline: cleanText(payload.subheadline),
+    summary: cleanText(payload.summary),
+    philosophy: cleanText(payload.philosophy),
+    avatar_url: cleanText(payload.avatar_url),
+    location: cleanText(payload.location),
+    hiring_status: cleanText(payload.hiring_status),
     resume_preference: payload.resume_preference,
-    hobbies: toLines(payload.hobbies ?? ""),
-    interests: toLines(payload.interests ?? ""),
-    speaking: toLines(payload.speaking ?? ""),
-    certifications: toLines(payload.certifications ?? ""),
-    awards: toLines(payload.awards ?? ""),
     pronouns: cleanText(payload.pronouns),
     phonetic_name: cleanText(payload.phonetic_name),
-    languages: toLines(payload.languages ?? ""),
-    access_notes: cleanText(payload.access_notes),
+    cta_primary_label: cleanText(payload.cta_primary_label),
+    cta_primary_url: cleanText(payload.cta_primary_url),
+    cta_secondary_label: cleanText(payload.cta_secondary_label),
+    cta_secondary_url: cleanText(payload.cta_secondary_url),
+    career_cta_label: cleanText(payload.career_cta_label),
+    career_cta_url: cleanText(payload.career_cta_url),
   });
 
   if (error) {
     throw new Error(error.message);
   }
 
-  revalidatePath("/");
-  revalidatePath("/contact");
-  revalidatePath("/resume");
-  revalidatePath("/admin/site-profile");
+  revalidateProfile();
+  redirect("/admin/site-profile?status=profile-saved");
+}
 
-  redirect("/admin/site-profile?status=success");
+async function upsertRow<T extends z.ZodTypeAny>(
+  formData: FormData,
+  schema: T,
+  table: string,
+  status: string,
+  mapper: (payload: z.infer<T>) => Record<string, unknown>,
+) {
+  await requireAdminUser();
+  const rawInput: Record<string, unknown> = {
+    id: getString(formData, "id"),
+    title: getString(formData, "title"),
+    description: getString(formData, "description"),
+    icon_slug: getString(formData, "icon_slug"),
+    link_label: getString(formData, "link_label"),
+    link_url: getString(formData, "link_url"),
+    event: getString(formData, "event"),
+    year: getString(formData, "year"),
+    quote: getString(formData, "quote"),
+    attribution: getString(formData, "attribution"),
+    role: getString(formData, "role"),
+    issuer: getString(formData, "issuer"),
+    order_index: getString(formData, "order_index") ?? "0",
+  };
+  const payload = schema.parse(rawInput);
+
+  const admin = createSupabaseAdminClient();
+  const { error } = await admin.from(table).upsert(mapper(payload));
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidateProfile();
+  redirect(`/admin/site-profile?status=${status}`);
+}
+
+async function deleteRow(formData: FormData, table: string, status: string, labelKey = "title") {
+  await requireAdminUser();
+  const id = getString(formData, "id");
+  if (!id) {
+    throw new Error("Missing id");
+  }
+
+  const admin = createSupabaseAdminClient();
+  const { error } = await admin.from(table).delete().eq("id", id);
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidateProfile();
+  const params = new URLSearchParams({ status });
+  const label = getString(formData, labelKey);
+  if (label) params.set("what", label);
+  redirect(`/admin/site-profile?${params.toString()}`);
+}
+
+export async function upsertProfilePillar(formData: FormData) {
+  return upsertRow(formData, pillarSchema, "profile_pillars", "pillar-saved", (payload) => ({
+    id: payload.id,
+    title: payload.title,
+    description: payload.description,
+    icon_slug: cleanText(payload.icon_slug),
+    link_label: cleanText(payload.link_label),
+    link_url: cleanText(payload.link_url),
+    order_index: orderValue(payload.order_index, 0),
+  }));
+}
+
+export async function deleteProfilePillar(formData: FormData) {
+  return deleteRow(formData, "profile_pillars", "pillar-deleted");
+}
+
+export async function upsertProfileCareerHighlight(formData: FormData) {
+  return upsertRow(
+    formData,
+    careerSchema,
+    "profile_career_highlights",
+    "career-saved",
+    (payload) => ({
+      id: payload.id,
+      title: payload.title,
+      description: payload.description,
+      link_label: cleanText(payload.link_label),
+      link_url: cleanText(payload.link_url),
+      order_index: orderValue(payload.order_index, 0),
+    }),
+  );
+}
+
+export async function deleteProfileCareerHighlight(formData: FormData) {
+  return deleteRow(formData, "profile_career_highlights", "career-deleted");
+}
+
+export async function upsertProfileSpeaking(formData: FormData) {
+  return upsertRow(
+    formData,
+    speakingSchema,
+    "profile_speaking_engagements",
+    "speaking-saved",
+    (payload) => ({
+      id: payload.id,
+      event: payload.event,
+      title: cleanText(payload.title),
+      year: cleanText(payload.year),
+      link_url: cleanText(payload.link_url),
+      order_index: orderValue(payload.order_index, 0),
+    }),
+  );
+}
+
+export async function deleteProfileSpeaking(formData: FormData) {
+  return deleteRow(formData, "profile_speaking_engagements", "speaking-deleted", "event");
+}
+
+export async function upsertProfileRecognition(formData: FormData) {
+  return upsertRow(
+    formData,
+    recognitionSchema,
+    "profile_recognitions",
+    "recognition-saved",
+    (payload) => ({
+      id: payload.id,
+      title: payload.title,
+      issuer: cleanText(payload.issuer),
+      year: cleanText(payload.year),
+      link_url: cleanText(payload.link_url),
+      order_index: orderValue(payload.order_index, 0),
+    }),
+  );
+}
+
+export async function deleteProfileRecognition(formData: FormData) {
+  return deleteRow(formData, "profile_recognitions", "recognition-deleted");
+}
+
+export async function upsertProfileTestimonial(formData: FormData) {
+  return upsertRow(
+    formData,
+    testimonialSchema,
+    "profile_testimonials",
+    "testimonial-saved",
+    (payload) => ({
+      id: payload.id,
+      quote: payload.quote,
+      attribution: payload.attribution,
+      role: cleanText(payload.role),
+      link_url: cleanText(payload.link_url),
+      order_index: orderValue(payload.order_index, 0),
+    }),
+  );
+}
+
+export async function deleteProfileTestimonial(formData: FormData) {
+  return deleteRow(formData, "profile_testimonials", "testimonial-deleted", "attribution");
+}
+
+export async function upsertProfilePersonalEntry(formData: FormData) {
+  return upsertRow(
+    formData,
+    personalSchema,
+    "profile_personal_entries",
+    "personal-saved",
+    (payload) => ({
+      id: payload.id,
+      title: payload.title,
+      description: payload.description,
+      icon_slug: cleanText(payload.icon_slug),
+      order_index: orderValue(payload.order_index, 0),
+    }),
+  );
+}
+
+export async function deleteProfilePersonalEntry(formData: FormData) {
+  return deleteRow(formData, "profile_personal_entries", "personal-deleted");
 }

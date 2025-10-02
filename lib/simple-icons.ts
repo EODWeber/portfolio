@@ -1,5 +1,20 @@
 import type { SimpleIcon } from "simple-icons";
-import { siGithub, siInstagram, siRss, siSlack, siThreads, siX, siYoutube } from "simple-icons";
+import {
+  siGithub,
+  siInstagram,
+  siRss,
+  siSlack,
+  siThreads,
+  siX,
+  siYoutube,
+  siHomeassistant,
+  siStrava,
+  siGoogletranslate,
+  siOpenai,
+  siGithubactions,
+  siSplunk,
+  siOkta,
+} from "simple-icons";
 
 const siLinkedin: SimpleIcon = {
   title: "LinkedIn",
@@ -20,6 +35,13 @@ const iconMap: Record<string, SimpleIcon> = {
   twitter: siX,
   x: siX,
   youtube: siYoutube,
+  homeassistant: siHomeassistant,
+  strava: siStrava,
+  googletranslate: siGoogletranslate,
+  openai: siOpenai,
+  githubactions: siGithubactions,
+  splunk: siSplunk,
+  okta: siOkta,
 };
 
 export function getSimpleIconBySlug(slug: string | null | undefined): SimpleIcon | null {
@@ -48,6 +70,13 @@ const slugAliases: Record<string, string> = {
   blog: "rss",
   newsletter: "rss",
   substack: "rss",
+  homeassistant: "homeassistant",
+  strava: "strava",
+  googletranslate: "googletranslate",
+  openai: "openai",
+  githubactions: "githubactions",
+  splunk: "splunk",
+  okta: "okta",
 };
 
 const textMatchers: Array<{ pattern: RegExp; slug: string }> = [
@@ -59,6 +88,13 @@ const textMatchers: Array<{ pattern: RegExp; slug: string }> = [
   { pattern: /instagram|\big\b/i, slug: "instagram" },
   { pattern: /threads/i, slug: "threads" },
   { pattern: /rss|blog|newsletter|substack/i, slug: "rss" },
+  { pattern: /home[\s-]?assistant/i, slug: "homeassistant" },
+  { pattern: /strava/i, slug: "strava" },
+  { pattern: /google[\s-]?translate/i, slug: "googletranslate" },
+  { pattern: /openai/i, slug: "openai" },
+  { pattern: /github[\s-]?actions/i, slug: "githubactions" },
+  { pattern: /splunk/i, slug: "splunk" },
+  { pattern: /okta/i, slug: "okta" },
 ];
 
 const hostMatchers: Array<{ pattern: RegExp; slug: string }> = [
@@ -76,6 +112,13 @@ const hostMatchers: Array<{ pattern: RegExp; slug: string }> = [
   { pattern: /dev\.to$/i, slug: "rss" },
   { pattern: /hashnode\.com$/i, slug: "rss" },
   { pattern: /rss\./i, slug: "rss" },
+  { pattern: /homeassistant\.io$/i, slug: "homeassistant" },
+  { pattern: /strava\.com$/i, slug: "strava" },
+  { pattern: /translate\.google\.com$/i, slug: "googletranslate" },
+  { pattern: /openai\.com$/i, slug: "openai" },
+  { pattern: /github\.com\/features\/actions$/i, slug: "githubactions" },
+  { pattern: /splunk\.com$/i, slug: "splunk" },
+  { pattern: /okta\.com$/i, slug: "okta" },
 ];
 
 function applyAlias(slug: string | null | undefined): string | null {
