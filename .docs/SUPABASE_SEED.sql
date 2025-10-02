@@ -246,7 +246,7 @@ values (
   'Security-led engineering for AI & cloud', -- home_heading
   'Partnership between product, platform, and security.', -- home_subheading
   'Featured projects', -- home_projects_heading
-  'Supabase-backed casework demonstrating measurable outcomes.', -- home_projects_subheading
+  'Casework demonstrating measurable outcomes.', -- home_projects_subheading
   'Recent case studies', -- home_studies_heading
   'Deep dives into secure delivery, AI governance, and SOC automation.', -- home_studies_subheading
   'Articles', -- home_articles_heading
