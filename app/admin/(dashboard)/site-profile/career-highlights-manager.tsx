@@ -42,7 +42,9 @@ export function CareerHighlightsManager({ highlights, status, detail }: Props) {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <CardTitle>Career highlights</CardTitle>
-            <CardDescription>Condensed timeline entries that back up your expertise claims.</CardDescription>
+            <CardDescription>
+              Condensed timeline entries that back up your expertise claims.
+            </CardDescription>
           </div>
           <Button size="sm" onClick={() => handleOpen()}>
             Add highlight
@@ -51,7 +53,9 @@ export function CareerHighlightsManager({ highlights, status, detail }: Props) {
         {status === "career-saved" ? (
           <p className="text-sm text-emerald-600">Highlight saved.</p>
         ) : status === "career-deleted" ? (
-          <p className="text-sm text-emerald-600">Removed highlight {detail ? `“${detail}”` : ""}.</p>
+          <p className="text-sm text-emerald-600">
+            Removed highlight {detail ? `“${detail}”` : ""}.
+          </p>
         ) : null}
       </CardHeader>
       <CardContent>
@@ -71,8 +75,8 @@ export function CareerHighlightsManager({ highlights, status, detail }: Props) {
                 highlights.map((highlight) => (
                   <tr key={highlight.id} className="border-b last:border-0">
                     <td className="px-3 py-2 font-medium">{highlight.title}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{highlight.description}</td>
-                    <td className="px-3 py-2 break-all">{highlight.link_url ?? "—"}</td>
+                    <td className="text-muted-foreground px-3 py-2">{highlight.description}</td>
+                    <td className="break-all px-3 py-2">{highlight.link_url ?? "—"}</td>
                     <td className="px-3 py-2">{highlight.order_index}</td>
                     <td className="px-3 py-2">
                       <Button size="sm" variant="outline" onClick={() => handleOpen(highlight.id)}>
@@ -83,7 +87,7 @@ export function CareerHighlightsManager({ highlights, status, detail }: Props) {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">
+                  <td colSpan={5} className="text-muted-foreground px-3 py-6 text-center">
                     No highlights yet. Add 3–5 achievements with measurable impact.
                   </td>
                 </tr>
@@ -93,7 +97,11 @@ export function CareerHighlightsManager({ highlights, status, detail }: Props) {
         </div>
       </CardContent>
 
-      <Modal open={open} onClose={handleClose} title={selected ? "Edit highlight" : "Add highlight"}>
+      <Modal
+        open={open}
+        onClose={handleClose}
+        title={selected ? "Edit highlight" : "Add highlight"}
+      >
         <form
           id="career-highlight-form"
           key={selected?.id ?? "create"}
@@ -105,7 +113,12 @@ export function CareerHighlightsManager({ highlights, status, detail }: Props) {
             <label className="text-sm font-medium" htmlFor="highlight-title">
               Title
             </label>
-            <Input id="highlight-title" name="title" defaultValue={selected?.title ?? ""} required />
+            <Input
+              id="highlight-title"
+              name="title"
+              defaultValue={selected?.title ?? ""}
+              required
+            />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="highlight-description">

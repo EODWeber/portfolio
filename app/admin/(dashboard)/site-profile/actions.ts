@@ -218,21 +218,15 @@ async function deleteRow(formData: FormData, table: string, status: string, labe
 }
 
 export async function upsertProfilePillar(formData: FormData) {
-  return upsertRow(
-    formData,
-    pillarSchema,
-    "profile_pillars",
-    "pillar-saved",
-    (payload) => ({
-      id: payload.id,
-      title: payload.title,
-      description: payload.description,
-      icon_slug: cleanText(payload.icon_slug),
-      link_label: cleanText(payload.link_label),
-      link_url: cleanText(payload.link_url),
-      order_index: orderValue(payload.order_index, 0),
-    }),
-  );
+  return upsertRow(formData, pillarSchema, "profile_pillars", "pillar-saved", (payload) => ({
+    id: payload.id,
+    title: payload.title,
+    description: payload.description,
+    icon_slug: cleanText(payload.icon_slug),
+    link_label: cleanText(payload.link_label),
+    link_url: cleanText(payload.link_url),
+    order_index: orderValue(payload.order_index, 0),
+  }));
 }
 
 export async function deleteProfilePillar(formData: FormData) {

@@ -30,24 +30,27 @@ export default async function HomePage() {
   ]);
 
   const heroHeading =
-    settings?.hero_heading ??
     profile?.headline ??
+    settings?.hero_heading ??
     settings?.site_tagline ??
     "Security-led engineering for AI & cloud";
   const heroSubheading =
+    profile?.subheadline ??
     settings?.hero_subheading ??
-    profile?.summary ??
     "Partnering with product, platform, and security teams to accelerate delivery while improving trust—AI security, secure DevOps, and SOC automation.";
   const hiringStatus =
-    settings?.hiring_status ??
     profile?.hiring_status ??
+    settings?.hiring_status ??
     "Open to high‑impact security leadership roles";
-  const primaryCtaLabel = settings?.primary_cta_label ?? "View portfolio";
-  const primaryCtaUrl = settings?.primary_cta_url ?? "/portfolio";
-  const secondaryCtaLabel = settings?.secondary_cta_label ?? "Explore case studies";
-  const secondaryCtaUrl = settings?.secondary_cta_url ?? "/case-studies";
+  const primaryCtaLabel =
+    profile?.cta_primary_label ?? settings?.primary_cta_label ?? "View portfolio";
+  const primaryCtaUrl = profile?.cta_primary_url ?? settings?.primary_cta_url ?? "/portfolio";
+  const secondaryCtaLabel =
+    profile?.cta_secondary_label ?? settings?.secondary_cta_label ?? "Explore case studies";
+  const secondaryCtaUrl =
+    profile?.cta_secondary_url ?? settings?.secondary_cta_url ?? "/case-studies";
   const avatarUrl = profile?.avatar_url ?? "/profile-placeholder.svg";
-  const location = settings?.location ?? profile?.location ?? "Remote-first";
+  const location = profile?.location ?? settings?.location ?? "Remote-first";
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-16 px-4 py-12 sm:px-6 sm:py-16">
@@ -72,14 +75,14 @@ export default async function HomePage() {
             </div>
             <div className="space-y-5">
               <div className="flex flex-wrap items-center gap-3 text-sm">
-                <Badge variant="outline" className="text-xs uppercase tracking-wide">
-                  {hiringStatus}
-                </Badge>
                 <span className="text-muted-foreground">{location}</span>
+                <div className="text-xs uppercase tracking-wide -mt-3">
+                  {hiringStatus}
+                </div>
               </div>
               <div className="space-y-3">
-                <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{heroHeading}</h1>
-                <p className="text-muted-foreground text-lg">{heroSubheading}</p>
+                <h1 className="text-3xl font-semibold tracking-tight sm:text-3xl">{heroHeading}</h1>
+                <p className="text-muted-foreground text-lg -mt-4">{heroSubheading}</p>
               </div>
               <div className="flex flex-wrap gap-3">
                 <Button asChild>

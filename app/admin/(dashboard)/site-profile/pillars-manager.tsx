@@ -21,7 +21,10 @@ export function PillarsManager({ pillars, status, detail }: Props) {
   const [open, setOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string>("");
 
-  const selected = useMemo(() => pillars.find((pillar) => pillar.id === selectedId) ?? null, [pillars, selectedId]);
+  const selected = useMemo(
+    () => pillars.find((pillar) => pillar.id === selectedId) ?? null,
+    [pillars, selectedId],
+  );
 
   const handleOpen = (id?: string) => {
     setSelectedId(id ?? "");
@@ -40,7 +43,8 @@ export function PillarsManager({ pillars, status, detail }: Props) {
           <div>
             <CardTitle>Core expertise pillars</CardTitle>
             <CardDescription>
-              Curate the domains highlighted on the public profile hero. Icons reference simple-icons slugs.
+              Curate the domains highlighted on the public profile hero. Icons reference
+              simple-icons slugs.
             </CardDescription>
           </div>
           <Button size="sm" onClick={() => handleOpen()}>
@@ -71,9 +75,9 @@ export function PillarsManager({ pillars, status, detail }: Props) {
                 pillars.map((pillar) => (
                   <tr key={pillar.id} className="border-b last:border-0">
                     <td className="px-3 py-2 font-medium">{pillar.title}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{pillar.description}</td>
+                    <td className="text-muted-foreground px-3 py-2">{pillar.description}</td>
                     <td className="px-3 py-2">{pillar.icon_slug ?? "—"}</td>
-                    <td className="px-3 py-2 break-all">{pillar.link_url ?? "—"}</td>
+                    <td className="break-all px-3 py-2">{pillar.link_url ?? "—"}</td>
                     <td className="px-3 py-2">{pillar.order_index}</td>
                     <td className="px-3 py-2">
                       <Button size="sm" variant="outline" onClick={() => handleOpen(pillar.id)}>
@@ -84,7 +88,7 @@ export function PillarsManager({ pillars, status, detail }: Props) {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">
+                  <td colSpan={6} className="text-muted-foreground px-3 py-6 text-center">
                     No pillars yet. Add 3–4 pillars that represent your focus areas.
                   </td>
                 </tr>

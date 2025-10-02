@@ -42,7 +42,9 @@ export function TestimonialsManager({ testimonials, status, detail }: Props) {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <CardTitle>Testimonials</CardTitle>
-            <CardDescription>Quotes from clients or peers that deliver social proof.</CardDescription>
+            <CardDescription>
+              Quotes from clients or peers that deliver social proof.
+            </CardDescription>
           </div>
           <Button size="sm" onClick={() => handleOpen()}>
             Add testimonial
@@ -51,7 +53,9 @@ export function TestimonialsManager({ testimonials, status, detail }: Props) {
         {status === "testimonial-saved" ? (
           <p className="text-sm text-emerald-600">Testimonial saved.</p>
         ) : status === "testimonial-deleted" ? (
-          <p className="text-sm text-emerald-600">Removed testimonial {detail ? `“${detail}”` : ""}.</p>
+          <p className="text-sm text-emerald-600">
+            Removed testimonial {detail ? `“${detail}”` : ""}.
+          </p>
         ) : null}
       </CardHeader>
       <CardContent>
@@ -71,10 +75,10 @@ export function TestimonialsManager({ testimonials, status, detail }: Props) {
               {testimonials.length > 0 ? (
                 testimonials.map((item) => (
                   <tr key={item.id} className="border-b last:border-0">
-                    <td className="px-3 py-2 text-muted-foreground">{item.quote}</td>
+                    <td className="text-muted-foreground px-3 py-2">{item.quote}</td>
                     <td className="px-3 py-2 font-medium">{item.attribution}</td>
                     <td className="px-3 py-2">{item.role ?? "—"}</td>
-                    <td className="px-3 py-2 break-all">{item.link_url ?? "—"}</td>
+                    <td className="break-all px-3 py-2">{item.link_url ?? "—"}</td>
                     <td className="px-3 py-2">{item.order_index}</td>
                     <td className="px-3 py-2">
                       <Button size="sm" variant="outline" onClick={() => handleOpen(item.id)}>
@@ -85,7 +89,7 @@ export function TestimonialsManager({ testimonials, status, detail }: Props) {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">
+                  <td colSpan={6} className="text-muted-foreground px-3 py-6 text-center">
                     No testimonials yet. Add 2–3 concise quotes.
                   </td>
                 </tr>
@@ -95,8 +99,17 @@ export function TestimonialsManager({ testimonials, status, detail }: Props) {
         </div>
       </CardContent>
 
-      <Modal open={open} onClose={handleClose} title={selected ? "Edit testimonial" : "Add testimonial"}>
-        <form id="testimonial-form" key={selected?.id ?? "create"} action={upsertProfileTestimonial} className="grid gap-3">
+      <Modal
+        open={open}
+        onClose={handleClose}
+        title={selected ? "Edit testimonial" : "Add testimonial"}
+      >
+        <form
+          id="testimonial-form"
+          key={selected?.id ?? "create"}
+          action={upsertProfileTestimonial}
+          className="grid gap-3"
+        >
           <input type="hidden" name="id" value={selected?.id ?? ""} />
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="testimonial-quote">
@@ -126,7 +139,12 @@ export function TestimonialsManager({ testimonials, status, detail }: Props) {
               <label className="text-sm font-medium" htmlFor="testimonial-role">
                 Role / title
               </label>
-              <Input id="testimonial-role" name="role" defaultValue={selected?.role ?? ""} placeholder="Security Lead" />
+              <Input
+                id="testimonial-role"
+                name="role"
+                defaultValue={selected?.role ?? ""}
+                placeholder="Security Lead"
+              />
             </div>
           </div>
           <div className="space-y-2">

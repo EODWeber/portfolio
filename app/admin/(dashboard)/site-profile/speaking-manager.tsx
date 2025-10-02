@@ -41,7 +41,9 @@ export function SpeakingManager({ speaking, status, detail }: Props) {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <CardTitle>Speaking engagements</CardTitle>
-            <CardDescription>Workshops, conferences, and podcasts that reinforce external credibility.</CardDescription>
+            <CardDescription>
+              Workshops, conferences, and podcasts that reinforce external credibility.
+            </CardDescription>
           </div>
           <Button size="sm" onClick={() => handleOpen()}>
             Add engagement
@@ -50,7 +52,9 @@ export function SpeakingManager({ speaking, status, detail }: Props) {
         {status === "speaking-saved" ? (
           <p className="text-sm text-emerald-600">Engagement saved.</p>
         ) : status === "speaking-deleted" ? (
-          <p className="text-sm text-emerald-600">Removed engagement {detail ? `“${detail}”` : ""}.</p>
+          <p className="text-sm text-emerald-600">
+            Removed engagement {detail ? `“${detail}”` : ""}.
+          </p>
         ) : null}
       </CardHeader>
       <CardContent>
@@ -71,9 +75,9 @@ export function SpeakingManager({ speaking, status, detail }: Props) {
                 speaking.map((entry) => (
                   <tr key={entry.id} className="border-b last:border-0">
                     <td className="px-3 py-2 font-medium">{entry.event}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{entry.title ?? "—"}</td>
+                    <td className="text-muted-foreground px-3 py-2">{entry.title ?? "—"}</td>
                     <td className="px-3 py-2">{entry.year ?? "—"}</td>
-                    <td className="px-3 py-2 break-all">{entry.link_url ?? "—"}</td>
+                    <td className="break-all px-3 py-2">{entry.link_url ?? "—"}</td>
                     <td className="px-3 py-2">{entry.order_index}</td>
                     <td className="px-3 py-2">
                       <Button size="sm" variant="outline" onClick={() => handleOpen(entry.id)}>
@@ -84,7 +88,7 @@ export function SpeakingManager({ speaking, status, detail }: Props) {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">
+                  <td colSpan={6} className="text-muted-foreground px-3 py-6 text-center">
                     No engagements logged. Capture high-signal talks and workshops.
                   </td>
                 </tr>
@@ -94,8 +98,17 @@ export function SpeakingManager({ speaking, status, detail }: Props) {
         </div>
       </CardContent>
 
-      <Modal open={open} onClose={handleClose} title={selected ? "Edit engagement" : "Add engagement"}>
-        <form id="speaking-form" key={selected?.id ?? "create"} action={upsertProfileSpeaking} className="grid gap-3">
+      <Modal
+        open={open}
+        onClose={handleClose}
+        title={selected ? "Edit engagement" : "Add engagement"}
+      >
+        <form
+          id="speaking-form"
+          key={selected?.id ?? "create"}
+          action={upsertProfileSpeaking}
+          className="grid gap-3"
+        >
           <input type="hidden" name="id" value={selected?.id ?? ""} />
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="speaking-event">
@@ -119,7 +132,12 @@ export function SpeakingManager({ speaking, status, detail }: Props) {
               <label className="text-sm font-medium" htmlFor="speaking-year">
                 Year
               </label>
-              <Input id="speaking-year" name="year" defaultValue={selected?.year ?? ""} placeholder="2024" />
+              <Input
+                id="speaking-year"
+                name="year"
+                defaultValue={selected?.year ?? ""}
+                placeholder="2024"
+              />
             </div>
           </div>
           <div className="space-y-2">

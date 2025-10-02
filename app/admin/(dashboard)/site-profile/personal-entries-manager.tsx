@@ -42,7 +42,9 @@ export function PersonalEntriesManager({ entries, status, detail }: Props) {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <CardTitle>Beyond security</CardTitle>
-            <CardDescription>Personal interests, languages, and collaboration notes that humanize the profile.</CardDescription>
+            <CardDescription>
+              Personal interests, languages, and collaboration notes that humanize the profile.
+            </CardDescription>
           </div>
           <Button size="sm" onClick={() => handleOpen()}>
             Add entry
@@ -71,7 +73,7 @@ export function PersonalEntriesManager({ entries, status, detail }: Props) {
                 entries.map((entry) => (
                   <tr key={entry.id} className="border-b last:border-0">
                     <td className="px-3 py-2 font-medium">{entry.title}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{entry.description}</td>
+                    <td className="text-muted-foreground px-3 py-2">{entry.description}</td>
                     <td className="px-3 py-2">{entry.icon_slug ?? "—"}</td>
                     <td className="px-3 py-2">{entry.order_index}</td>
                     <td className="px-3 py-2">
@@ -83,8 +85,9 @@ export function PersonalEntriesManager({ entries, status, detail }: Props) {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">
-                    No entries yet. Add 3–4 cards such as interests, hobbies, languages, or collaboration style.
+                  <td colSpan={5} className="text-muted-foreground px-3 py-6 text-center">
+                    No entries yet. Add 3–4 cards such as interests, hobbies, languages, or
+                    collaboration style.
                   </td>
                 </tr>
               )}
@@ -94,13 +97,23 @@ export function PersonalEntriesManager({ entries, status, detail }: Props) {
       </CardContent>
 
       <Modal open={open} onClose={handleClose} title={selected ? "Edit entry" : "Add entry"}>
-        <form id="personal-entry-form" key={selected?.id ?? "create"} action={upsertProfilePersonalEntry} className="grid gap-3">
+        <form
+          id="personal-entry-form"
+          key={selected?.id ?? "create"}
+          action={upsertProfilePersonalEntry}
+          className="grid gap-3"
+        >
           <input type="hidden" name="id" value={selected?.id ?? ""} />
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="personal-entry-title">
               Title
             </label>
-            <Input id="personal-entry-title" name="title" defaultValue={selected?.title ?? ""} required />
+            <Input
+              id="personal-entry-title"
+              name="title"
+              defaultValue={selected?.title ?? ""}
+              required
+            />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="personal-entry-description">

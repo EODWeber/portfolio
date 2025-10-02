@@ -41,7 +41,9 @@ export function RecognitionManager({ recognitions, status, detail }: Props) {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <CardTitle>Recognition</CardTitle>
-            <CardDescription>Certifications, awards, and features that add third-party credibility.</CardDescription>
+            <CardDescription>
+              Certifications, awards, and features that add third-party credibility.
+            </CardDescription>
           </div>
           <Button size="sm" onClick={() => handleOpen()}>
             Add recognition
@@ -50,7 +52,9 @@ export function RecognitionManager({ recognitions, status, detail }: Props) {
         {status === "recognition-saved" ? (
           <p className="text-sm text-emerald-600">Recognition saved.</p>
         ) : status === "recognition-deleted" ? (
-          <p className="text-sm text-emerald-600">Removed {detail ? `“${detail}”` : "recognition"}.</p>
+          <p className="text-sm text-emerald-600">
+            Removed {detail ? `“${detail}”` : "recognition"}.
+          </p>
         ) : null}
       </CardHeader>
       <CardContent>
@@ -71,9 +75,9 @@ export function RecognitionManager({ recognitions, status, detail }: Props) {
                 recognitions.map((item) => (
                   <tr key={item.id} className="border-b last:border-0">
                     <td className="px-3 py-2 font-medium">{item.title}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{item.issuer ?? "—"}</td>
+                    <td className="text-muted-foreground px-3 py-2">{item.issuer ?? "—"}</td>
                     <td className="px-3 py-2">{item.year ?? "—"}</td>
-                    <td className="px-3 py-2 break-all">{item.link_url ?? "—"}</td>
+                    <td className="break-all px-3 py-2">{item.link_url ?? "—"}</td>
                     <td className="px-3 py-2">{item.order_index}</td>
                     <td className="px-3 py-2">
                       <Button size="sm" variant="outline" onClick={() => handleOpen(item.id)}>
@@ -84,7 +88,7 @@ export function RecognitionManager({ recognitions, status, detail }: Props) {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">
+                  <td colSpan={6} className="text-muted-foreground px-3 py-6 text-center">
                     No recognition entries yet. Add 2–4 credentials or awards.
                   </td>
                 </tr>
@@ -94,27 +98,51 @@ export function RecognitionManager({ recognitions, status, detail }: Props) {
         </div>
       </CardContent>
 
-      <Modal open={open} onClose={handleClose} title={selected ? "Edit recognition" : "Add recognition"}>
-        <form id="recognition-form" key={selected?.id ?? "create"} action={upsertProfileRecognition} className="grid gap-3">
+      <Modal
+        open={open}
+        onClose={handleClose}
+        title={selected ? "Edit recognition" : "Add recognition"}
+      >
+        <form
+          id="recognition-form"
+          key={selected?.id ?? "create"}
+          action={upsertProfileRecognition}
+          className="grid gap-3"
+        >
           <input type="hidden" name="id" value={selected?.id ?? ""} />
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="recognition-title">
               Title
             </label>
-            <Input id="recognition-title" name="title" defaultValue={selected?.title ?? ""} required />
+            <Input
+              id="recognition-title"
+              name="title"
+              defaultValue={selected?.title ?? ""}
+              required
+            />
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             <div className="space-y-2">
               <label className="text-sm font-medium" htmlFor="recognition-issuer">
                 Issuer
               </label>
-              <Input id="recognition-issuer" name="issuer" defaultValue={selected?.issuer ?? ""} placeholder="ISC²" />
+              <Input
+                id="recognition-issuer"
+                name="issuer"
+                defaultValue={selected?.issuer ?? ""}
+                placeholder="ISC²"
+              />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium" htmlFor="recognition-year">
                 Year
               </label>
-              <Input id="recognition-year" name="year" defaultValue={selected?.year ?? ""} placeholder="2024" />
+              <Input
+                id="recognition-year"
+                name="year"
+                defaultValue={selected?.year ?? ""}
+                placeholder="2024"
+              />
             </div>
           </div>
           <div className="space-y-2">
