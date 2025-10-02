@@ -5,9 +5,16 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 type SiteFooterProps = {
   isAuthenticated?: boolean;
   ownerName?: string;
+  githubUrl?: string;
+  linkedinUrl?: string;
 };
 
-export function SiteFooter({ isAuthenticated, ownerName }: SiteFooterProps) {
+export function SiteFooter({
+  isAuthenticated,
+  ownerName,
+  githubUrl,
+  linkedinUrl,
+}: SiteFooterProps) {
   const displayName = ownerName?.trim() ? ownerName : "Portfolio owner";
   return (
     <footer className="border-border/60 bg-background/95 mt-auto border-t">
@@ -22,14 +29,26 @@ export function SiteFooter({ isAuthenticated, ownerName }: SiteFooterProps) {
           <Link href="/legal/security" className="hover:text-foreground transition-colors">
             Security
           </Link>
-          <Link
-            href="https://github.com/"
-            target="_blank"
-            rel="noreferrer"
-            className="hover:text-foreground transition-colors"
-          >
-            GitHub
-          </Link>
+          {githubUrl ? (
+            <Link
+              href={githubUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-foreground transition-colors"
+            >
+              GitHub
+            </Link>
+          ) : null}
+          {linkedinUrl ? (
+            <Link
+              href={linkedinUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-foreground transition-colors"
+            >
+              LinkedIn
+            </Link>
+          ) : null}
           {isAuthenticated ? (
             <Link href="/admin" className="hover:text-foreground transition-colors">
               Admin

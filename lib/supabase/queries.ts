@@ -17,7 +17,6 @@ import type {
   Resume,
   SiteProfile,
   SiteSettings,
-  SocialPost,
   Vertical,
 } from "./types";
 import { readStorageText } from "./storage";
@@ -186,14 +185,6 @@ export const getResumeByVertical = cache(async (vertical: Vertical): Promise<Res
   }
 
   return data[0] as Resume;
-});
-
-export const getSocialPosts = cache(async (limit?: number): Promise<SocialPost[]> => {
-  const supabase = await getClient();
-  const query = supabase.from("social_posts").select("*").order("posted_at", { ascending: false });
-  const { data, error } = await (limit ? query.limit(limit) : query);
-
-  return unwrap<SocialPost[]>(data, error, "Unable to load social posts");
 });
 
 export const getRelatedProjectsForArticle = cache(async (articleId: string): Promise<Project[]> => {

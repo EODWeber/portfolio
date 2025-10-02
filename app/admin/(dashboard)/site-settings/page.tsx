@@ -37,8 +37,8 @@ export default async function SiteSettingsAdminPage({
               <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
               <TabsTrigger value="studies">Case Studies</TabsTrigger>
               <TabsTrigger value="articles">Articles</TabsTrigger>
-              <TabsTrigger value="social">Social</TabsTrigger>
               <TabsTrigger value="contact">Contact</TabsTrigger>
+              <TabsTrigger value="social">Social</TabsTrigger>
             </TabsList>
 
             <TabsContent value="brand">
@@ -248,28 +248,6 @@ export default async function SiteSettingsAdminPage({
                     />
                   </div>
                 </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="home_social_heading">
-                      Social feed heading
-                    </label>
-                    <Input
-                      id="home_social_heading"
-                      name="home_social_heading"
-                      defaultValue={settings?.home_social_heading ?? ""}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="home_social_subheading">
-                      Social feed subheading
-                    </label>
-                    <Input
-                      id="home_social_subheading"
-                      name="home_social_subheading"
-                      defaultValue={settings?.home_social_subheading ?? ""}
-                    />
-                  </div>
-                </div>
                 {saved ? <p className="text-sm text-emerald-600">Settings saved.</p> : null}
                 <div className="flex justify-end">
                   <Button type="submit">Save changes</Button>
@@ -373,38 +351,6 @@ export default async function SiteSettingsAdminPage({
               </form>
             </TabsContent>
 
-            <TabsContent value="social">
-              <form action={upsertSiteSettings} className="space-y-4">
-                <input type="hidden" name="id" defaultValue={settings?.id ?? ""} />
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="social_heading">
-                      Social feed heading
-                    </label>
-                    <Input
-                      id="social_heading"
-                      name="social_heading"
-                      defaultValue={settings?.social_heading ?? ""}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="social_subheading">
-                      Social feed subheading
-                    </label>
-                    <Input
-                      id="social_subheading"
-                      name="social_subheading"
-                      defaultValue={settings?.social_subheading ?? ""}
-                    />
-                  </div>
-                </div>
-                {saved ? <p className="text-sm text-emerald-600">Settings saved.</p> : null}
-                <div className="flex justify-end">
-                  <Button type="submit">Save changes</Button>
-                </div>
-              </form>
-            </TabsContent>
-
             <TabsContent value="contact">
               <form action={upsertSiteSettings} className="space-y-4">
                 <input type="hidden" name="id" defaultValue={settings?.id ?? ""} />
@@ -427,6 +373,45 @@ export default async function SiteSettingsAdminPage({
                       id="contact_subheading"
                       name="contact_subheading"
                       defaultValue={settings?.contact_subheading ?? ""}
+                    />
+                  </div>
+                </div>
+                {saved ? <p className="text-sm text-emerald-600">Settings saved.</p> : null}
+                <div className="flex justify-end">
+                  <Button type="submit">Save changes</Button>
+                </div>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="social">
+              <form action={upsertSiteSettings} className="space-y-4">
+                <input type="hidden" name="id" defaultValue={settings?.id ?? ""} />
+                <p className="text-muted-foreground text-sm">
+                  Configure social links that appear in the site footer. Leave blank to hide.
+                </p>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium" htmlFor="github_url">
+                      GitHub URL
+                    </label>
+                    <Input
+                      id="github_url"
+                      name="github_url"
+                      type="url"
+                      placeholder="https://github.com/username"
+                      defaultValue={settings?.github_url ?? ""}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium" htmlFor="linkedin_url">
+                      LinkedIn URL
+                    </label>
+                    <Input
+                      id="linkedin_url"
+                      name="linkedin_url"
+                      type="url"
+                      placeholder="https://linkedin.com/in/username"
+                      defaultValue={settings?.linkedin_url ?? ""}
                     />
                   </div>
                 </div>

@@ -53,7 +53,12 @@ export default async function RootLayout({
             isAuthenticated={isAuthenticated}
           />
           <main className="flex-1">{children}</main>
-          <SiteFooter isAuthenticated={isAuthenticated} ownerName={profile?.full_name ?? ""} />
+          <SiteFooter
+            isAuthenticated={isAuthenticated}
+            ownerName={profile?.full_name ?? ""}
+            githubUrl={settings?.github_url ?? undefined}
+            linkedinUrl={settings?.linkedin_url ?? undefined}
+          />
           <Toaster richColors position="bottom-right" />
           {isProd ? (
             <>

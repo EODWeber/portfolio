@@ -7,7 +7,6 @@ import {
   fetchAllCaseStudies,
   fetchAllProjects,
   fetchAllResumes,
-  fetchAllSocialPosts,
   fetchSiteProfile,
   fetchSiteSettings,
 } from "@/lib/admin/queries";
@@ -25,16 +24,14 @@ export default async function AdminDashboardPage() {
     return null;
   }
 
-  const [settings, profile, projects, caseStudies, articles, resumes, socialPosts] =
-    await Promise.all([
-      fetchSiteSettings(),
-      fetchSiteProfile(),
-      fetchAllProjects(),
-      fetchAllCaseStudies(),
-      fetchAllArticles(),
-      fetchAllResumes(),
-      fetchAllSocialPosts(),
-    ]);
+  const [settings, profile, projects, caseStudies, articles, resumes] = await Promise.all([
+    fetchSiteSettings(),
+    fetchSiteProfile(),
+    fetchAllProjects(),
+    fetchAllCaseStudies(),
+    fetchAllArticles(),
+    fetchAllResumes(),
+  ]);
 
   const publishedProjects = projects.filter((project) => project.status === "published").length;
   const draftProjects = projects.length - publishedProjects;
@@ -105,17 +102,6 @@ export default async function AdminDashboardPage() {
           <CardContent>
             <Button asChild variant="outline" size="sm">
               <Link href="/admin/resumes">Manage resumes →</Link>
-            </Button>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Social feed</CardTitle>
-            <CardDescription>{socialPosts.length} signals</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="outline" size="sm">
-              <Link href="/admin/social-posts">Manage feed →</Link>
             </Button>
           </CardContent>
         </Card>

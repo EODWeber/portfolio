@@ -13,6 +13,7 @@ import {
   getProfileTestimonials,
   getResumes,
   getSiteProfile,
+  getSiteSettings,
 } from "@/lib/supabase/queries";
 import { getSimpleIconBySlug } from "@/lib/simple-icons";
 
@@ -24,6 +25,7 @@ function buildCta(label?: string | null, url?: string | null) {
 export default async function ProfilePage() {
   const [
     profile,
+    settings,
     resumes,
     pillars,
     careerHighlights,
@@ -33,6 +35,7 @@ export default async function ProfilePage() {
     personalEntries,
   ] = await Promise.all([
     getSiteProfile(),
+    getSiteSettings(),
     getResumes(),
     getProfilePillars(),
     getProfileCareerHighlights(),
@@ -56,15 +59,64 @@ export default async function ProfilePage() {
   };
   const careerCta = buildCta(profile.career_cta_label, profile.career_cta_url);
 
+  // Social icons
+  const githubIcon = getSimpleIconBySlug("github");
+  const linkedinIcon = getSimpleIconBySlug("linkedin");
+  const hasSocialLinks = settings?.github_url || settings?.linkedin_url;
+
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-16 px-4 py-12 sm:px-6 lg:px-8">
       <section className="relative overflow-hidden rounded-3xl border bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-8 text-slate-50 shadow-lg lg:p-12">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl space-y-6">
             <div className="space-y-2">
-              <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-                {profile.full_name}
-              </h1>
+              <div className="flex items-center gap-8">
+                <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+                  {profile.full_name}
+                </h1>
+                {hasSocialLinks ? (
+                  <div className="flex items-center gap-3 pt-1">
+                    {settings?.github_url ? (
+                      <Link
+                        href={settings.github_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-slate-400 transition-colors hover:text-slate-100"
+                        aria-label="GitHub"
+                      >
+                        <svg
+                          role="img"
+                          viewBox="0 0 24 24"
+                          className="h-8 w-8 fill-current"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <title>GitHub</title>
+                          <path d={githubIcon?.path ?? ""} />
+                        </svg>
+                      </Link>
+                    ) : null}
+                    {settings?.linkedin_url ? (
+                      <Link
+                        href={settings.linkedin_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-slate-400 transition-colors hover:text-slate-100"
+                        aria-label="LinkedIn"
+                      >
+                        <svg
+                          role="img"
+                          viewBox="0 0 24 24"
+                          className="h-8 w-8 fill-current"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <title>LinkedIn</title>
+                          <path d={linkedinIcon?.path ?? ""} />
+                        </svg>
+                      </Link>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
               {profile.phonetic_name || profile.pronouns ? (
                 <p className="text-slate-300">
                   {profile.phonetic_name ? (
@@ -76,7 +128,10 @@ export default async function ProfilePage() {
                   {profile.pronouns ?? null}
                 </p>
               ) : null}
-              <p className="text-xl font-medium text-slate-200 sm:text-2xl">{profile.headline}</p>
+
+              <p className="mt-5 text-xl font-medium text-slate-200 sm:text-2xl">
+                {profile.headline}
+              </p>
               {profile.subheadline ? (
                 <p className="-mt-3 text-slate-300">{profile.subheadline}</p>
               ) : null}

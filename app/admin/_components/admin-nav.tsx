@@ -13,7 +13,6 @@ const NAV_ITEMS = [
   { href: "/admin/articles", label: "Articles" },
   { href: "/admin/resumes", label: "Resumes" },
   { href: "/admin/mdx-documents", label: "MDX Documents" },
-  { href: "/admin/social-posts", label: "Social Accounts" },
   { href: "/admin/notifications", label: "Notifications" },
   { href: "/admin/analytics", label: "Analytics" },
 ];

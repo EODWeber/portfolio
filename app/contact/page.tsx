@@ -85,8 +85,8 @@ export default async function ContactPage() {
   ]);
   const siteKey = process.env.TURNSTILE_SITE_KEY || process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
+  // Only show featured (primary) resumes - one per vertical max
   const primaryResumes = resumes.filter((resume) => resume.featured);
-  const resumesToDisplay = primaryResumes.length > 0 ? primaryResumes : resumes;
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-4 py-12 sm:px-6 sm:py-16">
@@ -139,32 +139,30 @@ export default async function ContactPage() {
             Batch download →
           </Link>
         </p>
-        {resumes.length === 0 ? (
+        {primaryResumes.length === 0 ? (
           <p className="text-muted-foreground text-sm">
-            Upload resume PDFs to Supabase Storage and manage entries in the admin portal to expose
-            download links here.
+            Upload resume PDFs to Supabase Storage and mark them as featured in the admin portal to
+            expose download links here.
           </p>
         ) : (
           <div className="grid gap-2 md:grid-cols-2">
-            {primaryResumes.length > 0 ? (
-              <Card className="border-primary/40 bg-primary/10 relative py-1">
-                <Link
-                  href="/resume/primary"
-                  className="absolute inset-0"
-                  aria-label="Batch download primary resumes"
-                />
-                <CardHeader className="py-2">
-                  <CardTitle className="text-sm">Batch download</CardTitle>
-                  <CardDescription className="text-xs">
-                    Opens each resume in a new tab for quick access.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="text-primary -mt-2 pt-0 text-xs">
-                  Download all primary resumes →
-                </CardContent>
-              </Card>
-            ) : null}
-            {resumesToDisplay.map((resume) => (
+            <Card className="border-primary/40 bg-primary/10 relative py-1">
+              <Link
+                href="/resume/primary"
+                className="absolute inset-0"
+                aria-label="Batch download primary resumes"
+              />
+              <CardHeader className="py-2">
+                <CardTitle className="text-sm">Batch download</CardTitle>
+                <CardDescription className="text-xs">
+                  Opens each resume in a new tab for quick access.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-primary -mt-2 pt-0 text-xs">
+                Download all primary resumes →
+              </CardContent>
+            </Card>
+            {primaryResumes.map((resume) => (
               <Card key={resume.id} className="border-primary/30 bg-primary/5 relative py-1">
                 <Link
                   href={`/resume/${resume.vertical}`}

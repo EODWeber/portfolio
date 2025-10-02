@@ -129,20 +129,6 @@ end $$;
 create index if not exists resumes_vertical_idx on public.resumes (vertical);
 create index if not exists resumes_featured_idx on public.resumes (featured, updated_at desc);
 
-create table if not exists public.social_posts (
-  id          uuid primary key default gen_random_uuid(),
-  platform    text not null,
-  title       text not null,
-  url         text not null,
-  summary     text,
-  posted_at   timestamptz not null,
-  featured    boolean default false,
-  created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now()
-);
-create unique index if not exists social_posts_url_key on public.social_posts (url);
-create index if not exists social_posts_featured_idx on public.social_posts (featured, posted_at desc);
-
 create table if not exists public.site_settings (
   id uuid primary key default gen_random_uuid(),
   site_title text not null,
@@ -165,18 +151,16 @@ alter table public.site_settings add column if not exists home_studies_heading t
 alter table public.site_settings add column if not exists home_studies_subheading text;
 alter table public.site_settings add column if not exists home_articles_heading text;
 alter table public.site_settings add column if not exists home_articles_subheading text;
-alter table public.site_settings add column if not exists home_social_heading text;
-alter table public.site_settings add column if not exists home_social_subheading text;
 alter table public.site_settings add column if not exists portfolio_heading text;
 alter table public.site_settings add column if not exists portfolio_subheading text;
 alter table public.site_settings add column if not exists studies_heading text;
 alter table public.site_settings add column if not exists studies_subheading text;
 alter table public.site_settings add column if not exists articles_heading text;
 alter table public.site_settings add column if not exists articles_subheading text;
-alter table public.site_settings add column if not exists social_heading text;
-alter table public.site_settings add column if not exists social_subheading text;
 alter table public.site_settings add column if not exists contact_heading text;
 alter table public.site_settings add column if not exists contact_subheading text;
+alter table public.site_settings add column if not exists github_url text;
+alter table public.site_settings add column if not exists linkedin_url text;
 
 create table if not exists public.site_profile (
   id uuid primary key default gen_random_uuid(),
@@ -324,7 +308,6 @@ alter table public.projects     enable row level security;
 alter table public.case_studies enable row level security;
 alter table public.articles     enable row level security;
 alter table public.resumes      enable row level security;
-alter table public.social_posts enable row level security;
 alter table public.site_settings enable row level security;
 alter table public.site_profile  enable row level security;
 alter table public.contact_links enable row level security;
@@ -412,8 +395,7 @@ begin
     select * from (values
       ('projects',     'projects_public_read'::text),
       ('case_studies', 'case_studies_public_read'),
-      ('articles',     'articles_public_read'),
-      ('social_posts', 'social_posts_public_read')
+      ('articles',     'articles_public_read')
     ) as t(tbl, pol)
   loop
     if not exists (
@@ -422,10 +404,7 @@ begin
       where schemaname='public' and tablename=r.tbl and policyname=r.pol
     ) then
       execute format(
-        case r.tbl
-          when 'social_posts' then 'create policy %I on public.%I for select to public using (true);'
-          else 'create policy %I on public.%I for select to public using (status = ''published''::publish_status);'
-        end,
+        'create policy %I on public.%I for select to public using (status = ''published''::publish_status);',
         r.pol, r.tbl
       );
     end if;
@@ -539,7 +518,7 @@ declare
   r record;
 begin
   for r in
-    select unnest( array['projects','case_studies','articles','resumes','social_posts','site_settings','site_profile','contact_links','contact_requests','mdx_documents'] ) as tbl
+    select unnest( array['projects','case_studies','articles','resumes','site_settings','site_profile','contact_links','contact_requests','mdx_documents'] ) as tbl
   loop
     if not exists (
       select 1

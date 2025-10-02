@@ -29,18 +29,16 @@ const siteSettingsSchema = z.object({
   home_studies_subheading: z.string().optional(),
   home_articles_heading: z.string().optional(),
   home_articles_subheading: z.string().optional(),
-  home_social_heading: z.string().optional(),
-  home_social_subheading: z.string().optional(),
   portfolio_heading: z.string().optional(),
   portfolio_subheading: z.string().optional(),
   studies_heading: z.string().optional(),
   studies_subheading: z.string().optional(),
   articles_heading: z.string().optional(),
   articles_subheading: z.string().optional(),
-  social_heading: z.string().optional(),
-  social_subheading: z.string().optional(),
   contact_heading: z.string().optional(),
   contact_subheading: z.string().optional(),
+  github_url: z.string().optional(),
+  linkedin_url: z.string().optional(),
 });
 
 export async function upsertSiteSettings(formData: FormData) {
@@ -91,18 +89,16 @@ export async function upsertSiteSettings(formData: FormData) {
     home_studies_subheading: getOptionalString("home_studies_subheading"),
     home_articles_heading: getOptionalString("home_articles_heading"),
     home_articles_subheading: getOptionalString("home_articles_subheading"),
-    home_social_heading: getOptionalString("home_social_heading"),
-    home_social_subheading: getOptionalString("home_social_subheading"),
     portfolio_heading: getOptionalString("portfolio_heading"),
     portfolio_subheading: getOptionalString("portfolio_subheading"),
     studies_heading: getOptionalString("studies_heading"),
     studies_subheading: getOptionalString("studies_subheading"),
     articles_heading: getOptionalString("articles_heading"),
     articles_subheading: getOptionalString("articles_subheading"),
-    social_heading: getOptionalString("social_heading"),
-    social_subheading: getOptionalString("social_subheading"),
     contact_heading: getOptionalString("contact_heading"),
     contact_subheading: getOptionalString("contact_subheading"),
+    github_url: getOptionalString("github_url"),
+    linkedin_url: getOptionalString("linkedin_url"),
   });
 
   const admin = createSupabaseAdminClient();
@@ -142,19 +138,16 @@ export async function upsertSiteSettings(formData: FormData) {
     home_articles_heading: payload.home_articles_heading ?? existing?.home_articles_heading ?? null,
     home_articles_subheading:
       payload.home_articles_subheading ?? existing?.home_articles_subheading ?? null,
-    home_social_heading: payload.home_social_heading ?? existing?.home_social_heading ?? null,
-    home_social_subheading:
-      payload.home_social_subheading ?? existing?.home_social_subheading ?? null,
     portfolio_heading: payload.portfolio_heading ?? existing?.portfolio_heading ?? null,
     portfolio_subheading: payload.portfolio_subheading ?? existing?.portfolio_subheading ?? null,
     studies_heading: payload.studies_heading ?? existing?.studies_heading ?? null,
     studies_subheading: payload.studies_subheading ?? existing?.studies_subheading ?? null,
     articles_heading: payload.articles_heading ?? existing?.articles_heading ?? null,
     articles_subheading: payload.articles_subheading ?? existing?.articles_subheading ?? null,
-    social_heading: payload.social_heading ?? existing?.social_heading ?? null,
-    social_subheading: payload.social_subheading ?? existing?.social_subheading ?? null,
     contact_heading: payload.contact_heading ?? existing?.contact_heading ?? null,
     contact_subheading: payload.contact_subheading ?? existing?.contact_subheading ?? null,
+    github_url: payload.github_url ?? existing?.github_url ?? null,
+    linkedin_url: payload.linkedin_url ?? existing?.linkedin_url ?? null,
   };
   const { error } = await admin.from("site_settings").upsert(merged);
 

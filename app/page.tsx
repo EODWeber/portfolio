@@ -7,26 +7,22 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { IconCircle } from "@/components/ui/icon-circle";
-import { caseStudyMetricsEntries } from "@/lib/case-studies/metrics";
-import { getSimpleIconBySlug, guessSimpleIconSlug } from "@/lib/simple-icons";
+import { caseStudyMetricsEntries, normalizeCaseStudyMetrics } from "@/lib/case-studies/metrics";
 import {
   getFeaturedArticles,
   getFeaturedCaseStudies,
   getFeaturedProjects,
   getSiteProfile,
   getSiteSettings,
-  getSocialPosts,
 } from "@/lib/supabase/queries";
 
 export default async function HomePage() {
-  const [settings, profile, projects, caseStudies, articles, posts] = await Promise.all([
+  const [settings, profile, projects, caseStudies, articles] = await Promise.all([
     getSiteSettings(),
     getSiteProfile(),
     getFeaturedProjects(3),
     getFeaturedCaseStudies(2),
     getFeaturedArticles(3),
-    getSocialPosts(3),
   ]);
 
   const heroHeading =
@@ -51,6 +47,21 @@ export default async function HomePage() {
     profile?.cta_secondary_url ?? settings?.secondary_cta_url ?? "/case-studies";
   const avatarUrl = profile?.avatar_url ?? "/profile-placeholder.svg";
   const location = profile?.location ?? settings?.location ?? "Remote-first";
+
+  // Extract featured metrics from case studies
+  const recentHighlights = caseStudies
+    .filter((study) => study.featured_metric && study.metrics)
+    .map((study) => {
+      const allMetrics = normalizeCaseStudyMetrics(study.metrics);
+      const featuredMetric = allMetrics[study.featured_metric!];
+      if (!featuredMetric) return null;
+      return {
+        label: featuredMetric.title,
+        value: featuredMetric.description,
+        caseStudySlug: study.slug,
+      };
+    })
+    .filter((highlight): highlight is NonNullable<typeof highlight> => highlight !== null);
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-16 px-4 py-12 sm:px-6 sm:py-16">
@@ -98,26 +109,26 @@ export default async function HomePage() {
               <CardDescription>Measurable outcomes tied to case studies.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              {profile?.highlights && profile.highlights.length > 0 ? (
-                profile.highlights.map((highlight) => {
-                  const tag = encodeURIComponent(highlight.label);
-                  return (
-                    <Link
-                      key={highlight.label}
-                      href={`/case-studies?tag=${tag}`}
-                      className="border-border/40 bg-muted/30 hover:bg-muted/50 focus-visible:ring-ring block rounded-md border px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                    >
-                      <p className="text-foreground font-medium">{highlight.label}</p>
-                      {highlight.value ? (
-                        <p className="text-muted-foreground text-xs">{highlight.value}</p>
-                      ) : null}
-                    </Link>
-                  );
-                })
+              {recentHighlights.length > 0 ? (
+                recentHighlights.map((highlight) => (
+                  <Link
+                    key={`${highlight.caseStudySlug}-${highlight.label}`}
+                    href={`/case-studies/${highlight.caseStudySlug}`}
+                    className="border-border/40 bg-muted/30 hover:bg-muted/50 focus-visible:ring-ring block rounded-md border px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                  >
+                    <p className="text-foreground font-medium">{highlight.label}</p>
+                    <p className="text-muted-foreground text-xs">{highlight.value}</p>
+                  </Link>
+                ))
               ) : (
-                <p className="text-muted-foreground">
-                  Add highlights in the Site Profile to showcase measurable outcomes.
-                </p>
+                <div className="space-y-3">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="border-border/40 rounded-md border px-3 py-2">
+                      <div className="bg-muted h-4 w-3/4 animate-pulse rounded" />
+                      <div className="bg-muted mt-1.5 h-3 w-1/2 animate-pulse rounded" />
+                    </div>
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -315,67 +326,6 @@ export default async function HomePage() {
                 </CardContent>
               </Card>
             ))
-          )}
-        </div>
-      </section>
-
-      <section className="space-y-6">
-        <header className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold">
-              {settings?.home_social_heading ?? "Social feed"}
-            </h2>
-            <p className="text-muted-foreground">
-              {settings?.home_social_subheading ?? "Appearances, repos, and talks worth a follow."}
-            </p>
-          </div>
-          <Button asChild variant="ghost">
-            <Link href="/social-feed">Open feed →</Link>
-          </Button>
-        </header>
-        <div className="grid gap-4 md:grid-cols-3">
-          {posts.length === 0 ? (
-            <Card>
-              <CardContent className="text-muted-foreground py-10 text-sm">
-                Publish social signals to populate the feed.
-              </CardContent>
-            </Card>
-          ) : (
-            posts.map((post) => {
-              const slug = guessSimpleIconSlug({ platform: post.platform, url: post.url });
-              const icon = slug ? getSimpleIconBySlug(slug) : null;
-              const postedAt = new Date(post.posted_at).toLocaleDateString();
-              return (
-                <Card key={post.id} className="group relative">
-                  <Link
-                    href={post.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="absolute inset-0"
-                    aria-label={post.title}
-                  />
-                  <CardHeader>
-                    <CardTitle className="text-base group-hover:underline">{post.title}</CardTitle>
-                    <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-3 text-xs">
-                      <IconCircle icon={icon} fallback="globe" />
-                      <span className="text-foreground font-semibold uppercase tracking-wide">
-                        {post.platform}
-                      </span>
-                      <span>{postedAt}</span>
-                      {post.featured ? (
-                        <Badge variant="secondary" className="font-medium uppercase">
-                          Featured
-                        </Badge>
-                      ) : null}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3 text-sm">
-                    {post.summary ? <p className="text-muted-foreground">{post.summary}</p> : null}
-                    <span className="text-primary">View post →</span>
-                  </CardContent>
-                </Card>
-              );
-            })
           )}
         </div>
       </section>

@@ -12,7 +12,6 @@ import type {
   Resume,
   SiteProfile,
   SiteSettings,
-  SocialPost,
 } from "@/lib/supabase/types";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin-client";
@@ -141,16 +140,6 @@ export async function fetchRelationsForArticles(): Promise<
     entry.caseStudyIds.push(row.case_study_id);
   }
   return map;
-}
-
-export async function fetchAllSocialPosts(): Promise<SocialPost[]> {
-  const admin = createSupabaseAdminClient();
-  const { data, error } = await admin
-    .from("social_posts")
-    .select("*")
-    .order("posted_at", { ascending: false });
-  if (error) throw new Error(error.message);
-  return (data as SocialPost[]) ?? [];
 }
 
 export async function fetchAllContactRequests(): Promise<ContactRequest[]> {
