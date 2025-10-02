@@ -404,7 +404,7 @@ export function ArticleManager({
             >
               Cancel
             </Button>
-            <Button type="submit" form="article-form" onClick={() => setOpen(false)}>
+            <Button type="submit" form="article-form">
               {selected ? "Save article" : "Create article"}
             </Button>
           </div>

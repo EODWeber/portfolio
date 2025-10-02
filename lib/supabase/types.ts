@@ -78,18 +78,6 @@ export type Resume = {
   updated_at: string;
 };
 
-export type SocialPost = {
-  id: string;
-  platform: string;
-  title: string;
-  url: string;
-  summary: string | null;
-  posted_at: string;
-  featured: boolean;
-  created_at: string;
-  updated_at: string;
-};
-
 export type ContactRequestStatus = "new" | "in-review" | "replied" | "archived";
 
 export type ContactRequest = {
@@ -227,18 +215,16 @@ export type SiteSettings = {
   home_studies_subheading?: string | null;
   home_articles_heading?: string | null;
   home_articles_subheading?: string | null;
-  home_social_heading?: string | null;
-  home_social_subheading?: string | null;
   portfolio_heading?: string | null;
   portfolio_subheading?: string | null;
   studies_heading?: string | null;
   studies_subheading?: string | null;
   articles_heading?: string | null;
   articles_subheading?: string | null;
-  social_heading?: string | null;
-  social_subheading?: string | null;
   contact_heading?: string | null;
   contact_subheading?: string | null;
+  github_url?: string | null;
+  linkedin_url?: string | null;
   created_at: string;
   updated_at: string;
 };

@@ -134,8 +134,11 @@ export async function upsertArticle(formData: FormData) {
     hero_url = data.publicUrl;
   }
 
-  // Enforce max 6 featured
-  if ((payload.featured === "on" || payload.featured === "true") && !payload.id) {
+  // Determine featured status - explicitly handle unchecked checkbox
+  const isFeatured = payload.featured === "on" || payload.featured === "true";
+
+  // Enforce max 6 featured (only check when adding a new featured article)
+  if (isFeatured && !payload.id) {
     const { data: f } = await admin.from("articles").select("id").eq("featured", true);
     if ((f?.length ?? 0) >= 6) throw new Error("Max 6 featured articles. Unfeature one first.");
   }
@@ -149,7 +152,7 @@ export async function upsertArticle(formData: FormData) {
     hero_url: hero_url ?? undefined,
     tags: parseCsv(payload.tags),
     status: payload.status,
-    featured: payload.featured === "on" || payload.featured === "true",
+    featured: isFeatured,
   });
 
   if (upsertErr) {

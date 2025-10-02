@@ -152,46 +152,14 @@ on conflict (key) do update set
 
 -- Resumes ---------------------------------------------------------------------
 -- Seed resumes idempotently: delete by label then insert
+-- NOTE: featured is set to false for placeholders to avoid conflicts with UI logic
+-- that enforces one primary resume per vertical. Mark as featured via admin UI.
 delete from public.resumes where label in ('AI Security Lead Resume','Secure DevOps Resume','SOC Leadership Resume');
 insert into public.resumes (vertical, file_path, label, featured, published_at)
 values
-  ('ai-security', 'resumes/ai-security.pdf', 'AI Security Lead Resume', true, now() - interval '60 days'),
-  ('secure-devops', 'resumes/secure-devops.pdf', 'Secure DevOps Resume', true, now() - interval '45 days'),
-  ('soc', 'resumes/soc.pdf', 'SOC Leadership Resume', true, now() - interval '30 days');
-
--- Social feed -----------------------------------------------------------------
-insert into public.social_posts (platform, title, url, summary, posted_at, featured)
-values
-  (
-    'LinkedIn',
-    'Implementing RAG Threat Detection at Scale',
-    'https://linkedin.com/posts/example_rag-threat-detection',
-    'A deep dive into telemetry patterns for spotting malicious prompt chaining across enterprise agents.',
-    now() - interval '5 days',
-    true
-  ),
-  (
-    'GitHub',
-    'Secure Pipeline as Code Starter',
-    'https://github.com/example/secure-pipeline-starter',
-    'Open-source reference for setting up attestations, SBOM ingestion, and runtime policy enforcement.',
-    now() - interval '12 days',
-    false
-  ),
-  (
-    'Conference',
-    'Defending LLMs in Production',
-    'https://conf.example.com/talks/defending-llms',
-    'Slides + recording from my Bsides keynote on adversarial testing methodologies for generative AI.',
-    now() - interval '21 days',
-    false
-  )
-  on conflict (url) do update set
-    title = excluded.title,
-    summary = excluded.summary,
-    posted_at = excluded.posted_at,
-    featured = excluded.featured,
-    updated_at = now();
+  ('ai-security', 'resumes/ai-security.pdf', 'AI Security Lead Resume', false, now() - interval '60 days'),
+  ('secure-devops', 'resumes/secure-devops.pdf', 'Secure DevOps Resume', false, now() - interval '45 days'),
+  ('soc', 'resumes/soc.pdf', 'SOC Leadership Resume', false, now() - interval '30 days');
 
 -- Site settings ---------------------------------------------------------------
 insert into public.site_settings (
@@ -216,18 +184,16 @@ insert into public.site_settings (
   home_studies_subheading,
   home_articles_heading,
   home_articles_subheading,
-  home_social_heading,
-  home_social_subheading,
   portfolio_heading,
   portfolio_subheading,
   studies_heading,
   studies_subheading,
   articles_heading,
   articles_subheading,
-  social_heading,
-  social_subheading,
   contact_heading,
-  contact_subheading
+  contact_subheading,
+  github_url,
+  linkedin_url
 )
 values (
   '11111111-1111-1111-1111-111111111111',
@@ -251,18 +217,16 @@ values (
   'Deep dives into secure delivery, AI governance, and SOC automation.', -- home_studies_subheading
   'Articles', -- home_articles_heading
   'Research, playbooks, and frameworks for security-first delivery.', -- home_articles_subheading
-  'Social feed', -- home_social_heading
-  'Appearances, repos, and talks worth a follow.', -- home_social_subheading
   'Portfolio', -- portfolio_heading
   'Curated projects from AI security, secure DevOps, and SOC.', -- portfolio_subheading
   'Case studies', -- studies_heading
   'Detailed outcomes and evidence from recent engagements.', -- studies_subheading
   'Articles', -- articles_heading
   'Research, playbooks, and frameworks.', -- articles_subheading
-  'Social feed', -- social_heading
-  'Talks, repos, and posts worth a follow.', -- social_subheading
   'Contact', -- contact_heading
-  'Connect and get tailored resumes.' -- contact_subheading
+  'Connect and get tailored resumes.', -- contact_subheading
+  null, -- github_url (set via admin UI)
+  null  -- linkedin_url (set via admin UI)
 )
 on conflict (id) do update set
   site_title = excluded.site_title,
@@ -285,18 +249,16 @@ on conflict (id) do update set
   home_studies_subheading = excluded.home_studies_subheading,
   home_articles_heading = excluded.home_articles_heading,
   home_articles_subheading = excluded.home_articles_subheading,
-  home_social_heading = excluded.home_social_heading,
-  home_social_subheading = excluded.home_social_subheading,
   portfolio_heading = excluded.portfolio_heading,
   portfolio_subheading = excluded.portfolio_subheading,
   studies_heading = excluded.studies_heading,
   studies_subheading = excluded.studies_subheading,
   articles_heading = excluded.articles_heading,
   articles_subheading = excluded.articles_subheading,
-  social_heading = excluded.social_heading,
-  social_subheading = excluded.social_subheading,
   contact_heading = excluded.contact_heading,
   contact_subheading = excluded.contact_subheading,
+  github_url = excluded.github_url,
+  linkedin_url = excluded.linkedin_url,
   updated_at = now();
 
 -- Site profile ---------------------------------------------------------------
@@ -339,7 +301,7 @@ values (
   'San Francisco Bay Area · Remote-friendly',
   'Open to Director/Principal security platform roles',
   'ai-security',
-  '[{"label":"7.3x reduction in AI risk remediation","value":"Fortune 100 fintech"},{"label":"0 critical audit findings","value":"After secure DevOps transformation"},{"label":"2.4x analyst throughput","value":"SOC automation program"}]'::jsonb,
+  '[]'::jsonb,
   '["Cycling","Climbing","Maker projects"]'::jsonb,
   '["AI safety","Developer experience","Cloud governance"]'::jsonb,
   '["BSides SF 2024 keynote","OWASP AppSec 2023"]'::jsonb,
@@ -619,24 +581,26 @@ on conflict (id) do update set
   updated_at = now();
 
 -- Contact links --------------------------------------------------------------
+-- Seed contact links idempotently: delete existing seed data then insert
+delete from public.contact_links where url in (
+  'mailto:jeff@example.com',
+  'https://linkedin.com/in/example',
+  'https://github.com/example',
+  'https://calendly.com/example/intro-chat'
+);
 insert into public.contact_links (label, url, category, icon, order_index)
 values
   ('Email', 'mailto:jeff@example.com', 'primary', 'mail', 0),
   ('LinkedIn', 'https://linkedin.com/in/example', 'social', 'linkedin', 1),
   ('GitHub', 'https://github.com/example', 'social', 'github', 2),
-  ('Calendly', 'https://calendly.com/example/intro-chat', 'primary', 'calendar', 3)
-on conflict (url) do update set
-  label = excluded.label,
-  category = excluded.category,
-  icon = excluded.icon,
-  order_index = excluded.order_index,
-  updated_at = now();
+  ('Calendly', 'https://calendly.com/example/intro-chat', 'primary', 'calendar', 3);
 
--- Contact requests (sample)
+-- Contact requests (sample) - optional, safe to skip if data exists
+-- Delete existing seed contact requests, then insert fresh sample
+delete from public.contact_requests where origin = 'seed';
 insert into public.contact_requests (name, email, company, message, origin, status)
 values
-  ('Alex Recruiter', 'alex@example.com', 'RecruitCo', 'We would love to discuss a Director of Platform Security role with you.', 'seed', 'new')
-on conflict (id) do nothing;
+  ('Alex Recruiter', 'alex@example.com', 'RecruitCo', 'We would love to discuss a Director of Platform Security role with you.', 'seed', 'new');
 -- Mark default featured items for home (idempotent best-effort)
 -- Projects: latest 3 published
 update public.projects set featured = true

@@ -17,7 +17,6 @@ const links = [
   { href: "/portfolio", label: "Portfolio" },
   { href: "/case-studies", label: "Case Studies" },
   { href: "/articles", label: "Articles" },
-  { href: "/social-feed", label: "Social Feed" },
 ];
 
 export function SiteHeader({
