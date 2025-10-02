@@ -77,9 +77,11 @@ export default async function ProfilePage() {
                 </p>
               ) : null}
               <p className="text-xl font-medium text-slate-200 sm:text-2xl">{profile.headline}</p>
-              {profile.subheadline ? <p className="text-slate-300 -mt-3">{profile.subheadline}</p> : null}
+              {profile.subheadline ? (
+                <p className="-mt-3 text-slate-300">{profile.subheadline}</p>
+              ) : null}
             </div>
-            <p className="text-foreground mt-3 text-med leading-relaxed sm:text-med">
+            <p className="text-foreground text-med sm:text-med mt-3 leading-relaxed">
               {profile.summary}
             </p>
           </div>

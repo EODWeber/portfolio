@@ -1,5 +1,20 @@
 import type { SimpleIcon } from "simple-icons";
-import { siGithub, siInstagram, siRss, siSlack, siThreads, siX, siYoutube, siHomeassistant, siStrava, siGoogletranslate, siOpenai, siGithubactions, siSplunk, siOkta } from "simple-icons";
+import {
+  siGithub,
+  siInstagram,
+  siRss,
+  siSlack,
+  siThreads,
+  siX,
+  siYoutube,
+  siHomeassistant,
+  siStrava,
+  siGoogletranslate,
+  siOpenai,
+  siGithubactions,
+  siSplunk,
+  siOkta,
+} from "simple-icons";
 
 const siLinkedin: SimpleIcon = {
   title: "LinkedIn",

@@ -76,13 +76,11 @@ export default async function HomePage() {
             <div className="space-y-5">
               <div className="flex flex-wrap items-center gap-3 text-sm">
                 <span className="text-muted-foreground">{location}</span>
-                <div className="text-xs uppercase tracking-wide -mt-3">
-                  {hiringStatus}
-                </div>
+                <div className="-mt-3 text-xs uppercase tracking-wide">{hiringStatus}</div>
               </div>
               <div className="space-y-3">
                 <h1 className="text-3xl font-semibold tracking-tight sm:text-3xl">{heroHeading}</h1>
-                <p className="text-muted-foreground text-lg -mt-4">{heroSubheading}</p>
+                <p className="text-muted-foreground -mt-4 text-lg">{heroSubheading}</p>
               </div>
               <div className="flex flex-wrap gap-3">
                 <Button asChild>
