@@ -1,14 +1,30 @@
-import Image from "next/image";
 import Link from "next/link";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { getSiteProfile } from "@/lib/supabase/queries";
+import {
+  fetchProfileCareerHighlights,
+  fetchProfilePersonalEntries,
+  fetchProfilePillars,
+  fetchProfileRecognitions,
+  fetchProfileSpeaking,
+  fetchProfileTestimonials,
+  fetchSiteProfile,
+} from "@/lib/admin/queries";
 
 import { upsertSiteProfile } from "./actions";
+import { CareerHighlightsManager } from "./career-highlights-manager";
+import { PersonalEntriesManager } from "./personal-entries-manager";
+import { PillarsManager } from "./pillars-manager";
+import { RecognitionManager } from "./recognition-manager";
+import { SpeakingManager } from "./speaking-manager";
+import { TestimonialsManager } from "./testimonials-manager";
+
+function matchStatus(status: string | undefined, prefix: string) {
+  return status && status.startsWith(prefix) ? status : undefined;
+}
 
 export default async function SiteProfileAdminPage({
   searchParams,
@@ -16,64 +32,49 @@ export default async function SiteProfileAdminPage({
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = await searchParams;
-  const profile = await getSiteProfile();
-  const saved = sp?.status === "success";
+  const status = typeof sp?.status === "string" ? sp.status : undefined;
+  const detail = typeof sp?.what === "string" ? sp.what : undefined;
+
+  const [profile, pillars, highlights, speaking, recognitions, testimonials, personalEntries] =
+    await Promise.all([
+      fetchSiteProfile(),
+      fetchProfilePillars(),
+      fetchProfileCareerHighlights(),
+      fetchProfileSpeaking(),
+      fetchProfileRecognitions(),
+      fetchProfileTestimonials(),
+      fetchProfilePersonalEntries(),
+    ]);
+
+  const profileSaved = status === "profile-saved";
+  const pillarStatus = matchStatus(status, "pillar-");
+  const careerStatus = matchStatus(status, "career-");
+  const speakingStatus = matchStatus(status, "speaking-");
+  const recognitionStatus = matchStatus(status, "recognition-");
+  const testimonialStatus = matchStatus(status, "testimonial-");
+  const personalStatus = matchStatus(status, "personal-");
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <header className="space-y-1">
-        <h1 className="text-3xl font-semibold">Site Profile</h1>
+        <h1 className="text-3xl font-semibold">Site profile</h1>
         <p className="text-muted-foreground text-sm">
-          Control public profile details like name, headline, summary, avatar, and availability.
+          Design the public profile experience. Update the hero, philosophy, CTAs, and supporting
+          credibility blocks.
         </p>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Public preview</CardTitle>
-            <CardDescription>Snapshot of what visitors see on the homepage.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm">
-            <Badge variant="outline">{profile?.hiring_status ?? "Open to opportunities"}</Badge>
-            {profile?.pronouns ? (
-              <Badge variant="secondary" className="uppercase tracking-wide">
-                {profile.pronouns}
-              </Badge>
-            ) : null}
-            <div>
-              <p className="text-lg font-semibold">
-                {profile?.headline ?? "Security-first engineering leader."}
-              </p>
-              <p className="text-muted-foreground mt-2">
-                {profile?.summary ?? "Add a summary to describe your focus."}
-              </p>
-            </div>
-            {profile?.phonetic_name ? (
-              <p className="text-muted-foreground text-xs">Pronounced: {profile.phonetic_name}</p>
-            ) : null}
-            {/* Highlights removed from profile; hero metrics now derive from featured case studies. */}
-            {profile?.avatar_url ? (
-              <div className="relative mt-4 h-32 w-32 overflow-hidden rounded-full border">
-                <Image
-                  src={profile.avatar_url}
-                  alt={profile.full_name ?? "Profile"}
-                  fill
-                  sizes="128px"
-                  className="object-cover"
-                />
-              </div>
-            ) : null}
-          </CardContent>
-        </Card>
-
+      <div className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Edit profile</CardTitle>
-            <CardDescription>All fields are optional except the name and headline.</CardDescription>
+            <CardDescription>
+              Craft the hero narrative. Keep full name and headline concise; use the philosophy to
+              add voice.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <form action={upsertSiteProfile} className="space-y-4">
+            <form action={upsertSiteProfile} className="space-y-5">
               <input type="hidden" name="id" defaultValue={profile?.id ?? ""} />
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="full_name">
@@ -138,8 +139,20 @@ export default async function SiteProfileAdminPage({
                 <Textarea
                   id="summary"
                   name="summary"
+                  rows={3}
                   defaultValue={profile?.summary ?? ""}
-                  rows={4}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="philosophy">
+                  Philosophy
+                </label>
+                <Textarea
+                  id="philosophy"
+                  name="philosophy"
+                  rows={3}
+                  placeholder="Share a concise POV that frames your mission."
+                  defaultValue={profile?.philosophy ?? ""}
                 />
               </div>
               <div className="grid gap-4 md:grid-cols-2">
@@ -157,7 +170,12 @@ export default async function SiteProfileAdminPage({
                   <label className="text-sm font-medium" htmlFor="location">
                     Location / availability
                   </label>
-                  <Input id="location" name="location" defaultValue={profile?.location ?? ""} />
+                  <Input
+                    id="location"
+                    name="location"
+                    defaultValue={profile?.location ?? ""}
+                    placeholder="Remote-first"
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium" htmlFor="hiring_status">
@@ -167,6 +185,7 @@ export default async function SiteProfileAdminPage({
                     id="hiring_status"
                     name="hiring_status"
                     defaultValue={profile?.hiring_status ?? ""}
+                    placeholder="Open to Director-level security roles"
                   />
                 </div>
                 <div className="space-y-2">
@@ -185,111 +204,123 @@ export default async function SiteProfileAdminPage({
                   </select>
                 </div>
               </div>
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="speaking">
-                    Speaking (one per line)
-                  </label>
-                  <Textarea
-                    id="speaking"
-                    name="speaking"
-                    defaultValue={
-                      (profile as unknown as { speaking?: string[] })?.speaking?.join("\n") ?? ""
-                    }
-                    rows={5}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="certifications">
-                    Certifications (one per line)
-                  </label>
-                  <Textarea
-                    id="certifications"
-                    name="certifications"
-                    defaultValue={
-                      (profile as unknown as { certifications?: string[] })?.certifications?.join(
-                        "\n",
-                      ) ?? ""
-                    }
-                    rows={5}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="awards">
-                    Awards (one per line)
-                  </label>
-                  <Textarea
-                    id="awards"
-                    name="awards"
-                    defaultValue={
-                      (profile as unknown as { awards?: string[] })?.awards?.join("\n") ?? ""
-                    }
-                    rows={5}
-                  />
-                </div>
-              </div>
-              {/* Highlights removed; managed via featured case studies. */}
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="hobbies">
-                    Hobbies (one per line)
+                  <label className="text-sm font-medium" htmlFor="cta_primary_label">
+                    Primary CTA label
                   </label>
-                  <Textarea
-                    id="hobbies"
-                    name="hobbies"
-                    defaultValue={(profile?.hobbies ?? []).join("\n")}
-                    rows={5}
+                  <Input
+                    id="cta_primary_label"
+                    name="cta_primary_label"
+                    defaultValue={profile?.cta_primary_label ?? ""}
+                    placeholder="Explore my work"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="interests">
-                    Special interests (one per line)
+                  <label className="text-sm font-medium" htmlFor="cta_primary_url">
+                    Primary CTA URL
                   </label>
-                  <Textarea
-                    id="interests"
-                    name="interests"
-                    defaultValue={(profile?.interests ?? []).join("\n")}
-                    rows={5}
+                  <Input
+                    id="cta_primary_url"
+                    name="cta_primary_url"
+                    defaultValue={profile?.cta_primary_url ?? ""}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="cta_secondary_label">
+                    Secondary CTA label
+                  </label>
+                  <Input
+                    id="cta_secondary_label"
+                    name="cta_secondary_label"
+                    defaultValue={profile?.cta_secondary_label ?? ""}
+                    placeholder="Contact me"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="cta_secondary_url">
+                    Secondary CTA URL
+                  </label>
+                  <Input
+                    id="cta_secondary_url"
+                    name="cta_secondary_url"
+                    defaultValue={profile?.cta_secondary_url ?? ""}
                   />
                 </div>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="languages">
-                    Languages (one per line)
+                  <label className="text-sm font-medium" htmlFor="career_cta_label">
+                    Career highlights CTA label
                   </label>
-                  <Textarea
-                    id="languages"
-                    name="languages"
-                    defaultValue={(profile?.languages ?? []).join("\n")}
-                    rows={4}
+                  <Input
+                    id="career_cta_label"
+                    name="career_cta_label"
+                    defaultValue={profile?.career_cta_label ?? ""}
+                    placeholder="Read full case studies →"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="access_notes">
-                    Collaboration & access notes
+                  <label className="text-sm font-medium" htmlFor="career_cta_url">
+                    Career highlights CTA URL
                   </label>
-                  <Textarea
-                    id="access_notes"
-                    name="access_notes"
-                    defaultValue={profile?.access_notes ?? ""}
-                    rows={4}
+                  <Input
+                    id="career_cta_url"
+                    name="career_cta_url"
+                    defaultValue={profile?.career_cta_url ?? ""}
                   />
-                  <p className="text-muted-foreground text-xs">
-                    Optional: share accessibility preferences, scheduling needs, or accommodations.
-                  </p>
                 </div>
               </div>
-              {saved ? <p className="text-sm text-emerald-600">Profile saved.</p> : null}
-              <div className="flex justify-end gap-3">
-                <Button type="submit">Save profile</Button>
-                <Button asChild variant="outline">
-                  <Link href="/">View homepage</Link>
-                </Button>
+              {profileSaved ? <p className="text-sm text-emerald-600">Profile saved.</p> : null}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="text-muted-foreground text-xs">
+                  Tip: keep updates cohesive—adjust CTAs after adding new case studies.
+                </div>
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" asChild>
+                    <Link href="/profile">View profile</Link>
+                  </Button>
+                  <Button type="submit">Save profile</Button>
+                </div>
               </div>
             </form>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="space-y-6">
+        <PillarsManager
+          pillars={pillars}
+          status={pillarStatus}
+          detail={pillarStatus ? detail : undefined}
+        />
+        <CareerHighlightsManager
+          highlights={highlights}
+          status={careerStatus}
+          detail={careerStatus ? detail : undefined}
+        />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <SpeakingManager
+            speaking={speaking}
+            status={speakingStatus}
+            detail={speakingStatus ? detail : undefined}
+          />
+          <RecognitionManager
+            recognitions={recognitions}
+            status={recognitionStatus}
+            detail={recognitionStatus ? detail : undefined}
+          />
+        </div>
+        <TestimonialsManager
+          testimonials={testimonials}
+          status={testimonialStatus}
+          detail={testimonialStatus ? detail : undefined}
+        />
+        <PersonalEntriesManager
+          entries={personalEntries}
+          status={personalStatus}
+          detail={personalStatus ? detail : undefined}
+        />
       </div>
     </div>
   );
