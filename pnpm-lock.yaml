@@ -105,8 +105,8 @@ importers:
         specifier: ^11.1.2
         version: 11.1.2
       resend:
-        specifier: ^6.1.0
-        version: 6.1.0
+        specifier: ^6.1.2
+        version: 6.1.2
       shiki:
         specifier: ^3.12.2
         version: 3.13.0
@@ -146,7 +146,7 @@ importers:
         version: 9.36.0(jiti@2.5.1)
       eslint-config-next:
         specifier: 15.5.4
-        version: 15.5.4(eslint@9.35.0(jiti@2.5.1))(typescript@5.9.2)
+        version: 15.5.4(eslint@9.36.0(jiti@2.5.1))(typescript@5.9.2)
       eslint-config-prettier:
         specifier: ^9
         version: 9.1.2(eslint@9.36.0(jiti@2.5.1))
@@ -3890,11 +3890,11 @@ packages:
     resolution: {integrity: sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q==}
     engines: {node: '>=0.10.0'}
 
-  resend@6.1.0:
-    resolution: {integrity: sha512-H0cJI2pcLk5/dGwyvZUHu+O7X/q6arvc40EWm+pRPuy+PSWojH5utZtmDBUZ2L0+gVwYZiWs6y2lw6GQA1z1rg==}
+  resend@6.1.2:
+    resolution: {integrity: sha512-C9Q+YkRe57P8MQlkHG3yatSR/B6sqBGA06Ri2DveJfkz9Vm16182FC/iHB0K6IAfmqZ4yRrFebFw1EPuktLtSg==}
     engines: {node: '>=18'}
     peerDependencies:
-      '@react-email/render': ^1.1.0
+      '@react-email/render': '*'
     peerDependenciesMeta:
       '@react-email/render':
         optional: true
@@ -6725,7 +6725,7 @@ snapshots:
 
   escape-string-regexp@5.0.0: {}
 
-  eslint-config-next@15.5.4(eslint@9.35.0(jiti@2.5.1))(typescript@5.9.2):
+  eslint-config-next@15.5.4(eslint@9.36.0(jiti@2.5.1))(typescript@5.9.2):
     dependencies:
       '@next/eslint-plugin-next': 15.5.4
       '@rushstack/eslint-patch': 1.12.0
@@ -9047,7 +9047,7 @@ snapshots:
 
   require-directory@2.1.1: {}
 
-  resend@6.1.0: {}
+  resend@6.1.2: {}
 
   resolve-from@4.0.0: {}
 
