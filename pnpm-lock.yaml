@@ -111,8 +111,8 @@ importers:
         specifier: ^3.12.2
         version: 3.13.0
       simple-icons:
-        specifier: ^15.16.0
-        version: 15.16.0
+        specifier: ^15.16.1
+        version: 15.16.1
       sonner:
         specifier: ^2.0.7
         version: 2.0.7(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -146,7 +146,7 @@ importers:
         version: 9.36.0(jiti@2.5.1)
       eslint-config-next:
         specifier: 15.5.4
-        version: 15.5.4(eslint@9.35.0(jiti@2.5.1))(typescript@5.9.2)
+        version: 15.5.4(eslint@9.36.0(jiti@2.5.1))(typescript@5.9.2)
       eslint-config-prettier:
         specifier: ^9
         version: 9.1.2(eslint@9.36.0(jiti@2.5.1))
@@ -4019,8 +4019,8 @@ packages:
     resolution: {integrity: sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw==}
     engines: {node: '>=14'}
 
-  simple-icons@15.16.0:
-    resolution: {integrity: sha512-AeyYdQ5BsFe7ONruVRClZ+2921tQIEcHuP9AZdNUR0in1jFeakH0pA9Rkjj0T/RkTH7Icx2jprXxWWY3aaCDJQ==}
+  simple-icons@15.16.1:
+    resolution: {integrity: sha512-UpT6dslPDUfl+9xAjxHAh4ralefkrAqBe8o4cN+HtBOa2HjYZnEAiQsUkAdkaMfW05rU/rc/MWaKxF/cpUllCg==}
     engines: {node: '>=0.12.18'}
 
   slice-ansi@5.0.0:
@@ -6725,7 +6725,7 @@ snapshots:
 
   escape-string-regexp@5.0.0: {}
 
-  eslint-config-next@15.5.4(eslint@9.35.0(jiti@2.5.1))(typescript@5.9.2):
+  eslint-config-next@15.5.4(eslint@9.36.0(jiti@2.5.1))(typescript@5.9.2):
     dependencies:
       '@next/eslint-plugin-next': 15.5.4
       '@rushstack/eslint-patch': 1.12.0
@@ -9242,7 +9242,7 @@ snapshots:
 
   signal-exit@4.1.0: {}
 
-  simple-icons@15.16.0: {}
+  simple-icons@15.16.1: {}
 
   slice-ansi@5.0.0:
     dependencies:
