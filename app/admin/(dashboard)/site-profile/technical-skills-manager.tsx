@@ -75,9 +75,7 @@ export function TechnicalSkillsManager({ skills, status, detail }: Props) {
                 skills.map((skill) => (
                   <tr key={skill.id} className="border-b last:border-0">
                     <td className="px-3 py-2 font-medium">{skill.category}</td>
-                    <td className="text-muted-foreground px-3 py-2">
-                      {skill.skills.join(", ")}
-                    </td>
+                    <td className="text-muted-foreground px-3 py-2">{skill.skills.join(", ")}</td>
                     <td className="px-3 py-2">{skill.order_index}</td>
                     <td className="px-3 py-2">
                       <Button size="sm" variant="outline" onClick={() => handleOpen(skill.id)}>

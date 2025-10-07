@@ -223,7 +223,7 @@ export default async function ProfilePage() {
           </div>
           <div className="space-y-4">
             {technicalSkills.map((skillSet) => (
-              <div key={skillSet.id} className="rounded-lg border bg-card p-4 shadow-sm">
+              <div key={skillSet.id} className="bg-card rounded-lg border p-4 shadow-sm">
                 <h3 className="text-foreground mb-2 font-semibold">{skillSet.category}</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">
                   {skillSet.skills.join(", ")}
