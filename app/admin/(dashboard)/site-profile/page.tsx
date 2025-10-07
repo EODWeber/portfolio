@@ -10,6 +10,7 @@ import {
   fetchProfilePillars,
   fetchProfileRecognitions,
   fetchProfileSpeaking,
+  fetchProfileTechnicalSkills,
   fetchProfileTestimonials,
   fetchSiteProfile,
 } from "@/lib/admin/queries";
@@ -20,6 +21,7 @@ import { PersonalEntriesManager } from "./personal-entries-manager";
 import { PillarsManager } from "./pillars-manager";
 import { RecognitionManager } from "./recognition-manager";
 import { SpeakingManager } from "./speaking-manager";
+import { TechnicalSkillsManager } from "./technical-skills-manager";
 import { TestimonialsManager } from "./testimonials-manager";
 
 function matchStatus(status: string | undefined, prefix: string) {
@@ -35,16 +37,25 @@ export default async function SiteProfileAdminPage({
   const status = typeof sp?.status === "string" ? sp.status : undefined;
   const detail = typeof sp?.what === "string" ? sp.what : undefined;
 
-  const [profile, pillars, highlights, speaking, recognitions, testimonials, personalEntries] =
-    await Promise.all([
-      fetchSiteProfile(),
-      fetchProfilePillars(),
-      fetchProfileCareerHighlights(),
-      fetchProfileSpeaking(),
-      fetchProfileRecognitions(),
-      fetchProfileTestimonials(),
-      fetchProfilePersonalEntries(),
-    ]);
+  const [
+    profile,
+    pillars,
+    highlights,
+    speaking,
+    recognitions,
+    testimonials,
+    personalEntries,
+    technicalSkills,
+  ] = await Promise.all([
+    fetchSiteProfile(),
+    fetchProfilePillars(),
+    fetchProfileCareerHighlights(),
+    fetchProfileSpeaking(),
+    fetchProfileRecognitions(),
+    fetchProfileTestimonials(),
+    fetchProfilePersonalEntries(),
+    fetchProfileTechnicalSkills(),
+  ]);
 
   const profileSaved = status === "profile-saved";
   const pillarStatus = matchStatus(status, "pillar-");
@@ -53,6 +64,7 @@ export default async function SiteProfileAdminPage({
   const recognitionStatus = matchStatus(status, "recognition-");
   const testimonialStatus = matchStatus(status, "testimonial-");
   const personalStatus = matchStatus(status, "personal-");
+  const techSkillStatus = matchStatus(status, "tech-skill-");
 
   return (
     <div className="space-y-8">
@@ -271,6 +283,30 @@ export default async function SiteProfileAdminPage({
                   />
                 </div>
               </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="tech_skills_title">
+                    Technical Skills Section Title
+                  </label>
+                  <Input
+                    id="tech_skills_title"
+                    name="tech_skills_title"
+                    defaultValue={profile?.tech_skills_title ?? ""}
+                    placeholder="Technical Skills Summary"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="tech_skills_subtitle">
+                    Technical Skills Section Subtitle
+                  </label>
+                  <Input
+                    id="tech_skills_subtitle"
+                    name="tech_skills_subtitle"
+                    defaultValue={profile?.tech_skills_subtitle ?? ""}
+                    placeholder="Core technologies and tools across security, development, and operations."
+                  />
+                </div>
+              </div>
               {profileSaved ? <p className="text-sm text-emerald-600">Profile saved.</p> : null}
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="text-muted-foreground text-xs">
@@ -293,6 +329,11 @@ export default async function SiteProfileAdminPage({
           pillars={pillars}
           status={pillarStatus}
           detail={pillarStatus ? detail : undefined}
+        />
+        <TechnicalSkillsManager
+          skills={technicalSkills}
+          status={techSkillStatus}
+          detail={techSkillStatus ? detail : undefined}
         />
         <CareerHighlightsManager
           highlights={highlights}

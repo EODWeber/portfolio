@@ -288,7 +288,9 @@ insert into public.site_profile (
   cta_secondary_label,
   cta_secondary_url,
   career_cta_label,
-  career_cta_url
+  career_cta_url,
+  tech_skills_title,
+  tech_skills_subtitle
 )
 values (
   '22222222-2222-2222-2222-222222222222',
@@ -316,7 +318,9 @@ values (
   'Contact me',
   'mailto:jeff@example.com',
   'Read full case studies →',
-  '/case-studies'
+  '/case-studies',
+  'Technical Skills Summary',
+  'Core technologies and tools across security, development, and operations.'
 )
 on conflict (id) do update set
   full_name = excluded.full_name,
@@ -344,6 +348,8 @@ on conflict (id) do update set
   cta_secondary_url = excluded.cta_secondary_url,
   career_cta_label = excluded.career_cta_label,
   career_cta_url = excluded.career_cta_url,
+  tech_skills_title = excluded.tech_skills_title,
+  tech_skills_subtitle = excluded.tech_skills_subtitle,
   updated_at = now();
 
 -- Profile pillars -------------------------------------------------------------
@@ -577,6 +583,33 @@ on conflict (id) do update set
   title = excluded.title,
   description = excluded.description,
   icon_slug = excluded.icon_slug,
+  order_index = excluded.order_index,
+  updated_at = now();
+
+-- Technical skills ------------------------------------------------------------
+insert into public.profile_technical_skills (id, category, skills, order_index)
+values
+  (
+    '99999999-9999-4999-8999-999999999991',
+    'Security & Compliance',
+    '{"Microsoft Sentinel","Splunk","SentinelOne","Microsoft Defender","CrowdStrike","Wiz","Prisma Cloud","Tenable"}',
+    0
+  ),
+  (
+    '99999999-9999-4999-8999-999999999992',
+    'Cloud & Infrastructure',
+    '{"AWS","Azure","GCP","Kubernetes","Docker","Terraform","CloudFormation","Ansible"}',
+    1
+  ),
+  (
+    '99999999-9999-4999-8999-999999999993',
+    'Development & Automation',
+    '{"Python","TypeScript","Go","Bash","PowerShell","GitHub Actions","GitLab CI","Jenkins"}',
+    2
+  )
+on conflict (id) do update set
+  category = excluded.category,
+  skills = excluded.skills,
   order_index = excluded.order_index,
   updated_at = now();
 
