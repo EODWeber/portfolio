@@ -26,6 +26,8 @@ const profileSchema = z.object({
   cta_secondary_url: z.string().optional(),
   career_cta_label: z.string().optional(),
   career_cta_url: z.string().optional(),
+  tech_skills_title: z.string().optional(),
+  tech_skills_subtitle: z.string().optional(),
 });
 
 const orderField = z.coerce.number().int().min(0).optional();
@@ -84,6 +86,13 @@ const personalSchema = z.object({
   order_index: orderField,
 });
 
+const technicalSkillSchema = z.object({
+  id: z.string().optional(),
+  category: z.string().min(1),
+  skills: z.string().min(1), // comma-separated string that will be parsed to array
+  order_index: orderField,
+});
+
 function getString(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === "string" ? value : undefined;
@@ -129,6 +138,8 @@ export async function upsertSiteProfile(formData: FormData) {
     cta_secondary_url: getString(formData, "cta_secondary_url"),
     career_cta_label: getString(formData, "career_cta_label"),
     career_cta_url: getString(formData, "career_cta_url"),
+    tech_skills_title: getString(formData, "tech_skills_title"),
+    tech_skills_subtitle: getString(formData, "tech_skills_subtitle"),
   });
 
   const admin = createSupabaseAdminClient();
@@ -151,6 +162,8 @@ export async function upsertSiteProfile(formData: FormData) {
     cta_secondary_url: cleanText(payload.cta_secondary_url),
     career_cta_label: cleanText(payload.career_cta_label),
     career_cta_url: cleanText(payload.career_cta_url),
+    tech_skills_title: cleanText(payload.tech_skills_title),
+    tech_skills_subtitle: cleanText(payload.tech_skills_subtitle),
   });
 
   if (error) {
@@ -335,4 +348,38 @@ export async function upsertProfilePersonalEntry(formData: FormData) {
 
 export async function deleteProfilePersonalEntry(formData: FormData) {
   return deleteRow(formData, "profile_personal_entries", "personal-deleted");
+}
+
+export async function upsertProfileTechnicalSkill(formData: FormData) {
+  await requireAdminUser();
+
+  const payload = technicalSkillSchema.parse({
+    id: getString(formData, "id"),
+    category: getString(formData, "category") ?? "",
+    skills: getString(formData, "skills") ?? "",
+    order_index: parseInt(getString(formData, "order_index") ?? "0"),
+  });
+
+  // Parse comma-separated skills into array
+  const skillsArray = payload.skills
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+
+  const admin = createSupabaseAdminClient();
+  const { error } = await admin.from("profile_technical_skills").upsert({
+    id: payload.id || undefined,
+    category: payload.category,
+    skills: skillsArray,
+    order_index: orderValue(payload.order_index, 0),
+  });
+
+  if (error) throw new Error(error.message);
+
+  revalidateProfile();
+  redirect("/admin/site-profile?status=tech-skill-saved");
+}
+
+export async function deleteProfileTechnicalSkill(formData: FormData) {
+  return deleteRow(formData, "profile_technical_skills", "tech-skill-deleted", "category");
 }

@@ -186,6 +186,8 @@ alter table public.site_profile add column if not exists cta_secondary_label tex
 alter table public.site_profile add column if not exists cta_secondary_url text;
 alter table public.site_profile add column if not exists career_cta_label text;
 alter table public.site_profile add column if not exists career_cta_url text;
+alter table public.site_profile add column if not exists tech_skills_title text;
+alter table public.site_profile add column if not exists tech_skills_subtitle text;
 
 create table if not exists public.profile_pillars (
   id uuid primary key default gen_random_uuid(),
@@ -259,6 +261,16 @@ create table if not exists public.profile_personal_entries (
 );
 create index if not exists profile_personal_entries_order_idx on public.profile_personal_entries (order_index, created_at);
 
+create table if not exists public.profile_technical_skills (
+  id uuid primary key default gen_random_uuid(),
+  category text not null,
+  skills text[] not null default '{}'::text[],
+  order_index integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists profile_technical_skills_order_idx on public.profile_technical_skills (order_index, created_at);
+
 create table if not exists public.contact_links (
   id uuid primary key default gen_random_uuid(),
   label text not null,
@@ -318,6 +330,7 @@ alter table public.profile_speaking_engagements enable row level security;
 alter table public.profile_recognitions enable row level security;
 alter table public.profile_testimonials enable row level security;
 alter table public.profile_personal_entries enable row level security;
+alter table public.profile_technical_skills enable row level security;
 
 -- Notifications ------------------------------------------------------
 -- Ensure settings table exists (add template columns if missing)
@@ -478,6 +491,12 @@ begin
     select 1 from pg_policies where schemaname='public' and tablename='profile_personal_entries' and policyname='profile_personal_entries_public_read'
   ) then
     execute 'create policy "profile_personal_entries_public_read" on public.profile_personal_entries for select to public using (true);';
+  end if;
+
+  if not exists (
+    select 1 from pg_policies where schemaname='public' and tablename='profile_technical_skills' and policyname='profile_technical_skills_public_read'
+  ) then
+    execute 'create policy "profile_technical_skills_public_read" on public.profile_technical_skills for select to public using (true);';
   end if;
 
   if not exists (
