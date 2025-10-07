@@ -10,6 +10,7 @@ import {
   getProfilePillars,
   getProfileRecognitions,
   getProfileSpeaking,
+  getProfileTechnicalSkills,
   getProfileTestimonials,
   getResumes,
   getSiteProfile,
@@ -28,6 +29,7 @@ export default async function ProfilePage() {
     settings,
     resumes,
     pillars,
+    technicalSkills,
     careerHighlights,
     speaking,
     recognitions,
@@ -38,6 +40,7 @@ export default async function ProfilePage() {
     getSiteSettings(),
     getResumes(),
     getProfilePillars(),
+    getProfileTechnicalSkills(),
     getProfileCareerHighlights(),
     getProfileSpeaking(),
     getProfileRecognitions(),
@@ -204,6 +207,29 @@ export default async function ProfilePage() {
                 <div key={pillar.id}>{content}</div>
               );
             })}
+          </div>
+        </section>
+      ) : null}
+
+      {technicalSkills.length > 0 ? (
+        <section className="space-y-6">
+          <div>
+            <h2 className="text-2xl font-semibold">
+              {profile.tech_skills_title || "Technical Skills Summary"}
+            </h2>
+            {profile.tech_skills_subtitle ? (
+              <p className="text-muted-foreground text-sm">{profile.tech_skills_subtitle}</p>
+            ) : null}
+          </div>
+          <div className="space-y-4">
+            {technicalSkills.map((skillSet) => (
+              <div key={skillSet.id} className="rounded-lg border bg-card p-4 shadow-sm">
+                <h3 className="text-foreground mb-2 font-semibold">{skillSet.category}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  {skillSet.skills.join(", ")}
+                </p>
+              </div>
+            ))}
           </div>
         </section>
       ) : null}

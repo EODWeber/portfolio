@@ -12,6 +12,7 @@ import type {
   ProfilePillar,
   ProfileRecognition,
   ProfileSpeakingEngagement,
+  ProfileTechnicalSkill,
   ProfileTestimonial,
   Project,
   Resume,
@@ -418,6 +419,16 @@ export const getProfilePersonalEntries = cache(async (): Promise<ProfilePersonal
     .order("order_index", { ascending: true })
     .order("created_at", { ascending: true });
   return unwrap<ProfilePersonalEntry[]>(data, error, "Unable to load personal entries");
+});
+
+export const getProfileTechnicalSkills = cache(async (): Promise<ProfileTechnicalSkill[]> => {
+  const supabase = await getClient();
+  const { data, error } = await supabase
+    .from("profile_technical_skills")
+    .select("*")
+    .order("order_index", { ascending: true })
+    .order("created_at", { ascending: true });
+  return unwrap<ProfileTechnicalSkill[]>(data, error, "Unable to load technical skills");
 });
 
 export const getContactLinks = cache(async (): Promise<ContactLink[]> => {

@@ -162,6 +162,15 @@ export type ProfilePersonalEntry = {
   updated_at: string;
 };
 
+export type ProfileTechnicalSkill = {
+  id: string;
+  category: string;
+  skills: string[];
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type SiteProfile = {
   id: string;
   full_name: string;
@@ -189,6 +198,8 @@ export type SiteProfile = {
   cta_secondary_url?: string | null;
   career_cta_label?: string | null;
   career_cta_url?: string | null;
+  tech_skills_title?: string | null;
+  tech_skills_subtitle?: string | null;
   created_at: string;
   updated_at: string;
 };

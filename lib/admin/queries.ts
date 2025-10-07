@@ -7,6 +7,7 @@ import type {
   ProfilePillar,
   ProfileRecognition,
   ProfileSpeakingEngagement,
+  ProfileTechnicalSkill,
   ProfileTestimonial,
   Project,
   Resume,
@@ -238,6 +239,17 @@ export async function fetchProfilePersonalEntries(): Promise<ProfilePersonalEntr
     .order("created_at", { ascending: true });
   if (error) throw new Error(error.message);
   return (data as ProfilePersonalEntry[]) ?? [];
+}
+
+export async function fetchProfileTechnicalSkills(): Promise<ProfileTechnicalSkill[]> {
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .from("profile_technical_skills")
+    .select("*")
+    .order("order_index", { ascending: true })
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data as ProfileTechnicalSkill[]) ?? [];
 }
 
 export async function fetchEventSummary(): Promise<Array<{ type: string; count: number }>> {
